@@ -1,0 +1,59 @@
+# 此处设置用于覆盖原始的 Clash/Mihomo 配置文件
+
+# 启用 DNS 覆盖后采用
+dns-override:
+  enable: true
+  ipv6: false
+  respect-rules: true
+  enhanced-mode: redir-host
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+    - 'tls://dns.alidns.com'
+    - 'https://dns.alidns.com/dns-query'
+  nameserver-policy:
+    'geosite:gfw':
+      - 8.8.8.8
+      - 1.1.1.1
+      - 'tls://8.8.8.8'
+      - 'tls://1.1.1.1'
+    'geosite:private':
+      - system
+
+# 启用 Fake-IP 后采用
+fake-ip-dns:
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.0/16
+  fake-ip-filter-mode: blacklist
+  fake-ip-filter:
+    - '*.lan'
+    - '*.localdomain'
+    - '*.localhost'
+    - '*.local'
+    - '*.home.arpa'
+    - stun.*.*
+    - stun.*.*.*
+    - +.stun.*.*
+    - +.stun.*.*.*
+    - +.stun.*.*.*.*
+
+# 启用 Redir-Host 后采用
+redir-host-dns:
+  enhanced-mode: redir-host
+
+# Tun 配置覆盖, 无论如何都会启用
+tun-override:
+  enable: true
+  stack: mixed
+  auto-redirect: true
+  auto-detect-interface: true
+
+# 永远覆盖, 弱合并
+always-override:
+  unified-delay: true
+  profile:
+    store-selected: true
+    store-fake-ip: true

@@ -1,9 +1,10 @@
-import asyncio
+from http.client import HTTPResponse
+import json
 import os
 from pathlib import Path
 import shutil
-import subprocess
-from typing import Any
+from typing import Any, Dict, List, Optional, Tuple
+import urllib.request
 
 import config
 from core import CoreController
@@ -11,6 +12,7 @@ import dashboard
 import decky
 from decky import logger
 
+import subscription
 import upgrade
 from metadata import CORE_REPO, PACKAGE_NAME
 from settings import SettingsManager
@@ -20,7 +22,6 @@ import utils
 class Plugin:
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def _main(self):
-        self.loop = asyncio.get_event_loop()
         self.settings = SettingsManager(
             name="config", settings_directory=decky.DECKY_PLUGIN_SETTINGS_DIR
         )
@@ -32,12 +33,15 @@ class Plugin:
                 Path(decky.DECKY_PLUGIN_DIR, "resource"),
                 decky.DECKY_PLUGIN_RUNTIME_DIR,
             )
-            self.settings.setSetting("initialized", True)
-            self.settings.setSetting("secret", utils.rand_secret())
-            self.settings.setSetting("override_dns", True)
-            self.settings.setSetting("enhanced_mode", config.EnhancedMode.FakeIP.value)
-            self.settings.setSetting("controller_port", 9090)
-            self.settings.setSetting("allow_remote_access", False)
+        self._set_default("initialized", True)
+        self._set_default("subscriptions", {})
+        self._set_default("secret", utils.rand_thing())
+        self._set_default("override_dns", True)
+        self._set_default("enhanced_mode", config.EnhancedMode.FakeIP.value)
+        self._set_default("controller_port", 9090)
+        self._set_default("allow_remote_access", False)
+        dashboard_list = dashboard.get_dashboard_list()
+        self._set_default("dashboard", dashboard_list[0] if len(dashboard_list) > 0 else None)
 
         self.core = CoreController()
         self.core.set_exit_callback(lambda x: decky.emit("core_exit", x))
@@ -50,25 +54,54 @@ class Plugin:
         return self.core.is_running
 
     async def set_core_status(self, status: bool) -> None:
-        if status:
-            path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "running_config.yaml")
-            await config.generate_config(
-                self._get("current_config"),
-                path,
-                self._get("secret"),
-                self._get("override_dns"),
-                self._get("enhanced_mode"),
-                self._get("controller_port"),
-                self._get("allow_remote_access"),
-                str(dashboard.DASHBOARD_DIR),
-            )
-            await self.core.start(path)
+        try:
+            if status:
+                path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "running_config.yaml")
+                await config.generate_config(
+                    subscription.get_path(self._get("current")),
+                    path,
+                    self._get("secret"),
+                    self._get("override_dns"),
+                    self._get("enhanced_mode"),
+                    self._get("controller_port"),
+                    self._get("allow_remote_access"),
+                    str(dashboard.DASHBOARD_DIR),
+                    self._get("dashboard")
+                )
+                await self.core.start(path)
+            else:
+                await self.core.stop()
+        except Exception as e:
+            logger.error(f"set_core_status: failed with {e}")
+
+    async def restart_core(self) -> bool:
+        logger.info("soft restarting core ...")
+        port = self._get("controller_port")
+        payload = json.dumps({"payload": ""})
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self._get("secret")}",
+        }
+        req = urllib.request.Request(f"http://127.0.0.1:{port}/restart",
+                                     data=payload.encode(),
+                                     headers=headers,
+                                     method="POST")
+        try:
+            resp: HTTPResponse = urllib.request.urlopen(req)
+        except Exception as e:
+            logger.error(f"restart_core: failed with {e}")
+            return False
+        
+        if resp.status == 200:
+            return True
         else:
-            await self.core.stop()
+            logger.error(f"restart_core: failed with status code {resp.status}")
+            return False
 
     async def get_config(self) -> dict:
         return {
-            "current_config": self._get("current_config", True),
+            "status": self.core.is_running,
+            "current": self._get("current", True),
             "secret": self._get("secret"),
             "override_dns": self._get("override_dns"),
             "enhanced_mode": self._get("enhanced_mode"),
@@ -77,15 +110,25 @@ class Plugin:
             "dashboard": self._get("dashboard", True),
         }
 
-    async def get_config_value(self, key):
+    async def get_config_value(self, key: str):
         return self.settings.getSetting(key)
 
-    async def set_config_value(self, key, value):
+    async def set_config_value(self, key: str, value: Any):
+        PERMITTED_KEYS = [
+            "current",
+            "override_dns",
+            "enhanced_mode",
+            "allow_remote_access",
+            "dashboard",
+        ]
+        if key not in PERMITTED_KEYS:
+            logger.error(f"not permitted key: {key}")
+            return
         self.settings.setSetting(key, value)
         logger.info(f"save config: {key} : {value}")
 
     async def upgrade_to_latest(self):
-        return upgrade.upgrade_to_latest()
+        await upgrade.upgrade_to_latest()
 
     async def get_version(self):
         version = upgrade.get_version()
@@ -96,9 +139,11 @@ class Plugin:
         return version
 
     async def upgrade_to_latest_core(self):
-        await self.core.stop()
-        upgrade.upgrade_to_latest_core()
-        return
+        try:
+            await self.core.stop()
+            await upgrade.upgrade_to_latest_core()
+        except Exception as e:
+            logger.error(f"upgrade_to_latest_core: failed with {e}")
 
     async def get_version_core(self):
         version = CoreController.get_version()
@@ -107,13 +152,64 @@ class Plugin:
     async def get_latest_version_core(self):
         version = upgrade.get_latest_version(CORE_REPO)
         return version
-    
+
     async def get_dashboard_list(self):
         dashboard_list = dashboard.get_dashboard_list()
         return dashboard_list
-    
+
+    async def get_subscription_list(self) -> Dict[str, str]:
+        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        failed = subscription.check_subs(subs)
+        if len(failed) > 0:
+            [subs.pop(x) for x in failed]
+            self.settings.setSetting("subscriptions", subs)
+        return subs
+
+    async def update_all_subscriptions(self) -> List[str]:
+        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        return await subscription.update_subs(subs)
+
+    async def download_subscription(self, url: str) -> Tuple[bool, Optional[str]]:
+        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        ok, data = await subscription.download_sub(url, subs)
+        if ok:
+            name, url = data
+            subs[name] = url
+            self.settings.setSetting("subscriptions", subs)
+            if self.settings.getSetting("current") is None:
+                self.settings.setSetting("current", name)
+            return True, None
+        else:
+            return False, error # type: ignore
+
+    async def remove_subscription(self, name: str) -> bool:
+        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        if name in subs:
+            subs.pop(name)
+            try:
+                os.remove(subscription.get_path(name))
+            except Exception as e:
+                logger.error(f"remove_subscription: {e}")
+            if self.settings.getSetting("current") == name:
+                self.settings.setSetting("current", None)
+            self.settings.setSetting("subscriptions", subs)
+            return True
+        else:
+            return False
+
+    async def set_current(self, name: str) -> bool:
+        if name in self.settings.getSetting("subscriptions"):
+            self.settings.setSetting("current", name)
+            return True
+        else:
+            return False
+
     def _get(self, key: str, allow_none: bool = False) -> Any:
         if allow_none:
             return self.settings.getSetting(key)
         else:
             return utils.not_none(self.settings.getSetting(key))
+
+    def _set_default(self, key: str, value: Any):
+        if not self.settings.getSetting(key):
+            self.settings.setSetting(key, value)

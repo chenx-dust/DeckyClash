@@ -31,136 +31,71 @@ import { EnhancedMode } from "./backend";
 import { ActionButtonItem, VersionComponent } from "./components";
 import { localizationManager, L } from "./i18n";
 
-let enabledGlobal = false;
-let enabledSkipProxy = false;
-let enabledOverrideDNS = false;
-let usdplReady = false;
-let subs: any[];
-let subs_option: any[];
-let current_sub = "";
-let enhanced_mode = EnhancedMode.FakeIp;
-let dashboard_list: string[];
-let current_dashboard = "";
-let allow_remote_access = false;
-let _secret = "";
+let shared_subs: Record<string, string> = {}
 
 const Content: FC<{}> = ({}) => {
-  if (!usdplReady) {
-    return <PanelSection>Init...</PanelSection>;
-  }
-  const [clashState, setClashState] = useState(enabledGlobal);
-  backend.resolve(backend.getEnabled(), setClashState);
-  const [options, setOptions] = useState<DropdownOption[]>(subs_option);
-  const [optionDropdownDisabled, setOptionDropdownDisabled] =
-    useState(enabledGlobal);
-  const [openDashboardDisabled, setOpenDashboardDisabled] = useState(
-    !enabledGlobal
-  );
-  const [isSelectionDisabled, setIsSelectionDisabled] = useState(false);
-  const [SelectionTips, setSelectionTips] = useState(
+  const [clashState, setClashState] = useState(false);
+  const [exitCode, setExitCode] = useState<number | null>(null);
+  const [subOptions, setSubOptions] = useState<DropdownOption[]>([]);
+  const [selectionTips, setSelectionTips] = useState(
     localizationManager.getString(L.ENABLE_CLASH_DESC)
   );
-  const [overrideDNSState, setOverrideDNSState] = useState(enabledOverrideDNS);
-  const [currentSub, setCurrentSub] = useState<string>(current_sub);
-  const [enhancedMode, setEnhancedMode] = useState<EnhancedMode>(enhanced_mode);
-  const [dashboardList, setDashboardList] = useState<string[]>(dashboard_list);
-  const [currentDashboard, setCurrentDashboard] =
-    useState<string>(current_dashboard);
-  const [allowRemoteAccess, setAllowRemoteAccess] =
-    useState(allow_remote_access);
-  const [secret, setSecret] = useState<string>(_secret);
+  const [overrideDNS, setOverrideDNS] = useState(true);
+  const [currentSub, setCurrentSub] = useState<string | null>(null);
+  const [enhancedMode, setEnhancedMode] = useState<EnhancedMode>(EnhancedMode.FakeIp);
+  const [currentDashboard, setCurrentDashboard] = useState<string | null>(null);
+  const [dashboardOptions, setDashboardOption] = useState<DropdownOption[]>([]);
+  const [allowRemoteAccess, setAllowRemoteAccess] = useState(false);
+  const [secret, setSecret] = useState<string>();
 
-  const update_subs = () => {
-    backend.resolve(backend.getSubList(), (v: String) => {
-      // console.log(`getSubList: ${v}`);
-      let x: Array<any> = JSON.parse(v.toString());
-      let re = new RegExp("(?<=subs/).+.yaml$");
-      let i = 0;
-      subs = x.map((x) => {
-        let name = re.exec(x.path);
-        return {
-          id: i++,
-          name: name![0],
-          url: x.url,
-        };
+  const updateSubscriptions = async () => {
+    const subs = await backend.getSubscriptionList();
+    shared_subs = subs;
+
+    let items: DropdownOption[] = [];
+
+    for (const key in subs) {
+      items.push({
+        label: key,
+        data: key,
       });
-      let items = x.map((x) => {
-        let name = re.exec(x.path);
-        return {
-          label: name![0],
-          data: x.path,
-        };
+    }
+    setSubOptions(items);
+  };
+  const updateDashboards = async () => {
+    const subs = await backend.getDashboardList();
+    let items: DropdownOption[] = [];
+
+    for (const name in subs) {
+      items.push({
+        label: name,
+        data: name,
       });
-      subs_option = items;
-      setOptions(subs_option);
-      console.log("Subs ready");
-      setIsSelectionDisabled(i == 0);
-      //console.log(sub);
-    });
+    }
+    setDashboardOption(items);
   };
 
-  const getConfig = async () => {
-    await backend.getConfig().then((res) => {
-      console.log(
-        `~~~~~~~~~~~~~~~~~~~ getConfig: ${JSON.stringify(res.data, null, 2)}`
-      );
-      if (res.data.status_code == 200) {
-        enabledSkipProxy = res.data.skip_proxy;
-        enabledOverrideDNS = res.data.override_dns;
-        enhanced_mode = res.data.enhanced_mode;
-        allow_remote_access = res.data.allow_remote_access;
-        _secret = res.data.secret;
-
-        setSkipProxyState(enabledSkipProxy);
-        setOverrideDNSState(enabledOverrideDNS);
-        setEnhancedMode(enhanced_mode);
-        setAllowRemoteAccess(allow_remote_access);
-        setSecret(_secret);
-      }
-    });
+  const updateConfig = async () => {
+    const config = await backend.getConfig();
+    setClashState(config.status);
+    setCurrentSub(config.current);
+    setSecret(config.secret);
+    setOverrideDNS(config.override_dns);
+    setEnhancedMode(config.enhanced_mode);
+    setAllowRemoteAccess(config.allow_remote_access);
+    setCurrentDashboard(config.dashboard);
   };
 
   useEffect(() => {
-    const getCurrentSub = async () => {
-      const sub = await backend.getCurrentSub();
-      setCurrentSub(sub);
-    };
+    updateConfig();
+    updateSubscriptions();
+    updateDashboards();
+  });
 
-    const getDashboardList = async () => {
-      // console.log(`>>>>>> getDashboardList`);
-      const list = await PyBackend.getDashboardList();
-      console.log(`>>>>>> getDashboardList: ${list}`);
-      setDashboardList(list);
-    };
-
-    const getCurrentDashboard = async () => {
-      const dashboard = await PyBackend.getCurrentDashboard();
-      setCurrentDashboard(dashboard);
-    };
-
-    const loadDate = async () => {
-      await getConfig();
-
-      getCurrentSub();
-      getDashboardList();
-      getCurrentDashboard();
-      update_subs();
-    };
-
-    loadDate();
-  }, []);
-
-  useEffect(() => {
-    current_sub = currentSub;
-  }, [currentSub]);
-
-  useEffect(() => {
-    dashboard_list = dashboardList;
-  }, [dashboardList]);
-
-  useEffect(() => {
-    current_dashboard = currentDashboard;
-  }, [currentDashboard]);
+  addEventListener("core_exit", (code: number) => {
+    setExitCode(code);
+    setClashState(false);
+  });
 
   const enhancedModeOptions = [
     { mode: EnhancedMode.RedirHost, label: "Redir Host" },
@@ -191,80 +126,49 @@ const Content: FC<{}> = ({}) => {
         <PanelSectionRow>
           <ToggleField
             label={localizationManager.getString(L.ENABLE_CLASH)}
-            description={SelectionTips}
+            description={selectionTips}
             checked={clashState}
             onChange={(value: boolean) => {
-              setIsSelectionDisabled(true);
-              setSelectionTips(
-                localizationManager.getString(L.ENABLE_CLASH_LOADING)
-              );
-              backend.resolve(backend.setEnabled(value), (v: boolean) => {
-                enabledGlobal = v;
-                setIsSelectionDisabled(false);
-              });
-              //获取 Clash 启动状态
-              if (!clashState) {
-                let check_running_handle = setInterval(() => {
-                  backend.resolve(backend.getRunningStatus(), (v: String) => {
-                    // console.log(v);
-                    switch (v) {
-                      case "Loading":
-                        setSelectionTips(
-                          localizationManager.getString(L.ENABLE_CLASH_LOADING)
-                        );
-                        break;
-                      case "Failed":
-                        setSelectionTips(
-                          localizationManager.getString(L.ENABLE_CLASH_FAILED)
-                        );
-                        setClashState(false);
-                        break;
-                      case "Success":
-                        setSelectionTips(
-                          localizationManager.getString(
-                            L.ENABLE_CLASH_IS_RUNNING
-                          )
-                        );
-                        getConfig();
-                        break;
-                    }
-                    if (v != "Loading") {
-                      clearInterval(check_running_handle);
-                    }
-                  });
-                }, 500);
-              } else {
+              // 内核操作
+              if (value) {
+                setExitCode(null);
+                backend.setCoreStatus(true);
+              } else if (exitCode === null) {
+                backend.setCoreStatus(false);
+              }
+              // 提示操作
+              if (value) {
+                setSelectionTips(
+                  localizationManager.getString(L.ENABLE_CLASH_IS_RUNNING)
+                );
+              } else if (exitCode === null || exitCode == 0) {
                 setSelectionTips(
                   localizationManager.getString(L.ENABLE_CLASH_DESC)
                 );
+              } else {
+                setSelectionTips(
+                  localizationManager.getString(L.ENABLE_CLASH_FAILED) + exitCode
+                );
               }
-              setOptionDropdownDisabled(value);
-              setOpenDashboardDisabled(!value);
             }}
-            disabled={isSelectionDisabled}
           />
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
-            disabled={optionDropdownDisabled}
             strDefaultLabel={localizationManager.getString(
               L.SELECT_SUBSCRIPTION
             )}
-            rgOptions={options}
+            rgOptions={subOptions}
             selectedOption={currentSub}
-            onMenuWillOpen={() => {
-              update_subs();
-              // setOptions(subs_option);
+            onMenuWillOpen={updateSubscriptions}
+            onChange={async (x) => {
+              const success = await backend.setCurrent(x.data);
+              if (!success)
+                setCurrentSub(localizationManager.getString(
+                  L.SELECT_SUBSCRIPTION
+                ));
             }}
-            onChange={(x) => {
-              const setSub = async () => {
-                await backend.setSub(x.data);
-                await ApiCallBackend.reloadClashConfig();
-              };
-              backend.resolve(setSub(), () => {
-                setIsSelectionDisabled(false);
-              });
-            }}
+            disabled={subOptions.length == 0}
           />
         </PanelSectionRow>
         <PanelSectionRow>
@@ -272,7 +176,7 @@ const Content: FC<{}> = ({}) => {
             layout="below"
             onClick={() => {
               Router.CloseSideMenus();
-              Router.Navigate("/tomoon-config");
+              Router.Navigate("/clash-config");
             }}
           >
             {localizationManager.getString(L.MANAGE_SUBSCRIPTIONS)}
@@ -285,13 +189,11 @@ const Content: FC<{}> = ({}) => {
               Router.CloseSideMenus();
               let param = "";
               let page = "setup";
-              const currentDashboard_name =
-                currentDashboard.split("/").pop() || "yacd-meta";
-              if (currentDashboard_name) {
-                param = `/${currentDashboard_name}/#`;
+              if (currentDashboard) {
+                param = `/${currentDashboard}/#`;
                 if (secret) {
                   // secret 不为空时，使用完整的参数，但是不同 dashboard 使用不同的 page
-                  switch (currentDashboard_name) {
+                  switch (currentDashboard) {
                     case "metacubexd":
                     case "zashboard":
                       page = "setup";
@@ -301,7 +203,7 @@ const Content: FC<{}> = ({}) => {
                       break;
                   }
                   param += `/${page}?hostname=127.0.0.1&port=9090&secret=${secret}`;
-                } else if (currentDashboard_name == "metacubexd") {
+                } else if (currentDashboard == "metacubexd") {
                   // 即使没有设置 secret，metacubexd 也会有奇怪的跳转问题，加上host和port
                   param += `/${page}?hostname=127.0.0.1&port=9090`;
                 }
@@ -310,7 +212,7 @@ const Content: FC<{}> = ({}) => {
                 "http://127.0.0.1:9090/ui" + param
               );
             }}
-            disabled={openDashboardDisabled}
+            disabled={!clashState && currentDashboard === undefined}
           >
             {localizationManager.getString(L.OPEN_DASHBOARD)}
           </ButtonItem>
@@ -319,18 +221,11 @@ const Content: FC<{}> = ({}) => {
           <DropdownItem
             label={localizationManager.getString(L.SELECT_DASHBOARD)}
             strDefaultLabel={localizationManager.getString(L.SELECT_DASHBOARD)}
-            rgOptions={(dashboardList || []).map((path) => {
-              return {
-                label: path.split("/").pop(),
-                data: path,
-              };
-            })}
+            rgOptions={dashboardOptions}
             selectedOption={currentDashboard}
-            onChange={(val) => {
-              console.log(`>>>>>>>>>>>>>>>> selected dashboard: ${val.data}`);
-              current_dashboard = val.data;
-              PyBackend.setCurrentDashboard(val.data);
-              ApiCallBackend.setDashboard(val.data.split("/").pop());
+            onMenuWillOpen={updateDashboards}
+            onChange={(value) => {
+              backend.setConfigValue("dashboard", value.data);
             }}
           />
         </PanelSectionRow>
@@ -342,19 +237,7 @@ const Content: FC<{}> = ({}) => {
             )}
             checked={allowRemoteAccess}
             onChange={(value: boolean) => {
-              ApiCallBackend.allowRemoteAccess(value);
-              setAllowRemoteAccess(value);
-            }}
-          ></ToggleField>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <ToggleField
-            label={localizationManager.getString(L.SKIP_PROXY)}
-            description={localizationManager.getString(L.SKIP_PROXY_DESC)}
-            checked={skipProxyState}
-            onChange={(value: boolean) => {
-              ApiCallBackend.skipProxy(value);
-              setSkipProxyState(value);
+              backend.setConfigValue("allow_remote_access", value);
             }}
           ></ToggleField>
         </PanelSectionRow>
@@ -362,14 +245,13 @@ const Content: FC<{}> = ({}) => {
           <ToggleField
             label={localizationManager.getString(L.OVERRIDE_DNS)}
             description={localizationManager.getString(L.OVERRIDE_DNS_DESC)}
-            checked={overrideDNSState}
+            checked={overrideDNS}
             onChange={(value: boolean) => {
-              ApiCallBackend.overrideDns(value);
-              setOverrideDNSState(value);
+              backend.setConfigValue("override_dns", value);
             }}
           ></ToggleField>
         </PanelSectionRow>
-        {overrideDNSState && (
+        {overrideDNS && (
           <PanelSectionRow>
             <SliderField
               label={localizationManager.getString(L.ENHANCED_MODE)}
@@ -383,7 +265,7 @@ const Content: FC<{}> = ({}) => {
               onChange={(value: number) => {
                 const _enhancedMode = convertEnhancedMode(value);
                 setEnhancedMode(_enhancedMode);
-                ApiCallBackend.enhancedMode(_enhancedMode);
+                backend.setConfigValue("enhanced_mode", _enhancedMode.toString());
               }}
             />
           </PanelSectionRow>
@@ -393,7 +275,7 @@ const Content: FC<{}> = ({}) => {
             disabled={!clashState}
             layout="below"
             onClick={() => {
-              ApiCallBackend.restartClash();
+              backend.restartCore();
             }}
           >
             {localizationManager.getString(L.RESTART_CORE)}
@@ -406,7 +288,7 @@ const Content: FC<{}> = ({}) => {
   );
 };
 
-const DeckyPluginRouterTest: FC = () => {
+const DeckyPluginRouter: FC = () => {
   return (
     <SidebarNavigation
       title="To Moon"
@@ -414,13 +296,13 @@ const DeckyPluginRouterTest: FC = () => {
       pages={[
         {
           title: localizationManager.getString(L.SUBSCRIPTIONS),
-          content: <Subscriptions Subscriptions={subs} />,
-          route: "/tomoon-config/subscriptions",
+          content: <Subscriptions Subscriptions={shared_subs} />,
+          route: "/clash-config/subscriptions",
         },
         {
           title: localizationManager.getString(L.ABOUT),
           content: <About />,
-          route: "/tomoon-config/about",
+          route: "/clash-config/about",
         },
       ]}
     />
@@ -428,26 +310,8 @@ const DeckyPluginRouterTest: FC = () => {
 };
 
 export default definePlugin(() => {
-  // init USDPL WASM and connection to back-end
-  (async function () {
-    await backend.initBackend();
-    await backend.PyBackend.init();
-    await localizationManager.init();
-    usdplReady = true;
-    backend.resolve(backend.getEnabled(), (v: boolean) => {
-      enabledGlobal = v;
-    });
-    ApiCallBackend.getConfig().then((res) => {
-      if (res.data.status_code == 200) {
-        enabledSkipProxy = res.data.skip_proxy;
-        enabledOverrideDNS = res.data.override_dns;
-        enhanced_mode = res.data.enhanced_mode;
-        allow_remote_access = res.data.allow_remote_access;
-      }
-    });
-  })();
-
-  routerHook.addRoute("/tomoon-config", DeckyPluginRouterTest);
+  localizationManager.init();
+  routerHook.addRoute("/clash-config", DeckyPluginRouter);
 
   return {
     // The name shown in various decky menus

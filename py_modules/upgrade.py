@@ -1,3 +1,4 @@
+import asyncio
 import gzip
 import json
 import os
@@ -13,11 +14,12 @@ import core
 import decky
 from decky import logger
 from metadata import CORE_REPO, PACKAGE_REPO
+import utils
 
 def get_github_api_url(repo: str) -> str:
     return f"https://api.github.com/repos/{repo}/releases/latest"
 
-def recursive_chmod(path, perms):
+def recursive_chmod(path: str, perms: int) -> None:
     for dirpath, dirnames, filenames in os.walk(path):
         current_perms = os.stat(dirpath).st_mode
         os.chmod(dirpath, current_perms | perms)
@@ -25,9 +27,9 @@ def recursive_chmod(path, perms):
             os.chmod(os.path.join(dirpath, filename), current_perms | perms)
 
 
-def upgrade_to_latest():
+async def upgrade_to_latest() -> None:
     logger.info("upgrading to latest version")
-    downloaded_filepath = download_latest_build()
+    downloaded_filepath = await download_latest_build()
 
     if os.path.exists(downloaded_filepath):
         plugin_dir = decky.DECKY_PLUGIN_DIR
@@ -35,104 +37,85 @@ def upgrade_to_latest():
         try:
             logger.info(f"removing old plugin from {plugin_dir}")
             # add write perms to directory
-            recursive_chmod(plugin_dir, stat.S_IWUSR)
+            await asyncio.to_thread(recursive_chmod, plugin_dir, stat.S_IWUSR)
 
             # remove old plugin
-            shutil.rmtree(plugin_dir)
+            await asyncio.to_thread(shutil.rmtree, plugin_dir)
         except Exception as e:
             logger.error(f"ota error during removal of old plugin: {e}")
 
         try:
             logger.info(f"extracting ota file to {plugin_dir}")
-            # extract files to decky plugins dir
-            shutil.unpack_archive(
+            await asyncio.to_thread(
+                shutil.unpack_archive,
                 downloaded_filepath,
-                f"{decky.DECKY_USER_HOME}/homebrew/plugins",
+                plugin_dir,
                 format="zip",
             )
 
             # cleanup downloaded files
-            os.remove(downloaded_filepath)
+            await asyncio.to_thread(os.remove, downloaded_filepath)
         except Exception as e:
             logger.error(f"error during ota file extraction {e}")
 
         logger.info("restarting plugin_loader.service")
         cmd = "systemctl restart plugin_loader.service"
-        result = subprocess.run(
+        result = await asyncio.subprocess.create_subprocess_shell(
             cmd,
             shell=True,
-            check=True,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
-        logger.info(result.stdout)
-        return result
-    
+        if result.returncode != 0:
+            logger.error(f"error during ota file extraction {result.stderr}")
+        if result.stdout:
+            logger.debug(result.stdout)
+        if result.stderr:
+            logger.error(result.stderr)
 
-def upgrade_to_latest_core():
+async def upgrade_to_latest_core() -> None:
     logger.info("upgrading to latest version of core")
-    downloaded_filepath = download_latest_core()
+    downloaded_filepath = await download_latest_core()
+    core_path = core.CoreController.CORE_PATH
 
     if os.path.exists(downloaded_filepath):
-        plugin_dir = decky.DECKY_PLUGIN_DIR
 
         try:
-            logger.info(f"removing old plugin from {plugin_dir}")
-            # add write perms to directory
-            recursive_chmod(plugin_dir, stat.S_IWUSR)
-
+            logger.info(f"removing old plugin from {core_path}")
             # remove old plugin
-            shutil.rmtree(plugin_dir)
+            await asyncio.to_thread(os.remove, core_path)
         except Exception as e:
             logger.error(f"ota error during removal of old plugin: {e}")
 
         try:
-            logger.info(f"extracting ota file to {plugin_dir}")
-            # extract files to decky plugins dir
-            # shutil.unpack_archive(
-            #     downloaded_filepath,
-            #     f"{decky.DECKY_USER_HOME}/homebrew/plugins",
-            #     format="zip",
-            # )
-            with gzip.open(downloaded_filepath, "rb") as f:
-                with open(core.CoreController.CORE_PATH, "wb") as d:
-                    d.write(f.read())
-            
-            os.chmod(core.CoreController.CORE_PATH, 0o777)
-
-            # cleanup downloaded files
-            os.remove(downloaded_filepath)
+            logger.info(f"extracting ota file to {core_path}")
+            def _impl():
+                with gzip.open(downloaded_filepath, "rb") as f, open(core.CoreController.CORE_PATH, "wb") as d:
+                        d.write(f.read())
+                os.chmod(core.CoreController.CORE_PATH, 0o777)
+                # cleanup downloaded files
+                os.remove(downloaded_filepath)
+            await asyncio.to_thread(_impl)
         except Exception as e:
             logger.error(f"error during ota file extraction {e}")
 
 
-def download_latest_build():
-    gcontext = ssl.SSLContext()
-
-    response = urllib.request.urlopen(get_github_api_url(PACKAGE_REPO), context=gcontext)
-    json_data = json.load(response)
+async def download_latest_build() -> str:
+    json_data = await utils.get_url_to_json(get_github_api_url(PACKAGE_REPO))
 
     download_url = json_data.get("assets")[0].get("browser_download_url")
 
     logger.info(f"downloading from: {download_url}")
 
-    file_path = Path(decky.DECKY_PLUGIN_RUNTIME_DIR, decky.DECKY_PLUGIN_NAME + ".zip")
+    file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, decky.DECKY_PLUGIN_NAME + ".zip")
 
-    with urllib.request.urlopen(download_url, context=gcontext) as response, open(
-        file_path, "wb"
-    ) as output_file:
-        output_file.write(response.read())
-        output_file.close()
+    await utils.get_url_to_file(download_url, file_path)
 
     return file_path
 
 
-def download_latest_core():
-    gcontext = ssl.SSLContext()
-
-    response = urllib.request.urlopen(get_github_api_url(CORE_REPO), context=gcontext)
-    json_data = json.load(response)
+async def download_latest_core() -> str:
+    json_data = await utils.get_url_to_json(get_github_api_url(CORE_REPO))
 
     download_url: Optional[str] = None
     for asset in json_data.get("assets"):
@@ -143,24 +126,20 @@ def download_latest_core():
 
     if not download_url:
         logger.error("Failed to find download url")
-        raise Exception("Failed to find download url")
+        return ""
     logger.info(f"downloading from: {download_url}")
 
-    file_path = Path(decky.DECKY_PLUGIN_RUNTIME_DIR, "mihomo.gz")
+    file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "mihomo.gz")
 
-    with urllib.request.urlopen(download_url, context=gcontext) as response, open(
-        file_path, "wb"
-    ) as output_file:
-        output_file.write(response.read())
-        output_file.close()
+    await utils.get_url_to_file(download_url, file_path)
 
     return file_path
 
 
-def get_version():
+def get_version() -> str:
     return f"{decky.DECKY_PLUGIN_VERSION}"
 
-def get_latest_version(repo: str):
+def get_latest_version(repo: str) -> str:
     gcontext = ssl.SSLContext()
 
     response = urllib.request.urlopen(get_github_api_url(repo), context=gcontext)

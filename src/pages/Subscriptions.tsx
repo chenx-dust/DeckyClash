@@ -7,9 +7,10 @@ import { QRCodeCanvas } from "qrcode.react";
 import * as backend from "../backend/backend";
 import axios from "axios";
 import { localizationManager, L } from "../i18n";
+import { toaster } from "@decky/api";
 
 interface SubProp {
-  Subscriptions: Array<any>;
+  Subscriptions: Record<string, string>;
 }
 
 export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
@@ -25,72 +26,9 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
   let checkStatusHandler: any;
   let checkUpdateStatusHandler: any;
 
-  const refreshDownloadStatus = () => {
-    backend.resolve(backend.getDownloadStatus(), (v: any) => {
-      let response = v.toString();
-      switch (response) {
-        case "Downloading":
-          setDownloadTips("Downloading...");
-          break;
-        case "Failed":
-          setDownloadTips("Download Failed");
-          break;
-        case "Success":
-          setDownloadTips("Download Succeeded");
-          // 刷新 Subs
-          refreshSubs();
-          break;
-      }
-      if (response != "Downloading") {
-        clearInterval(checkStatusHandler);
-        setDownlaodBtnDisable(false);
-      }
-    });
-  };
-
-  const refreshUpdateStatus = () => {
-    backend.resolve(backend.getUpdateStatus(), (v: any) => {
-      let response = v.toString();
-      switch (response) {
-        case "Downloading":
-          setDownloadTips("Downloading... Please wait");
-          break;
-        case "Error":
-          setDownloadTips("Update Error");
-          break;
-        case "Failed":
-          setDownloadTips("Update Failed");
-          break;
-        case "Success":
-          setDownloadTips("Update Succeeded");
-          // 刷新 Subs
-          refreshSubs();
-          break;
-      }
-      if (response != "Downloading") {
-        clearInterval(checkUpdateStatusHandler);
-        setUpdateBtnDisable(false);
-      }
-    });
-  };
-
-  const refreshSubs = () => {
-    backend.resolve(backend.getSubList(), (v: String) => {
-      let x: Array<any> = JSON.parse(v.toString());
-      let re = new RegExp("(?<=subs/).+.yaml$");
-      let i = 0;
-      let subs = x.map((x) => {
-        let name = re.exec(x.path);
-        return {
-          id: i++,
-          name: name![0],
-          url: x.url,
-        };
-      });
-      console.log("Subs refresh");
-      updateSubscriptions(subs);
-      //console.log(sub);
-    });
+  const refreshSubs = async () => {
+    const subs = await backend.getSubscriptionList();
+    updateSubscriptions(subs);
   };
 
   //获取 QR Page
@@ -108,17 +46,17 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
     <>
       <style>
         {`
-                    #subscription-download-textfiled {
-                        padding: 0px !important
-                    }
-                    #subscription-download-textfiled > div {
-                        margin-bottom: 0px !important
-                    }
-                    #subscription-qrcode {
-                        display: flex;
-                        justify-content: center;
-                    }
-                `}
+          #subscription-download-textfiled {
+              padding: 0px !important
+          }
+          #subscription-download-textfiled > div {
+              margin-bottom: 0px !important
+          }
+          #subscription-qrcode {
+              display: flex;
+              justify-content: center;
+          }
+        `}
       </style>
       <PanelSectionRow>
         <div id="subscription-qrcode">
@@ -136,12 +74,16 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
         <ButtonItem
           layout="below"
           disabled={downlaodBtnDisable}
-          onClick={() => {
+          onClick={async () => {
             setDownlaodBtnDisable(true);
-            backend.resolve(backend.downloadSub(text), () => {
-              console.log("download sub: " + text);
-            });
-            checkStatusHandler = setInterval(refreshDownloadStatus, 500);
+            const [success, error] = await backend.downloadSubscription(text);
+            if (!success)
+              toaster.toast({
+                title: localizationManager.getString(L.DOWNLOAD_FAILURE),
+                body: error,
+              });
+            setDownlaodBtnDisable(false);
+            refreshSubs();
           }}
         >
           {localizationManager.getString(L.DOWNLOAD)}

@@ -4,7 +4,7 @@ import { FC } from "react";
 import * as backend from "../backend/backend";
 import { localizationManager, L } from "../i18n";
 interface appProp {
-  Subscriptions: Array<any>;
+  Subscriptions: Record<string, string>;
   UpdateSub: any;
   Refresh: Function;
 }

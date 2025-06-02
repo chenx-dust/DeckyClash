@@ -21,7 +21,7 @@ Subscription = Tuple[str, str]
 def get_path(filename: str) -> str:
     return os.path.join(SUBSCRIPTIONS_DIR, filename + ".yaml")
 
-async def download_sub(url: str, now_subs: SubscriptionDict, timeout: float) -> Tuple[bool, Subscription | str]:
+def download_sub(url: str, now_subs: SubscriptionDict, timeout: float) -> Tuple[bool, Subscription | str]:
     """
     下载新订阅
     Args:
@@ -34,12 +34,8 @@ async def download_sub(url: str, now_subs: SubscriptionDict, timeout: float) -> 
     logger.info(f"downloading subscription: {url}")
     try:
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-        resp: http.client.HTTPResponse = await asyncio.to_thread (
-            urllib.request.urlopen,
-            req,
-            timeout=timeout,
-            context=utils.get_ssl_context()
-        )
+        resp: http.client.HTTPResponse = urllib.request.urlopen(
+            req, timeout=timeout, context=utils.get_ssl_context())
     except Exception as e:
         logger.error(f"download_sub: failed with {e}")
         return False, f"Exception: {e}"
@@ -55,12 +51,12 @@ async def download_sub(url: str, now_subs: SubscriptionDict, timeout: float) -> 
     msg.add_header('content-type', resp.headers.get('content-type')) # type: ignore
     filename = msg.get_filename()
 
-    if filename is None:
+    if filename is None or filename == '':
         url_parts = urllib.parse.urlparse(url)
         paths = url_parts.path.split('/')
         if len(paths) > 0:
             filename = paths[-1]
-    if filename is None:
+    if filename is None or filename == '':
         filename = utils.rand_thing()
     if filename.lower().endswith('.yml'):
         filename = filename[:-4]
@@ -87,21 +83,14 @@ async def download_sub(url: str, now_subs: SubscriptionDict, timeout: float) -> 
     path = get_path(filename)
     logger.info(f'saving to {path}')
 
-    def _write_to_file(dest: str, response: http.client.HTTPResponse):
-        with open(dest, 'wb') as out_file:
-            out_file.write(response.read())
-
     try:
-        await asyncio.to_thread(
-            _write_to_file,
-            get_path(filename),
-            resp,
-        )
+        with open(get_path(filename), 'xb') as out_file:
+            out_file.write(resp.read())
     except Exception as e:
         logger.error(f"download_sub: io error: {e}")
         return False, f"IO error: {e}"
     
-    valid = await core.CoreController.check_config(path)
+    valid = core.CoreController.check_config(path)
     if not valid:
         logger.error("download_sub: invalid config")
         try:

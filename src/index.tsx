@@ -14,10 +14,7 @@ import {
 } from "@decky/ui";
 import {
   addEventListener,
-  removeEventListener,
-  callable,
   definePlugin,
-  toaster,
   routerHook
 } from "@decky/api"
 import { FC, useEffect, useState } from "react";
@@ -213,7 +210,7 @@ const Content: FC<{}> = ({}) => {
                 "http://127.0.0.1:9090/ui" + param
               );
             }}
-            disabled={!clashState && currentDashboard === undefined}
+            disabled={clashState || currentDashboard === undefined}
           >
             {localizationManager.getString(L.OPEN_DASHBOARD)}
           </ButtonItem>
@@ -271,6 +268,8 @@ const Content: FC<{}> = ({}) => {
             />
           </PanelSectionRow>
         )}
+      </PanelSection>
+      <PanelSection title={localizationManager.getString(L.TOOLS)}>
         <PanelSectionRow>
           <ActionButtonItem
             layout="below"
@@ -326,7 +325,7 @@ export default definePlugin(() => {
     // The name shown in various decky menus
     name: "DeckyClash",
     // The element displayed at the top of your plugin's menu
-    titleView: <div className={staticClasses.Title}>DeckyClash Menu</div>,
+    titleView: <div className={staticClasses.Title}>DeckyClash</div>,
     // The content of your plugin's menu
     content: <Content />,
     // The icon displayed in the plugin list

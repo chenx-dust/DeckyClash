@@ -1,5 +1,5 @@
 import { PanelSectionRow, TextField, ButtonItem } from "@decky/ui";
-import { useReducer, useState, FC } from "react";
+import { useReducer, useState, FC, useEffect } from "react";
 import { cleanPadding } from "../style";
 import { SubList } from "../components";
 import { QRCodeCanvas } from "qrcode.react";
@@ -22,6 +22,12 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
   const [updateTips, setUpdateTips] = useState("");
   const [QRPageUrl, setQRPageUrl] = useState("");
 
+  useEffect(() => {
+    backend.setExternalStatus(true);
+    return () => {
+      backend.setExternalStatus(false);
+    };
+  }, []);
 
   const refreshSubs = async () => {
     const subs = await backend.getSubscriptionList();

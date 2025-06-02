@@ -25,3 +25,4 @@ export const setCurrent = callable<[string], boolean>("set_current");
 export const getDashboardList = callable<[], string[]>("get_dashboard_list");
 
 export const getExternalURL = callable<[], string>("get_external_url");
+export const setExternalStatus = callable<[boolean], []>("set_external_status");

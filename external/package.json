@@ -1,5 +1,5 @@
 {
-  "name": "tomoon-web",
+  "name": "decky-clash-external",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -15,8 +15,9 @@
     "postcss": "^8.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-scripts": "^5.0.1",
+    "react-scripts": "^3.0.1",
     "sweetalert2": "^11.6.13",
+    "sweetalert2-react-content": "^5.1.0",
     "tailwindcss": "^4.1.8"
   },
   "devDependencies": {

@@ -1,6 +1,7 @@
 import asyncio
 import os
 from pathlib import Path
+import subprocess
 from typing import Awaitable, Callable, Optional, List
 
 import decky
@@ -106,28 +107,18 @@ class CoreController:
         self._exit_callback = callback
 
     @classmethod
-    async def check_config(cls, config_path: str) -> bool:
+    def check_config(cls, config_path: str) -> bool:
         command = cls._gen_cmd(config_path)
         command.append("-t")
         logger.info(f"Checking config: {' '.join(command)}")
 
         try:
-            process = await asyncio.create_subprocess_exec(
-                *command,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
+            return_code, output = subprocess.getstatusoutput(
+                command
             )
-            return_code = await process.wait()
-            if process.stdout is not None:
-                stdout = await process.stdout.read()
-                if stdout:
-                    logger.debug(f"Config check stdout: {stdout.decode()}")
-            if process.stderr is not None:
-                stderr = await process.stderr.read()
-                if stderr:
-                    logger.debug(f"Config check stderr: {stderr.decode()}")
+            logger.debug(f"Config check output: {output}")
         except Exception as e:
-            logger.error(f"Failed to start core: {str(e)}")
+            logger.error(f"Failed to start core: {e}")
             raise
 
         logger.debug(f"Check config return code: {return_code}")

@@ -12,6 +12,7 @@ import dashboard
 import decky
 from decky import logger
 
+from external import ExternalServer
 import subscription
 import upgrade
 from metadata import CORE_REPO, PACKAGE_NAME
@@ -46,6 +47,26 @@ class Plugin:
 
         self.core = CoreController()
         self.core.set_exit_callback(lambda x: decky.emit("core_exit", x))
+
+        self.external = ExternalServer()
+        from aiohttp import web
+        def _callback(request: web.Request) -> web.Response:
+            import http
+            try:
+                link = request.query.get("link")
+                if link is None:
+                    raise ValueError("missing link query")
+                success, error = self.download_subscription_impl(link)
+                if not success:
+                    raise RuntimeError(error)
+                return web.Response(status=http.HTTPStatus.OK)
+            except ValueError as e:
+                logger.error(f"external_callback: value error {e}")
+                return web.json_response({"error": str(e)}, status=http.HTTPStatus.BAD_REQUEST)
+            except RuntimeError as e:
+                logger.error(f"external_callback: runtime error {e}")
+                return web.json_response({"error": str(e)}, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+        self.external.register_callback("/download_sub", _callback)
 
     # Function called first during the unload process, utilize this to handle your plugin being removed
     async def _unload(self):
@@ -113,7 +134,7 @@ class Plugin:
             "allow_remote_access": self._get("allow_remote_access"),
             "dashboard": self._get("dashboard", True),
         }
-        logger.info(config)
+        logger.debug(config)
         return config
 
     async def get_config_value(self, key: str):
@@ -131,7 +152,7 @@ class Plugin:
             logger.error(f"not permitted key: {key}")
             return
         self.settings.setSetting(key, value)
-        logger.info(f"save config: {key} : {value}")
+        logger.debug(f"save config: {key} : {value}")
 
     async def upgrade_to_latest(self):
         await upgrade.upgrade_to_latest(self._get("timeout"))
@@ -168,7 +189,7 @@ class Plugin:
 
     async def get_dashboard_list(self) -> List[str]:
         dashboard_list = dashboard.get_dashboard_list()
-        logger.info(f"get_dashboard_list: {dashboard_list}")
+        logger.debug(f"get_dashboard_list: {dashboard_list}")
         return dashboard_list
 
     async def get_subscription_list(self) -> Dict[str, str]:
@@ -177,16 +198,16 @@ class Plugin:
         if len(failed) > 0:
             [subs.pop(x) for x in failed]
             self.settings.setSetting("subscriptions", subs)
-        logger.info(f"get_subscription_list: {subs}")
+        logger.debug(f"get_subscription_list: {subs}")
         return subs
 
     async def update_all_subscriptions(self) -> List[Tuple[str, str]]:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
         return await subscription.update_subs(subs, self._get("timeout"))
 
-    async def download_subscription(self, url: str) -> Tuple[bool, Optional[str]]:
+    def download_subscription_impl(self, url: str) -> Tuple[bool, Optional[str]]:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
-        ok, data = await subscription.download_sub(url, subs, self._get("timeout"))
+        ok, data = subscription.download_sub(url, subs, self._get("timeout"))
         if ok:
             name, url = data
             subs[name] = url
@@ -196,6 +217,9 @@ class Plugin:
             return True, None
         else:
             return False, data # type: ignore
+
+    async def download_subscription(self, url: str) -> Tuple[bool, Optional[str]]:
+        return self.download_subscription_impl(url)
 
     async def remove_subscription(self, name: str) -> bool:
         logger.info(f"removing subscription: {name}")
@@ -220,10 +244,15 @@ class Plugin:
             return True
         else:
             return False
-        
 
     async def get_external_url(self) -> str:
         return f'http://{utils.get_ip()}:{self._get("external_port")}'
+    
+    async def set_external_status(self, status: bool) -> None:
+        if status:
+            await self.external.run(self._get("external_port"))
+        else:
+            await self.external.stop()
 
     def _get(self, key: str, allow_none: bool = False) -> Any:
         if allow_none:

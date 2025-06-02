@@ -12,31 +12,22 @@ interface appProp {
 export const SubList: FC<appProp> = ({ Subscriptions, UpdateSub, Refresh }) => {
   return (
     <div>
-      {Subscriptions.map((x) => {
+      {Object.entries(Subscriptions).map((x) => {
+        const [name, url] = x;
         return (
           <div>
             <ButtonItem
-              label={x.name}
-              description={x.url}
-              onClick={() => {
+              label={name}
+              description={url}
+              onClick={async () => {
                 //删除订阅
-                backend.resolve(backend.deleteSub(x.id), (rtn: [boolean, String]) => {
-                  const [success, message] = rtn;
-                  if (success) {
-                    UpdateSub((source: Array<any>) => {
-                      let i = source.indexOf(x);
-                      source.splice(i, 1);
-                      return source;
-                    });
-                    Refresh();
-                  } else {
-                    console.log("delete sub fail.");
-                    toaster.toast({
-                      title: localizationManager.getString(L.DELETE_FAILURE),
-                      body: message,
-                    });
-                  }
+                backend.removeSubscription(name);
+                UpdateSub((source: Array<any>) => {
+                  let i = source.indexOf(x);
+                  source.splice(i, 1);
+                  return source;
                 });
+                Refresh();
               }}
             >
               {localizationManager.getString(L.DELETE)}

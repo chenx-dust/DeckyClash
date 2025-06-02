@@ -1,7 +1,7 @@
 import asyncio
 import email
 import email.message
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 import os
 import urllib.request
 import urllib.parse
@@ -15,13 +15,13 @@ import utils
 SUBSCRIPTIONS_DIR = os.path.join(decky.DECKY_PLUGIN_SETTINGS_DIR, "subscriptions")
 USER_AGENT = f"{decky.DECKY_PLUGIN_NAME}/{decky.DECKY_PLUGIN_VERSION} mihomo/1.19.10 clash-verge/2.2.3 Clash/v1.18.0"
 
-type SubscriptionDict = Dict[str, str]
-type Subscription = Tuple[str, str]
+SubscriptionDict = Dict[str, str]
+Subscription = Tuple[str, str]
 
 def get_path(filename: str) -> str:
     return os.path.join(SUBSCRIPTIONS_DIR, filename + ".yaml")
 
-async def download_sub(url: str, now_subs: SubscriptionDict) -> Tuple[bool, Subscription | str]:
+async def download_sub(url: str, now_subs: SubscriptionDict, timeout: float) -> Tuple[bool, Subscription | str]:
     """
     下载新订阅
     Args:
@@ -33,14 +33,17 @@ async def download_sub(url: str, now_subs: SubscriptionDict) -> Tuple[bool, Subs
     """
     logger.info(f"downloading subscription: {url}")
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    resp: http.client.HTTPResponse = await asyncio.to_thread (
-        urllib.request.urlopen,
-        req,
-        context=utils.get_ssl_context()
-    )
+    # resp: http.client.HTTPResponse = await asyncio.to_thread (
+    #     urllib.request.urlopen,
+    #     req,
+    #     timeout=timeout,
+    #     context=utils.get_ssl_context()
+    # )
+    import ssl
+    resp: http.client.HTTPResponse = urllib.request.urlopen(req, timeout=timeout, context=ssl.create_default_context())
 
+    logger.info(f"download_sub: status code: {resp.status}")
     if resp.status != 200:
-        logger.error(f"download_sub: invalid status code: {resp.status}")
         logger.error(f"body: {resp.read()}")
         return False, f"Invalid status code: {resp.status}"
     
@@ -107,22 +110,23 @@ async def download_sub(url: str, now_subs: SubscriptionDict) -> Tuple[bool, Subs
     
     return True, (filename, url)
 
-async def update_subs(subs: SubscriptionDict) -> List[str]:
+async def update_subs(subs: SubscriptionDict, timeout: float) -> List[Tuple[str, str]]:
     """
     更新订阅
     Args:
         subs: 订阅列表
     Returns:
-        更新成功的订阅名称列表
+        更新失败的订阅名称列表
     """
-    async def _impl(name: str, url: str) -> bool:
+    logger.info("update_subs: start updating")
+    async def _impl(name: str, url: str) -> Optional[str]:
         req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
         try:
-            await utils.get_url_to_file(req, get_path(name))
+            await utils.get_url_to_file(req, get_path(name), timeout)
         except Exception as e:
             logger.error(f"update sub {name} error: {e}")
-            return False
-        return True
+            return str(e)
+        return None
 
     promises = [
         _impl(name, url)
@@ -130,11 +134,11 @@ async def update_subs(subs: SubscriptionDict) -> List[str]:
     ]
     results = await asyncio.gather(*promises)
 
-    success = []
+    failed = []
     for (name, _), result in zip(subs, results):
-        if result:
-            success.append(name)
-    return success
+        if result is not None:
+            failed.append((name, result))
+    return failed
 
 def check_subs(subs: SubscriptionDict) -> List[str]:
     """

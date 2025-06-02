@@ -20,8 +20,6 @@ def get_dashboard_list() -> List[str]:
             if path.is_dir() and (path / "index.html").exists():
                 dashboard_list.append(path.name)
 
-        logger.info(f"get_dashboard_list: {dashboard_list}")
-
         return dashboard_list
     except Exception as e:
         logger.error(f"error during get_dashboard_list: {e}")

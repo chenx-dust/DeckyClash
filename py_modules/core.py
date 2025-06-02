@@ -7,7 +7,7 @@ import decky
 from decky import logger
 
 
-type ExitCallback = Callable[[Optional[int]], Awaitable[None]]
+ExitCallback = Callable[[Optional[int]], Awaitable[None]]
 
 class CoreController:
     CORE_PATH = Path(decky.DECKY_PLUGIN_DIR, "mihomo")
@@ -44,12 +44,12 @@ class CoreController:
             raise RuntimeError("Core is already running")
 
         command = self._gen_cmd(config_path)
-        logger.info(f"Starting core: {' '.join(command)}")
+        logger.info(f"starting core: {' '.join(command)}")
         self._command = command
 
         # 打开日志文件
         log_path = os.path.join(decky.DECKY_PLUGIN_LOG_DIR, "kernel.log")
-        logger.info(f"Kernel log file: {log_path}")
+        logger.info(f"core log file: {log_path}")
         self._logfile = open(log_path, 'w')
 
         try:
@@ -58,10 +58,10 @@ class CoreController:
                 stdout=self._logfile,
                 stderr=self._logfile,
             )
-            logger.debug(f"Core PID: {self._process.pid}")
+            logger.debug(f"core pid: {self._process.pid}")
             self._monitor_task = asyncio.create_task(self._monitor_exit())
         except Exception as e:
-            logger.error(f"Failed to start core: {str(e)}")
+            logger.error(f"failed to start core: {str(e)}")
             self._logfile.close()
             self._logfile = None
             raise
@@ -70,7 +70,7 @@ class CoreController:
         if not self._process or self._process.returncode is not None:
             raise RuntimeError("No running core")
             
-        logger.info(f"Terminating core (PID: {self._process.pid})")
+        logger.info(f"terminating core (PID: {self._process.pid})")
         if self._monitor_task is not None:
             self._monitor_task.cancel()
             self._monitor_task = None
@@ -83,7 +83,7 @@ class CoreController:
             pass
         finally:
             self._process = None
-            logger.debug("Core terminated")
+            logger.debug("core terminated")
             if self._logfile:
                 self._logfile.close()
                 self._logfile = None
@@ -92,14 +92,14 @@ class CoreController:
         """监控子进程退出状态"""
         assert self._process is not None
         returncode = await self._process.wait()
-        logger.debug(f"Subprocess exited with code: {returncode}")
+        logger.debug(f"core exited with code: {returncode}")
 
         # 触发回调
         if self._exit_callback:
             try:
                 self._exit_callback(returncode)  # 调用回调
             except Exception as e:
-                logger.error(f"Error in exit callback: {str(e)}")
+                logger.error(f"error in exit callback: {str(e)}")
 
     def set_exit_callback(self, callback: Optional[ExitCallback]):
         """注册子进程退出回调函数"""

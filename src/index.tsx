@@ -63,13 +63,13 @@ const Content: FC<{}> = ({}) => {
     setSubOptions(items);
   };
   const updateDashboards = async () => {
-    const subs = await backend.getDashboardList();
+    const boards = await backend.getDashboardList();
     let items: DropdownOption[] = [];
 
-    for (const name in subs) {
+    for (const idx in boards) {
       items.push({
-        label: name,
-        data: name,
+        label: boards[idx],
+        data: boards[idx],
       });
     }
     setDashboardOption(items);
@@ -86,11 +86,12 @@ const Content: FC<{}> = ({}) => {
     setCurrentDashboard(config.dashboard);
   };
 
-  useEffect(() => {
+  const reloadFullConfig = () => {
     updateConfig();
     updateSubscriptions();
     updateDashboards();
-  });
+  }
+  useEffect(reloadFullConfig, [])
 
   addEventListener("core_exit", (code: number) => {
     setExitCode(code);
@@ -272,7 +273,15 @@ const Content: FC<{}> = ({}) => {
         )}
         <PanelSectionRow>
           <ActionButtonItem
-            disabled={!clashState}
+            layout="below"
+            onClick={reloadFullConfig}
+          >
+            {localizationManager.getString(L.RELOAD_CONFIG)}
+          </ActionButtonItem>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ActionButtonItem
+            disabled={clashState}
             layout="below"
             onClick={() => {
               backend.restartCore();

@@ -5,7 +5,6 @@ import { SubList } from "../components";
 import { QRCodeCanvas } from "qrcode.react";
 
 import * as backend from "../backend/backend";
-import axios from "axios";
 import { localizationManager, L } from "../i18n";
 import { toaster } from "@decky/api";
 
@@ -23,8 +22,6 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
   const [updateTips, setUpdateTips] = useState("");
   const [QRPageUrl, setQRPageUrl] = useState("");
 
-  let checkStatusHandler: any;
-  let checkUpdateStatusHandler: any;
 
   const refreshSubs = async () => {
     const subs = await backend.getSubscriptionList();
@@ -32,13 +29,9 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
   };
 
   //获取 QR Page
-  axios.get("http://127.0.0.1:55556/get_ip_address").then((r) => {
-    if (r.data.status_code == 200) {
-      setQRPageUrl(`http://${r.data.ip}:55556`);
-    } else {
-      setQRPageUrl("");
-    }
-  });
+  backend.getExternalURL().then((url) => {
+    setQRPageUrl(url);
+  })
 
   console.log("load Subs page");
 
@@ -91,14 +84,18 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
         <ButtonItem
           layout="below"
           description={updateTips}
-          onClick={() => {
+          onClick={async () => {
             setUpdateBtnDisable(true);
-            backend.resolve(backend.updateSubs(), () => {
-              console.log("update subs.");
-            });
-            checkUpdateStatusHandler = setInterval(refreshUpdateStatus, 500);
+            const failed = await backend.updateAllSubscriptions();
+            if (failed.length > 0) {
+              toaster.toast({
+                title: localizationManager.getString(L.UPDATE_FAILURE),
+                body: failed.map((x) => `${x[0]}: ${x[1]}`).join("\n"),
+              });
+            }
+            setUpdateBtnDisable(false);
           }}
-          disabled={updateBtnDisable}
+          disabled={updateBtnDisable || Object.entries(subscriptions).length == 0}
         >
           {localizationManager.getString(L.UPDATE_ALL)}
         </ButtonItem>

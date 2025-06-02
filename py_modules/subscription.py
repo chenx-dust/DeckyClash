@@ -32,15 +32,17 @@ async def download_sub(url: str, now_subs: SubscriptionDict, timeout: float) -> 
         Subscription | str: 订阅内容 | 错误信息
     """
     logger.info(f"downloading subscription: {url}")
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    # resp: http.client.HTTPResponse = await asyncio.to_thread (
-    #     urllib.request.urlopen,
-    #     req,
-    #     timeout=timeout,
-    #     context=utils.get_ssl_context()
-    # )
-    import ssl
-    resp: http.client.HTTPResponse = urllib.request.urlopen(req, timeout=timeout, context=ssl.create_default_context())
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        resp: http.client.HTTPResponse = await asyncio.to_thread (
+            urllib.request.urlopen,
+            req,
+            timeout=timeout,
+            context=utils.get_ssl_context()
+        )
+    except Exception as e:
+        logger.error(f"download_sub: failed with {e}")
+        return False, f"Exception: {e}"
 
     logger.info(f"download_sub: status code: {resp.status}")
     if resp.status != 200:
@@ -97,7 +99,7 @@ async def download_sub(url: str, now_subs: SubscriptionDict, timeout: float) -> 
         )
     except Exception as e:
         logger.error(f"download_sub: io error: {e}")
-        return False, f"io error: {e}"
+        return False, f"IO error: {e}"
     
     valid = await core.CoreController.check_config(path)
     if not valid:
@@ -106,7 +108,7 @@ async def download_sub(url: str, now_subs: SubscriptionDict, timeout: float) -> 
             os.remove(get_path(filename))
         except Exception as e:
             logger.error(f"download_sub: error removing file: {e}")
-        return False, "invalid config"
+        return False, "Invalid config"
     
     return True, (filename, url)
 
@@ -120,8 +122,8 @@ async def update_subs(subs: SubscriptionDict, timeout: float) -> List[Tuple[str,
     """
     logger.info("update_subs: start updating")
     async def _impl(name: str, url: str) -> Optional[str]:
-        req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
         try:
+            req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
             await utils.get_url_to_file(req, get_path(name), timeout)
         except Exception as e:
             logger.error(f"update sub {name} error: {e}")

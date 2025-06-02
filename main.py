@@ -86,11 +86,11 @@ class Plugin:
             "Content-Type": "application/json",
             "Authorization": f'Bearer {self._get("secret")}',
         }
-        req = urllib.request.Request(f"http://127.0.0.1:{port}/restart",
-                                     data=payload.encode(),
-                                     headers=headers,
-                                     method="POST")
         try:
+            req = urllib.request.Request(f"http://127.0.0.1:{port}/restart",
+                                        data=payload.encode(),
+                                        headers=headers,
+                                        method="POST")
             resp: HTTPResponse = urllib.request.urlopen(req, timeout=self._get("timeout"))
         except Exception as e:
             logger.error(f"restart_core: failed with {e}")
@@ -195,7 +195,7 @@ class Plugin:
                 self.settings.setSetting("current", name)
             return True, None
         else:
-            return False, error # type: ignore
+            return False, data # type: ignore
 
     async def remove_subscription(self, name: str) -> bool:
         logger.info(f"removing subscription: {name}")

@@ -1,5 +1,4 @@
 import { ButtonItem } from "@decky/ui";
-import { toaster } from "@decky/api";
 import { FC } from "react";
 import * as backend from "../backend/backend";
 import { localizationManager, L } from "../i18n";
@@ -19,7 +18,7 @@ export const SubList: FC<appProp> = ({ Subscriptions, UpdateSub, Refresh }) => {
             <ButtonItem
               label={name}
               description={url}
-              onClick={async () => {
+              onClick={() => {
                 //删除订阅
                 backend.removeSubscription(name);
                 UpdateSub((source: Array<any>) => {

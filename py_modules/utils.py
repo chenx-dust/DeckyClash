@@ -16,17 +16,23 @@ SIOCGIFADDR = 0x8915
 _sockfd = _sock.fileno()
 
 
-_ssl_context = ssl.create_default_context()
+def init_ssl_context(disable_verify: bool) -> None:
+    global _ssl_context
+    if disable_verify:
+        logger.warning("SSL verification is disabled")
+        _ssl_context = ssl._create_unverified_context()
+    else:
+        _ssl_context = ssl.create_default_context()
 
 def get_ssl_context() -> ssl.SSLContext:
     return _ssl_context
 
-async def get_url_to_json(url: str | urllib.request.Request, timeout: float) -> Any:
+async def get_url_to_json(url: str | urllib.request.Request, timeout: Optional[float] = None) -> Any:
     return (await asyncio.to_thread(
         lambda: json.load(urllib.request.urlopen(url, context=_ssl_context, timeout=timeout)),
     ))
 
-async def get_url_to_file(url: str | urllib.request.Request, dest: str, timeout: float) -> None:
+async def get_url_to_file(url: str | urllib.request.Request, dest: str, timeout: Optional[float] = None) -> None:
     def _impl():
         with urllib.request.urlopen(url, timeout=timeout, context=_ssl_context) as response, open(dest, 'wb') as out_file:
             out_file.write(response.read())

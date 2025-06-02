@@ -1,5 +1,6 @@
 from http.client import HTTPResponse
 import json
+import logging
 import os
 from pathlib import Path
 import shutil
@@ -23,6 +24,7 @@ import utils
 class Plugin:
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def _main(self):
+        logger.setLevel(logging.DEBUG)
         self.settings = SettingsManager(
             name="config", settings_directory=decky.DECKY_PLUGIN_SETTINGS_DIR
         )
@@ -44,6 +46,9 @@ class Plugin:
         self._set_default("external_port", 50581)
         self._set_default("allow_remote_access", False)
         self._set_default("timeout", 15.0)
+        self._set_default("disable_verify", False)
+
+        utils.init_ssl_context(self._get("disable_verify"))
 
         self.core = CoreController()
         self.core.set_exit_callback(lambda x: decky.emit("core_exit", x))
@@ -78,7 +83,7 @@ class Plugin:
         logger.info(f"get_core_status: {is_running}")
         return is_running
 
-    async def set_core_status(self, status: bool) -> None:
+    async def set_core_status(self, status: bool) -> Tuple[bool, Optional[str]]:
         try:
             if status:
                 path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "running_config.yaml")
@@ -87,7 +92,7 @@ class Plugin:
                     path,
                     self._get("secret"),
                     self._get("override_dns"),
-                    self._get("enhanced_mode"),
+                    config.EnhancedMode(self._get("enhanced_mode")),
                     self._get("controller_port"),
                     self._get("allow_remote_access"),
                     str(dashboard.DASHBOARD_DIR),
@@ -98,6 +103,8 @@ class Plugin:
                 await self.core.stop()
         except Exception as e:
             logger.error(f"set_core_status: failed with {e}")
+            return False, str(e)
+        return True, None
 
     async def restart_core(self) -> bool:
         logger.info("soft restarting core ...")
@@ -130,7 +137,6 @@ class Plugin:
             "secret": self._get("secret"),
             "override_dns": self._get("override_dns"),
             "enhanced_mode": self._get("enhanced_mode"),
-            "controller_port": self._get("controller_port"),
             "allow_remote_access": self._get("allow_remote_access"),
             "dashboard": self._get("dashboard", True),
         }
@@ -154,30 +160,39 @@ class Plugin:
         self.settings.setSetting(key, value)
         logger.debug(f"save config: {key} : {value}")
 
-    async def upgrade_to_latest(self):
-        await upgrade.upgrade_to_latest(self._get("timeout"))
+    async def upgrade_to_latest(self) -> Tuple[bool, Optional[str]]:
+        try:
+            await upgrade.upgrade_to_latest(self._get("timeout"))
+        except Exception as e:
+            logger.error(f"ota error: {e}")
+            return False, str(e)
+        return True, None
 
-    async def get_version(self):
+    async def get_version(self) -> str:
         version = upgrade.get_version()
         logger.info(f"current package version: {version}")
         return version
 
-    async def get_latest_version(self):
+    async def get_latest_version(self) -> str:
         version = upgrade.get_latest_version(PACKAGE_NAME, self._get("timeout"))
         logger.info(f"latest package version: {version}")
         return version
 
-    async def upgrade_to_latest_core(self):
+    async def upgrade_to_latest_core(self) -> Tuple[bool, Optional[str]]:
         try:
-            await self.core.stop()
+            if self.core.is_running:
+                await self.core.stop()
         except Exception as e:
             logger.error(f"upgrade_to_latest_core: failed with {e}")
+            return False, str(e)
         try:
             await upgrade.upgrade_to_latest_core(self._get("timeout"))
         except Exception as e:
             logger.error(f"upgrade_to_latest_core: failed with {e}")
+            return False, str(e)
+        return True, None
 
-    async def get_version_core(self):
+    async def get_version_core(self) -> str:
         version = CoreController.get_version()
         logger.info(f"current core version: {version}")
         return version
@@ -194,6 +209,7 @@ class Plugin:
 
     async def get_subscription_list(self) -> Dict[str, str]:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        logger.debug(f"get_subscription_list: ori {type(subs)} {subs}")
         failed = subscription.check_subs(subs)
         if len(failed) > 0:
             [subs.pop(x) for x in failed]

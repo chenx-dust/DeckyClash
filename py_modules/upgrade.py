@@ -92,7 +92,7 @@ async def upgrade_to_latest_core(timeout: float) -> None:
             def _impl():
                 with gzip.open(downloaded_filepath, "rb") as f, open(core.CoreController.CORE_PATH, "wb") as d:
                         d.write(f.read())
-                os.chmod(core.CoreController.CORE_PATH, 0o777)
+                os.chmod(core.CoreController.CORE_PATH, 0o755)
                 # cleanup downloaded files
                 os.remove(downloaded_filepath)
             await asyncio.to_thread(_impl)
@@ -131,7 +131,7 @@ async def download_latest_core(timeout: float) -> str:
 
     file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "mihomo.gz")
 
-    await utils.get_url_to_file(download_url, file_path, timeout)
+    await utils.get_url_to_file(download_url, file_path)
 
     return file_path
 
@@ -142,8 +142,12 @@ def get_version() -> str:
 def get_latest_version(repo: str, timeout: float) -> str:
     gcontext = ssl.SSLContext()
 
-    response = urllib.request.urlopen(get_github_api_url(repo), context=gcontext, timeout=timeout)
-    json_data = json.load(response)
+    try:
+        response = urllib.request.urlopen(get_github_api_url(repo), context=gcontext, timeout=timeout)
+        json_data = json.load(response)
+    except Exception as e:
+        logger.error(f"get_latest_version: failed with {e}")
+        return ""
 
     tag = json_data.get("tag_name")
     # if tag is a v* tag, remove the v

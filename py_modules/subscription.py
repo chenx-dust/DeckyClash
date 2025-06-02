@@ -21,17 +21,22 @@ Subscription = Tuple[str, str]
 def get_path(filename: str) -> str:
     return os.path.join(SUBSCRIPTIONS_DIR, filename + ".yaml")
 
-def download_sub(url: str, now_subs: SubscriptionDict, timeout: float) -> Tuple[bool, Subscription | str]:
+def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] = None) -> Tuple[bool, Subscription | str]:
     """
     下载新订阅
     Args:
         url: 订阅链接
+        now_subs: 当前订阅列表
+        timeout: 超时时间
+        disable_verify: 是否禁用证书验证
     Returns:
         tuple(bool, Subscription | str)
         bool: 是否下载成功
-        Subscription | str: 订阅内容 | 错误信息
+        Subscription | str: 订阅链接或错误信息
     """
     logger.info(f"downloading subscription: {url}")
+    if not os.path.exists(SUBSCRIPTIONS_DIR):
+        os.mkdir(SUBSCRIPTIONS_DIR)
     try:
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
         resp: http.client.HTTPResponse = urllib.request.urlopen(
@@ -140,7 +145,7 @@ def check_subs(subs: SubscriptionDict) -> List[str]:
         检查失败需要删除的订阅列表
     """
     failed = []
-    for name, _ in subs:
+    for name in subs:
         if not os.path.exists(get_path(name)):
             failed.append(name)
             logger.info(f"check_subs: {name} not exists")

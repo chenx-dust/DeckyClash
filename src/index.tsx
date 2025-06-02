@@ -15,7 +15,8 @@ import {
 import {
   addEventListener,
   definePlugin,
-  routerHook
+  routerHook,
+  toaster
 } from "@decky/api"
 import { FC, useEffect, useState } from "react";
 import { GiCat } from "react-icons/gi";
@@ -24,11 +25,12 @@ import { Subscriptions, About } from "./pages";
 
 import * as backend from "./backend/backend";
 
-import { EnhancedMode } from "./backend";
+import { Config, EnhancedMode } from "./backend";
 import { ActionButtonItem, VersionComponent } from "./components";
 import { localizationManager, L } from "./i18n";
 
-let shared_subs: Record<string, string> = {}
+let subscriptions: Record<string, string> = {}
+let dashboards: string[] = []
 
 const Content: FC<{}> = ({}) => {
   const [clashState, setClashState] = useState(false);
@@ -43,14 +45,12 @@ const Content: FC<{}> = ({}) => {
   const [currentDashboard, setCurrentDashboard] = useState<string | null>(null);
   const [dashboardOptions, setDashboardOption] = useState<DropdownOption[]>([]);
   const [allowRemoteAccess, setAllowRemoteAccess] = useState(false);
-  const [secret, setSecret] = useState<string>();
+  const [secret, setSecret] = useState<string>("");
 
-  const updateSubscriptions = async () => {
-    const subs = await backend.getSubscriptionList();
-    shared_subs = subs;
 
+  const setSubscriptions = (subs: Record<string, string>) => {
+    subscriptions = subs;
     let items: DropdownOption[] = [];
-
     for (const key in subs) {
       items.push({
         label: key,
@@ -58,11 +58,16 @@ const Content: FC<{}> = ({}) => {
       });
     }
     setSubOptions(items);
+  }
+  const updateSubscriptions = async () => {
+    const subs = await backend.getSubscriptionList();
+    console.log(subs);
+    setSubscriptions(subs);
   };
-  const updateDashboards = async () => {
-    const boards = await backend.getDashboardList();
-    let items: DropdownOption[] = [];
 
+  const setDashboards = (boards: string[]) => {
+    dashboards = boards;
+    let items: DropdownOption[] = [];
     for (const idx in boards) {
       items.push({
         label: boards[idx],
@@ -70,10 +75,22 @@ const Content: FC<{}> = ({}) => {
       });
     }
     setDashboardOption(items);
+    if (boards.length > 0 && currentDashboard === undefined) {
+      setCurrentDashboard(boards[0]);
+    }
+  };
+  const updateDashboards = async () => {
+    const boards = await backend.getDashboardList();
+    console.log(boards);
+    setDashboards(boards);
   };
 
-  const updateConfig = async () => {
-    const config = await backend.getConfig();
+  const setConfig = (config: Config) => {
+    if (config.status === true) {
+      setSelectionTips(
+        localizationManager.getString(L.ENABLE_CLASH_IS_RUNNING)
+      );
+    }
     setClashState(config.status);
     setCurrentSub(config.current);
     setSecret(config.secret);
@@ -81,6 +98,12 @@ const Content: FC<{}> = ({}) => {
     setEnhancedMode(config.enhanced_mode);
     setAllowRemoteAccess(config.allow_remote_access);
     setCurrentDashboard(config.dashboard);
+  }
+
+  const updateConfig = async () => {
+    const config = await backend.getConfig();
+    console.log(config);
+    setConfig(config);
   };
 
   const reloadFullConfig = () => {
@@ -88,12 +111,48 @@ const Content: FC<{}> = ({}) => {
     updateSubscriptions();
     updateDashboards();
   }
-  useEffect(reloadFullConfig, [])
 
-  addEventListener("core_exit", (code: number) => {
-    setExitCode(code);
-    setClashState(false);
-  });
+  useEffect(() => {
+    const localConfig = window.localStorage.getItem("decky-clash-config")
+    if (localConfig) {
+      const config = JSON.parse(localConfig);
+      setConfig(config);
+    }
+    const localSubscriptions = window.localStorage.getItem("decky-clash-subscriptions")
+    if (localSubscriptions) {
+      const subs = JSON.parse(localSubscriptions);
+      setSubscriptions(subs);
+    }
+    const localDashboard = window.localStorage.getItem("decky-clash-dashboards")
+    if (localDashboard) {
+      const dashboard = JSON.parse(localDashboard);
+      setDashboards(dashboard);
+    }
+
+    reloadFullConfig();
+
+    return () => {
+      const config: Config = {
+        status: clashState,
+        current: currentSub,
+        secret: secret,
+        override_dns: overrideDNS,
+        enhanced_mode: enhancedMode,
+        allow_remote_access: allowRemoteAccess,
+        dashboard: currentDashboard,
+      };
+      window.localStorage.setItem("decky-clash-config", JSON.stringify(config));
+      window.localStorage.setItem("decky-clash-subscriptions", JSON.stringify(subscriptions));
+      window.localStorage.setItem("decky-clash-dashboard", JSON.stringify(dashboards));
+    };
+  }, []);
+
+  useEffect(() => {
+    addEventListener("core_exit", (code: number) => {
+      setExitCode(code);
+      setClashState(false);
+    });
+  }, []);
 
   const enhancedModeOptions = [
     { mode: EnhancedMode.RedirHost, label: "Redir Host" },
@@ -130,14 +189,30 @@ const Content: FC<{}> = ({}) => {
               // 内核操作
               if (value) {
                 setExitCode(null);
-                backend.setCoreStatus(true);
+                backend.setCoreStatus(true).then(([success, reason]) => {
+                  if (!success) {
+                    setClashState(false);
+                    toaster.toast({
+                      title: localizationManager.getString(L.ENABLE_CLASH_FAILED),
+                      body: reason,
+                      icon: <GiCat />,
+                    });
+                    setSelectionTips(
+                      localizationManager.getString(L.ENABLE_CLASH_FAILED) + " Err: " + reason
+                    );
+                  } else {
+                    setSelectionTips(
+                      localizationManager.getString(L.ENABLE_CLASH_IS_RUNNING)
+                    );
+                  }
+                });
               } else if (exitCode === null) {
                 backend.setCoreStatus(false);
               }
               // 提示操作
               if (value) {
                 setSelectionTips(
-                  localizationManager.getString(L.ENABLE_CLASH_IS_RUNNING)
+                  localizationManager.getString(L.ENABLE_CLASH_LOADING)
                 );
               } else if (exitCode === null || exitCode == 0) {
                 setSelectionTips(
@@ -145,7 +220,7 @@ const Content: FC<{}> = ({}) => {
                 );
               } else {
                 setSelectionTips(
-                  localizationManager.getString(L.ENABLE_CLASH_FAILED) + exitCode
+                  localizationManager.getString(L.ENABLE_CLASH_FAILED) + " Code " + exitCode
                 );
               }
             }}
@@ -166,7 +241,6 @@ const Content: FC<{}> = ({}) => {
                   L.SELECT_SUBSCRIPTION
                 ));
             }}
-            disabled={subOptions.length == 0}
           />
         </PanelSectionRow>
         <PanelSectionRow>
@@ -210,7 +284,7 @@ const Content: FC<{}> = ({}) => {
                 "http://127.0.0.1:9090/ui" + param
               );
             }}
-            disabled={clashState || currentDashboard === undefined}
+            disabled={!clashState || currentDashboard === undefined}
           >
             {localizationManager.getString(L.OPEN_DASHBOARD)}
           </ButtonItem>
@@ -297,6 +371,15 @@ const Content: FC<{}> = ({}) => {
 };
 
 const DeckyPluginRouter: FC = () => {
+  addEventListener("core_exit", (code: number) => {
+    if (code != 0) {
+      toaster.toast({
+        title: localizationManager.getString(L.CLASH_EXIT_TITLE),
+        body: "Code: " + code,
+        icon: <GiCat />,
+      });
+    }
+  });
   return (
     <SidebarNavigation
       title="To Moon"
@@ -304,7 +387,7 @@ const DeckyPluginRouter: FC = () => {
       pages={[
         {
           title: localizationManager.getString(L.SUBSCRIPTIONS),
-          content: <Subscriptions Subscriptions={shared_subs} />,
+          content: <Subscriptions Subscriptions={subscriptions} />,
           route: "/clash-config/subscriptions",
         },
         {

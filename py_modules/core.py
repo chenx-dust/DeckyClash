@@ -110,47 +110,29 @@ class CoreController:
     def check_config(cls, config_path: str) -> bool:
         command = cls._gen_cmd(config_path)
         command.append("-t")
-        logger.info(f"Checking config: {' '.join(command)}")
+        logger.debug(f"check_config: {' '.join(command)}")
 
         try:
-            return_code, output = subprocess.getstatusoutput(
-                command
-            )
-            logger.debug(f"Config check output: {output}")
+            return_code = subprocess.call(command)
         except Exception as e:
-            logger.error(f"Failed to start core: {e}")
+            logger.error(f"failed to start core: {e}")
             raise
 
-        logger.debug(f"Check config return code: {return_code}")
+        logger.debug(f"check_config: return code: {return_code}")
         return return_code == 0
 
     @classmethod
-    async def get_version(cls) -> str:
-        logger.info(f"Checking version")
-
+    def get_version(cls) -> str:
         try:
-            process = await asyncio.create_subprocess_exec(
-                "-v",
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-            return_code = await process.wait()
-            if process.stdout is not None:
-                stdout = await process.stdout.read()
-                if stdout:
-                    logger.debug(f"Config check stdout: {stdout.decode()}")
-            else:
-                return ""
-            if process.stderr is not None:
-                stderr = await process.stderr.read()
-                if stderr:
-                    logger.debug(f"Config check stderr: {stderr.decode()}")
+            cmd = [ str(cls.CORE_PATH), "-v" ]
+            logger.debug(f"get_version: cmd: {' '.join(cmd)}")
+            output = subprocess.check_output(cmd)
         except Exception as e:
-            logger.error(f"Failed to start core: {str(e)}")
-            raise
+            logger.error(f"get_version: failed to start core: {str(e)}")
+            return ""
 
-        logger.debug(f"Check config return code: {return_code}")
-        for s in stdout.decode().split(" "):
+        logger.debug(f"get_version: output: {output}")
+        for s in output.decode().split(" "):
             if s.startswith("v"):
                 return s[1:]
         return ""

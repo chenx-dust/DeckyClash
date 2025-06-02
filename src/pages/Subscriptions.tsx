@@ -3,6 +3,7 @@ import { useReducer, useState, FC, useEffect } from "react";
 import { cleanPadding } from "../style";
 import { SubList } from "../components";
 import { QRCodeCanvas } from "qrcode.react";
+import { BsExclamationCircleFill } from "react-icons/bs";
 
 import * as backend from "../backend/backend";
 import { localizationManager, L } from "../i18n";
@@ -15,7 +16,7 @@ interface SubProp {
 export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
   const [text, setText] = useState("");
   const [downloadTips, setDownloadTips] = useState("");
-  const [subscriptions, updateSubscriptions] = useState(Subscriptions);
+  const [subscriptions, setSubscriptions] = useState(Subscriptions);
   const [downlaodBtnDisable, setDownlaodBtnDisable] = useState(false);
   const [updateBtnDisable, setUpdateBtnDisable] = useState(false);
   const [_, forceUpdate] = useReducer((x) => x + 1, 0);
@@ -31,7 +32,7 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
 
   const refreshSubs = async () => {
     const subs = await backend.getSubscriptionList();
-    updateSubscriptions(subs);
+    setSubscriptions(subs);
   };
 
   //获取 QR Page
@@ -76,11 +77,17 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
           onClick={async () => {
             setDownlaodBtnDisable(true);
             const [success, error] = await backend.downloadSubscription(text);
-            if (!success)
+            if (!success) {
               toaster.toast({
                 title: localizationManager.getString(L.DOWNLOAD_FAILURE),
                 body: error,
+                icon: <BsExclamationCircleFill />,
               });
+              setDownloadTips(L.DOWNLOAD_FAILURE + ": " + error);
+              setTimeout (() => {
+                setDownloadTips("");
+              }, 5000);
+            }
             setDownlaodBtnDisable(false);
             refreshSubs();
           }}
@@ -94,10 +101,16 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
             setUpdateBtnDisable(true);
             const failed = await backend.updateAllSubscriptions();
             if (failed.length > 0) {
+              const error = failed.map((x) => `${x[0]}: ${x[1]}`).join("\n");
               toaster.toast({
                 title: localizationManager.getString(L.UPDATE_FAILURE),
-                body: failed.map((x) => `${x[0]}: ${x[1]}`).join("\n"),
+                body: error,
+                icon: <BsExclamationCircleFill />,
               });
+              setUpdateTips(L.UPDATE_FAILURE + ": " + error);
+              setTimeout(() => {
+                setDownloadTips("");
+              }, 5000);
             }
             setUpdateBtnDisable(false);
           }}
@@ -107,22 +120,9 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
         </ButtonItem>
       </PanelSectionRow>
       <PanelSectionRow>
-        {/* {
-                    subscriptions.map(x => {
-                        return (
-                            <div>
-                                <ButtonItem label={x.name} description={x.url} onClick={
-                                    () => {
-                                        //删除订阅
-                                    }
-                                }>Delete</ButtonItem>
-                            </div>
-                        );
-                    })
-                } */}
         <SubList
           Subscriptions={subscriptions}
-          UpdateSub={updateSubscriptions}
+          UpdateSub={setSubscriptions}
           Refresh={forceUpdate}
         ></SubList>
       </PanelSectionRow>

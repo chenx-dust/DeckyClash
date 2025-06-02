@@ -1,6 +1,6 @@
 export enum EnhancedMode {
-  RedirHost = "RedirHost",
-  FakeIp = "FakeIp",
+  RedirHost = "redir-host",
+  FakeIp = "fake-ip",
 }
 
 export interface Config {
@@ -9,7 +9,6 @@ export interface Config {
   secret: string,
   override_dns: boolean,
   enhanced_mode: EnhancedMode,
-  controller_port: number,
   allow_remote_access: boolean,
   dashboard: string | null,
 }

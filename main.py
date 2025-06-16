@@ -33,7 +33,7 @@ class Plugin:
         if not self.settings.getSetting("initialized", False):
             logger.info("first launched, copying resources ...")
             shutil.copytree(
-                Path(decky.DECKY_PLUGIN_DIR, "resource"),
+                Path(decky.DECKY_PLUGIN_DIR, "bin", "res"),
                 decky.DECKY_PLUGIN_RUNTIME_DIR,
                 dirs_exist_ok=True,
             )

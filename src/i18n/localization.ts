@@ -9,7 +9,6 @@ export class localizationManager {
     const language =
       (await SteamClient.Settings.GetCurrentLanguage()) || "english";
     this.language = language;
-    console.log(">>>>>>>>>> Language: " + this.language);
 
     const resources: Resource = Object.keys(localizeMap).reduce(
       (acc: Resource, key) => {
@@ -40,7 +39,6 @@ export class localizationManager {
     defaultString: LocalizeStrKey,
     variables?: Record<string, unknown>
   ) {
-    console.log(">>>>>>>>>> getString: " + defaultString);
     return i18n.t(defaultString, variables);
   }
 }

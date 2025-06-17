@@ -29,6 +29,7 @@ import * as backend from "./backend/backend";
 import { Config, EnhancedMode } from "./backend";
 import { ActionButtonItem, VersionComponent } from "./components";
 import { localizationManager, L } from "./i18n";
+import { QRCodeCanvas } from "qrcode.react";
 
 let subscriptions: Record<string, string> = {};
 
@@ -48,6 +49,8 @@ const Content: FC<{}> = ({}) => {
   const [controllerPort, setControllerPort] = useState(9090);
   const [secret, setSecret] = useState<string>("");
   const [initialized, setInitialized] = useState(false);
+  const [qrPageUrl, setQRPageUrl] = useState<string>();
+  const [currentIP, setCurrentIP] = useState<string>();
 
 
   const applySubscriptions = (subs: Record<string, string>, save: boolean = true) => {
@@ -115,11 +118,26 @@ const Content: FC<{}> = ({}) => {
     setInitialized(true);
   };
 
+  const fetchIP = async () => {
+    const ip = await backend.getIP();
+    console.log(ip);
+    setCurrentIP(ip);
+    window.localStorage.setItem("decky-clash-ip", ip);
+  };
+
   const fetchAllConfig = () => {
     fetchConfig();
     fetchSubscriptions();
     fetchDashboards();
+    fetchIP();
   }
+
+  useEffect(() => {
+    if (currentIP && currentDashboard)
+      setQRPageUrl(`http://${currentIP}:${controllerPort}/ui/${currentDashboard}/?hostname=${currentIP}&port=${controllerPort}&secret=${secret}`)
+  },
+    [currentIP, currentDashboard, controllerPort, secret]
+  );
 
   const getCurrentConfig = (): Config => {
     return {
@@ -158,6 +176,10 @@ const Content: FC<{}> = ({}) => {
       const dashboard = JSON.parse(localDashboard);
       applyDashboards(dashboard, false);
     }
+
+    const localIP = window.localStorage.getItem("decky-clash-ip");
+    if (localIP)
+      setCurrentIP(localIP);
 
     // 从后端获取配置
     fetchAllConfig();
@@ -232,7 +254,7 @@ const Content: FC<{}> = ({}) => {
       return s;
     })
     return () => clearTimeout(timer);
-  }, [currentSub, overrideDNS, enhancedMode, allowRemoteAccess, currentDashboard])
+  }, [currentSub, overrideDNS, enhancedMode, allowRemoteAccess])
 
   return (
     <div>
@@ -337,15 +359,23 @@ const Content: FC<{}> = ({}) => {
         <PanelSectionRow>
           <ToggleField
             label={localizationManager.getString(L.ALLOW_REMOTE_ACCESS)}
-            description={localizationManager.getString(
-              L.ALLOW_REMOTE_ACCESS_DESC
-            )}
+            description=
+            {allowRemoteAccess && clashState && qrPageUrl && (
+              <div style={{ overflowWrap: "break-word" }}>
+                <QRCodeCanvas style={{
+                  display: "block",
+                  margin: "8px auto",
+                }} value={qrPageUrl} size={128} />
+                {qrPageUrl}
+              </div>
+            ) || localizationManager.getString(L.ALLOW_REMOTE_ACCESS_DESC) }
             checked={allowRemoteAccess}
             disabled={clashStateChanging}
             onChange={(value: boolean) => {
               setAllowRemoteAccess(value);
               backend.setConfigValue("allow_remote_access", value).then(() =>
                 backend.getConfigValue("allow_remote_access").then(setAllowRemoteAccess));
+              fetchIP();
             }}
           ></ToggleField>
         </PanelSectionRow>

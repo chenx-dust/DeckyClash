@@ -14,6 +14,7 @@
     "UPDATE_ALL": "Update All",
     "UPDATING": "Updating ...",
     "UPDATE_FAILURE": "Failed to Update",
+    "UPDATE_SUCCESS": "All subscription is upgraded",
     "DELETE": "Delete",
     "DELETE_FAILURE": "Failed to Delete",
     "ENABLE_CLASH": "Enable Clash",

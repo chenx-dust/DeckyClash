@@ -45,9 +45,14 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
   };
 
   //获取 QR Page
-  backend.getExternalURL().then((url) => {
-    setQRPageUrl(url);
-  })
+  useEffect(() => {
+    const f = async () => {
+      const ip = await backend.getIP();
+      const port = await backend.getConfigValue("external_port");
+      setQRPageUrl(`http://${ip}:${port}`);
+    };
+    f();
+  }, []);
 
   return (
     <>
@@ -116,7 +121,12 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
                 body: error,
                 icon: <BsExclamationCircleFill />,
               });
-              setUpdateTips(L.UPDATE_FAILURE + ": " + error);
+              setUpdateTips(localizationManager.getString(L.UPDATE_FAILURE) + ": " + error);
+              setTimeout(() => {
+                setUpdateTips("");
+              }, 5000);
+            } else {
+              setUpdateTips(localizationManager.getString(L.UPDATE_SUCCESS));
               setTimeout(() => {
                 setUpdateTips("");
               }, 5000);

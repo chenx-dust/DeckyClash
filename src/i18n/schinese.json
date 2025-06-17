@@ -13,6 +13,7 @@
     "DOWNLOAD_FAILURE": "下载失败",
     "UPDATE_ALL": "更新所有",
     "UPDATING": "更新中 ...",
+    "UPDATE_SUCCESS": "所有订阅更新成功",
     "UPDATE_FAILURE": "更新失败",
     "DELETE": "删除",
     "DELETE_FAILURE": "删除失败",

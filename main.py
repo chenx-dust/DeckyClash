@@ -263,8 +263,8 @@ class Plugin:
         else:
             return False
 
-    async def get_external_url(self) -> str:
-        return f'http://{utils.get_ip()}:{self._get("external_port")}'
+    async def get_ip(self) -> str:
+        return utils.get_ip()
     
     async def set_external_status(self, status: bool) -> None:
         if status:

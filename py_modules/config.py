@@ -48,7 +48,7 @@ async def generate_config(
 # 因为不方便安装其他包，使用 yq 来处理 yaml 文件
 async def _exec_yq(cmd: List[str]) -> Optional[str]:
     command = [YQ_PATH, *cmd]
-    print_cmd = '"' + '" "'.join(command) + '"'
+    print_cmd = "'" + "' '".join(command) + "'"
     decky.logger.debug(f'exec_yq: {print_cmd}')
     process = await asyncio.create_subprocess_exec(
                 *command,

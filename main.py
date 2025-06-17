@@ -24,20 +24,22 @@ import utils
 class Plugin:
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def _main(self):
-        logger.setLevel(logging.DEBUG)
         self.settings = SettingsManager(
             name="config", settings_directory=decky.DECKY_PLUGIN_SETTINGS_DIR
         )
         logger.info(f"starting {PACKAGE_NAME} ...")
 
-        if self.settings.getSetting("version", "") != decky.DECKY_PLUGIN_VERSION:
-            logger.info("first launched or updated, copying resources ...")
-            shutil.rmtree(decky.DECKY_PLUGIN_RUNTIME_DIR, ignore_errors=True)
-            shutil.copytree(
-                Path(decky.DECKY_PLUGIN_DIR, "bin", "res"),
-                decky.DECKY_PLUGIN_RUNTIME_DIR,
-                dirs_exist_ok=True,
-            )
+        if self._get("version", True) != decky.DECKY_PLUGIN_VERSION:
+            if self._get("skip_copy_res", True) != False:
+                logger.info("first launched or updated, copying resources ...")
+                shutil.rmtree(decky.DECKY_PLUGIN_RUNTIME_DIR, ignore_errors=True)
+                shutil.copytree(
+                    Path(decky.DECKY_PLUGIN_DIR, "bin", "res"),
+                    decky.DECKY_PLUGIN_RUNTIME_DIR,
+                    dirs_exist_ok=True,
+                )
+            else:
+                logger.info("skip copying resources")
             self.settings.setSetting("version", decky.DECKY_PLUGIN_VERSION)
         self._set_default("subscriptions", {})
         self._set_default("secret", utils.rand_thing())
@@ -48,6 +50,12 @@ class Plugin:
         self._set_default("allow_remote_access", False)
         self._set_default("timeout", 15.0)
         self._set_default("disable_verify", False)
+        self._set_default("skip_copy_res", False)
+        self._set_default("log_level", logging.getLevelName(logging.INFO))
+
+        level = self._get("log_level")
+        logger.setLevel(logging.getLevelNamesMapping()[level])
+        logger.info(f"log level set to {level}")
 
         utils.init_ssl_context(self._get("disable_verify"))
 
@@ -179,7 +187,7 @@ class Plugin:
         return version
 
     async def get_latest_version(self) -> str:
-        version = upgrade.get_latest_version(PACKAGE_REPO, self._get("timeout"))
+        version = await upgrade.get_latest_version(PACKAGE_REPO, self._get("timeout"))
         logger.info(f"latest package version: {version}")
         return version
 
@@ -203,7 +211,7 @@ class Plugin:
         return version
 
     async def get_latest_version_core(self) -> str:
-        version = upgrade.get_latest_version(CORE_REPO, self._get("timeout"))
+        version = await upgrade.get_latest_version(CORE_REPO, self._get("timeout"))
         logger.info(f"latest core version: {version}")
         return version
 

@@ -139,10 +139,9 @@ async def download_latest_core(timeout: float) -> str:
 def get_version() -> str:
     return f"{decky.DECKY_PLUGIN_VERSION}"
 
-def get_latest_version(repo: str, timeout: float) -> str:
+async def get_latest_version(repo: str, timeout: float) -> str:
     try:
-        response = urllib.request.urlopen(get_github_api_url(repo), context=utils.get_ssl_context(), timeout=timeout)
-        json_data = json.load(response)
+        json_data = await utils.get_url_to_json(get_github_api_url(repo), timeout=timeout)
     except Exception as e:
         logger.error(f"get_latest_version: failed with {e}")
         return ""

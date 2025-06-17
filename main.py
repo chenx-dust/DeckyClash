@@ -30,14 +30,15 @@ class Plugin:
         )
         logger.info(f"starting {PACKAGE_NAME} ...")
 
-        if not self.settings.getSetting("initialized", False):
-            logger.info("first launched, copying resources ...")
+        if self.settings.getSetting("version", "") != decky.DECKY_PLUGIN_VERSION:
+            logger.info("first launched or updated, copying resources ...")
+            shutil.rmtree(decky.DECKY_PLUGIN_RUNTIME_DIR, ignore_errors=True)
             shutil.copytree(
                 Path(decky.DECKY_PLUGIN_DIR, "bin", "res"),
                 decky.DECKY_PLUGIN_RUNTIME_DIR,
                 dirs_exist_ok=True,
             )
-        self._set_default("initialized", True)
+            self.settings.setSetting("version", decky.DECKY_PLUGIN_VERSION)
         self._set_default("subscriptions", {})
         self._set_default("secret", utils.rand_thing())
         self._set_default("override_dns", True)

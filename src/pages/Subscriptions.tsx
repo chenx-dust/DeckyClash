@@ -64,17 +64,28 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
           #subscription-download-textfiled > div {
               margin-bottom: 0px !important
           }
-          #subscription-qrcode {
-              display: flex;
-              justify-content: center;
-          }
         `}
       </style>
       <PanelSectionRow>
-        <div id="subscription-qrcode">
-          <QRCodeCanvas value={QRPageUrl} size={128} />
-        </div>
-        <p style={{ textAlign: "center" }}>{QRPageUrl}</p>
+        { QRPageUrl && (
+          <div id="subscription-qrcode">
+            <QRCodeCanvas style={{
+              display: "block",
+              margin: "8px auto",
+            }} value={QRPageUrl} size={128} />
+            <p style={{
+              textAlign: "center",
+              overflowWrap: "break-word"
+            }}>
+              {QRPageUrl}
+            </p>
+          </div>
+        ) || (<p style={{
+          textAlign: "center",
+          overflowWrap: "break-word"
+        }}>
+          {localizationManager.getString(L.ENABLE_CLASH_LOADING)}
+        </p>)}
         <div id="subscription-download-textfiled" style={cleanPadding}>
           <TextField
             label={localizationManager.getString(L.SUBSCRIPTIONS_LINK)}

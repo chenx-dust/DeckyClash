@@ -12,6 +12,7 @@ HandlerCallback = Callable[[web.Request], Awaitable[web.Response]]
 class ExternalServer:
     def __init__(self):
         self._app = web.Application()
+        self._app.router.add_route('*', '/{tail:.*}', self._handle_request)
         self._runner = None
         self._site = None
         self._callback_dict: Dict[str, HandlerCallback] = {}
@@ -44,7 +45,6 @@ class ExternalServer:
     async def run(self, port: int):
         if self._runner is None:
             logger.info(f"external: starting aiohttp server on port {port}")
-            self._app.router.add_route('*', '/{tail:.*}', self._handle_request)
             self._runner = web.AppRunner(self._app)
             await self._runner.setup()
             self._site = web.TCPSite(self._runner, host='0.0.0.0', port=port)

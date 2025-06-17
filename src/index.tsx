@@ -33,30 +33,19 @@ import { QRCodeCanvas } from "qrcode.react";
 
 let subscriptions: Record<string, string> = {};
 
-const Content: FC<{}> = ({}) => {
-  const [clashState, setClashState] = useState(false);
-  const [clashStateChanging, setClashStateChanging] = useState(false);
-  const [subOptions, setSubOptions] = useState<DropdownOption[]>([]);
-  const [clashStateTips, setClashStateTips] = useState(
-    localizationManager.getString(L.ENABLE_CLASH_DESC)
-  );
-  const [overrideDNS, setOverrideDNS] = useState(true);
-  const [currentSub, setCurrentSub] = useState<string | null>(null);
-  const [enhancedMode, setEnhancedMode] = useState<EnhancedMode>(EnhancedMode.FakeIp);
-  const [currentDashboard, setCurrentDashboard] = useState<string | null>(null);
-  const [dashboardOptions, setDashboardOption] = useState<DropdownOption[]>([]);
-  const [allowRemoteAccess, setAllowRemoteAccess] = useState(false);
-  const [controllerPort, setControllerPort] = useState(9090);
-  const [secret, setSecret] = useState<string>("");
-  const [initialized, setInitialized] = useState(false);
-  const [qrPageUrl, setQRPageUrl] = useState<string>();
-  const [currentIP, setCurrentIP] = useState<string>();
+const patchLocalConfig = (key: string, data: any) => {
+  const config = JSON.parse(window.localStorage.getItem("decky-clash-config") || "{}");
+  config[key] = data;
+  window.localStorage.setItem("decky-clash-config", JSON.stringify(config));
+}
 
+const Content: FC<{}> = ({ }) => {
+  const localConfig: Config = JSON.parse(window.localStorage.getItem("decky-clash-config") || "{}");
+  const localSubscriptions: Record<string, string> = JSON.parse(window.localStorage.getItem("decky-clash-subscriptions") || "{}");
+  const localDashboards: string[] = JSON.parse(window.localStorage.getItem("decky-clash-dashboards") || "[]");
+  const localIP = window.localStorage.getItem("decky-clash-ip") || "";
 
-  const applySubscriptions = (subs: Record<string, string>, save: boolean = true) => {
-    subscriptions = subs;
-    if (save)
-      window.localStorage.setItem("decky-clash-subscriptions", JSON.stringify(subs));
+  const parseSubOptions = (subs: Record<string, string>) => {
     let items: DropdownOption[] = [];
     for (const key in subs) {
       items.push({
@@ -64,7 +53,45 @@ const Content: FC<{}> = ({}) => {
         data: key,
       });
     }
-    setSubOptions(items);
+    return items;
+  };
+
+  const parseDashboardOptions = (boards: string[]) => {
+    const items: DropdownOption[] = [];
+    for (const idx in boards) {
+      items.push({
+        label: boards[idx],
+        data: boards[idx],
+      });
+    }
+    return items;
+  };
+
+  const [clashState, setClashState] = useState(localConfig.status);
+  const [clashStateChanging, setClashStateChanging] = useState(false);
+  const [subOptions, setSubOptions] = useState<DropdownOption[]>(parseSubOptions(localSubscriptions));
+  const [clashStateTips, setClashStateTips] = useState(
+    localConfig.status ?
+      localizationManager.getString(L.ENABLE_CLASH_IS_RUNNING) :
+      localizationManager.getString(L.ENABLE_CLASH_DESC)
+  );
+  const [currentSub, setCurrentSub] = useState<string | null>(localConfig.current);
+  const [overrideDNS, setOverrideDNS] = useState(localConfig.override_dns);
+  const [enhancedMode, setEnhancedMode] = useState<EnhancedMode>(localConfig.enhanced_mode);
+  const [currentDashboard, setCurrentDashboard] = useState<string | null>(localConfig.dashboard);
+  const [dashboardOptions, setDashboardOption] = useState<DropdownOption[]>(parseDashboardOptions(localDashboards));
+  const [allowRemoteAccess, setAllowRemoteAccess] = useState(localConfig.allow_remote_access);
+  const [controllerPort, setControllerPort] = useState(localConfig.controller_port);
+  const [secret, setSecret] = useState<string>(localConfig.secret);
+  const [initialized, setInitialized] = useState(false);
+  const [qrPageUrl, setQRPageUrl] = useState<string>();
+  const [currentIP, setCurrentIP] = useState<string>(localIP);
+
+  const applySubscriptions = (subs: Record<string, string>, save: boolean = true) => {
+    subscriptions = subs;
+    if (save)
+      window.localStorage.setItem("decky-clash-subscriptions", JSON.stringify(subs));
+    setSubOptions(parseSubOptions(subs));
   }
   const fetchSubscriptions = async () => {
     const subs = await backend.getSubscriptionList();
@@ -75,14 +102,7 @@ const Content: FC<{}> = ({}) => {
   const applyDashboards = (boards: string[], save: boolean = true) => {
     if (save)
       window.localStorage.setItem("decky-clash-dashboards", JSON.stringify(boards));
-    let items: DropdownOption[] = [];
-    for (const idx in boards) {
-      items.push({
-        label: boards[idx],
-        data: boards[idx],
-      });
-    }
-    setDashboardOption(items);
+    setDashboardOption(parseDashboardOptions(boards));
   };
   const fetchDashboards = async () => {
     const boards = await backend.getDashboardList();
@@ -159,31 +179,7 @@ const Content: FC<{}> = ({}) => {
     }
   }, [initialized, clashState, currentSub, overrideDNS, enhancedMode, allowRemoteAccess, currentDashboard])
 
-  useLayoutEffect(() => {
-    // 从 localStorage 恢复配置更快
-    const localConfig = window.localStorage.getItem("decky-clash-config");
-    if (localConfig) {
-      const config = JSON.parse(localConfig);
-      applyConfig(config, false);
-    }
-    const localSubscriptions = window.localStorage.getItem("decky-clash-subscriptions");
-    if (localSubscriptions) {
-      const subs = JSON.parse(localSubscriptions);
-      applySubscriptions(subs, false);
-    }
-    const localDashboard = window.localStorage.getItem("decky-clash-dashboards");
-    if (localDashboard) {
-      const dashboard = JSON.parse(localDashboard);
-      applyDashboards(dashboard, false);
-    }
-
-    const localIP = window.localStorage.getItem("decky-clash-ip");
-    if (localIP)
-      setCurrentIP(localIP);
-
-    // 从后端获取配置
-    fetchAllConfig();
-  }, []);
+  useLayoutEffect(fetchAllConfig, []);
 
   useEffect(() => {
     // 内核退出回调
@@ -254,7 +250,7 @@ const Content: FC<{}> = ({}) => {
       return s;
     })
     return () => clearTimeout(timer);
-  }, [currentSub, overrideDNS, enhancedMode, allowRemoteAccess])
+  }, [overrideDNS, enhancedMode, allowRemoteAccess])
 
   return (
     <div>
@@ -308,12 +304,12 @@ const Content: FC<{}> = ({}) => {
             disabled={clashStateChanging}
             onChange={async (x) => {
               setCurrentSub(x.data);
+              patchLocalConfig("current", x.data);
               const success = await backend.setCurrent(x.data);
               if (!success)
                 setCurrentSub(null);
               else
                 restartClash();
-              backend.getConfigValue("current").then(setCurrentSub);
             }}
           />
         </PanelSectionRow>
@@ -337,7 +333,7 @@ const Content: FC<{}> = ({}) => {
                 `http://127.0.0.1:${controllerPort}/ui/${currentDashboard}/?hostname=127.0.0.1&port=${controllerPort}&secret=${secret}`
               );
             }}
-            disabled={clashStateChanging || !clashState || currentDashboard === null}
+            disabled={clashStateChanging || !clashState || !currentDashboard}
           >
             {localizationManager.getString(L.OPEN_DASHBOARD)}
           </ButtonItem>
@@ -352,8 +348,8 @@ const Content: FC<{}> = ({}) => {
             disabled={clashStateChanging}
             onChange={(value) => {
               setCurrentDashboard(value.data);
-              backend.setConfigValue("dashboard", value.data).then(() =>
-                backend.getConfigValue("dashboard").then(setCurrentDashboard));
+              patchLocalConfig("dashboard", value.data);
+              backend.setConfigValue("dashboard", value.data);
             }}
           />
         </PanelSectionRow>
@@ -361,7 +357,7 @@ const Content: FC<{}> = ({}) => {
           <ToggleField
             label={localizationManager.getString(L.ALLOW_REMOTE_ACCESS)}
             description=
-            {allowRemoteAccess && clashState && qrPageUrl && (
+            {allowRemoteAccess && clashState && !clashStateChanging && qrPageUrl && (
               <div style={{ overflowWrap: "break-word" }}>
                 <QRCodeCanvas style={{
                   display: "block",
@@ -473,6 +469,7 @@ const DeckyPluginRouter: FC = () => {
 export default definePlugin(() => {
   localizationManager.init();
   routerHook.addRoute("/clash-config", DeckyPluginRouter);
+  patchLocalConfig("status", false);
 
   return {
     // The name shown in various decky menus
@@ -485,7 +482,7 @@ export default definePlugin(() => {
     icon: <GiCat />,
     // The function triggered when your plugin unloads
     onDismount() {
-      console.log("Unloading")
+      patchLocalConfig("status", false);
     },
   };
 });

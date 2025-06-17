@@ -11,4 +11,5 @@ export interface Config {
   enhanced_mode: EnhancedMode,
   allow_remote_access: boolean,
   dashboard: string | null,
+  controller_port: number,
 }

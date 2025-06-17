@@ -11,7 +11,8 @@ from decky import logger
 ExitCallback = Callable[[Optional[int]], Awaitable[None]]
 
 class CoreController:
-    CORE_PATH = Path(decky.DECKY_PLUGIN_DIR, "bin", "core")
+    CORE_PATH = os.path.join(decky.DECKY_PLUGIN_DIR, "bin", "core")
+    CONFIG_PATH = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "running_config.yaml")
     RESOURCE_DIR = decky.DECKY_PLUGIN_RUNTIME_DIR
 
     def __init__(self):
@@ -33,19 +34,19 @@ class CoreController:
     @classmethod
     def _gen_cmd(cls, config_path: str) -> List[str]:
         return [
-            str(cls.CORE_PATH),
+            cls.CORE_PATH,
             "-f",
             config_path,
             "-d",
-            str(cls.RESOURCE_DIR),
+            cls.RESOURCE_DIR,
         ]
 
-    async def start(self, config_path: str) -> None:
+    async def start(self) -> None:
         if self._process and self._process.returncode is None:
             logger.warning("core is already running")
             await self.stop()
 
-        command = self._gen_cmd(config_path)
+        command = self._gen_cmd(self.CONFIG_PATH)
         logger.info(f"starting core: {' '.join(command)}")
         self._command = command
 
@@ -125,7 +126,7 @@ class CoreController:
     @classmethod
     def get_version(cls) -> str:
         try:
-            cmd = [ str(cls.CORE_PATH), "-v" ]
+            cmd = [ cls.CORE_PATH, "-v" ]
             logger.debug(f"get_version: cmd: {' '.join(cmd)}")
             output = subprocess.check_output(cmd)
         except Exception as e:

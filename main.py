@@ -78,6 +78,19 @@ class Plugin:
         if self.core.is_running:
             await self.core.stop()
 
+    def generate_config(self):
+        return config.generate_config(
+            subscription.get_path(self._get("current")),
+            CoreController.CONFIG_PATH,
+            self._get("secret"),
+            self._get("override_dns"),
+            config.EnhancedMode(self._get("enhanced_mode")),
+            self._get("controller_port"),
+            self._get("allow_remote_access"),
+            str(dashboard.DASHBOARD_DIR),
+            self._get("dashboard")
+        )
+
     async def get_core_status(self) -> bool:
         is_running = self.core.is_running
         logger.info(f"get_core_status: {is_running}")
@@ -86,19 +99,8 @@ class Plugin:
     async def set_core_status(self, status: bool) -> Tuple[bool, Optional[str]]:
         try:
             if status:
-                path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "running_config.yaml")
-                await config.generate_config(
-                    subscription.get_path(self._get("current")),
-                    path,
-                    self._get("secret"),
-                    self._get("override_dns"),
-                    config.EnhancedMode(self._get("enhanced_mode")),
-                    self._get("controller_port"),
-                    self._get("allow_remote_access"),
-                    str(dashboard.DASHBOARD_DIR),
-                    self._get("dashboard")
-                )
-                await self.core.start(path)
+                await self.generate_config()
+                await self.core.start()
             else:
                 await self.core.stop()
         except Exception as e:
@@ -108,6 +110,7 @@ class Plugin:
 
     async def restart_core(self) -> bool:
         logger.info("soft restarting core ...")
+        await self.generate_config()
         port = self._get("controller_port")
         payload = json.dumps({"payload": ""})
         headers = {
@@ -139,6 +142,7 @@ class Plugin:
             "enhanced_mode": self._get("enhanced_mode"),
             "allow_remote_access": self._get("allow_remote_access"),
             "dashboard": self._get("dashboard", True),
+            "controller_port": self._get("controller_port"),
         }
         logger.debug(config)
         return config

@@ -131,7 +131,7 @@ async def update_subs(subs: SubscriptionDict, timeout: float) -> List[Tuple[str,
     results = await asyncio.gather(*promises)
 
     failed = []
-    for (name, _), result in zip(subs, results):
+    for name, result in zip(subs, results):
         if result is not None:
             failed.append((name, result))
     return failed

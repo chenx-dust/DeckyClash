@@ -67,14 +67,15 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
             label={localizationManager.getString(L.SUBSCRIPTIONS_LINK)}
             value={text}
             onChange={(e) => setText(e?.target.value)}
-            description={downloadTips}
           />
         </div>
         <ButtonItem
           layout="below"
+          description={downloadTips}
           disabled={downlaodBtnDisable}
           onClick={async () => {
             setDownlaodBtnDisable(true);
+            setDownloadTips(localizationManager.getString(L.DOWNLOADING));
             const [success, error] = await backend.downloadSubscription(text);
             if (!success) {
               toaster.toast({
@@ -109,7 +110,7 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
               });
               setUpdateTips(L.UPDATE_FAILURE + ": " + error);
               setTimeout(() => {
-                setDownloadTips("");
+                setUpdateTips("");
               }, 5000);
             }
             setUpdateBtnDisable(false);

@@ -1,5 +1,5 @@
 import { PanelSection, PanelSectionRow, Field } from "@decky/ui";
-import { createContext, FC, useContext, useEffect } from "react";
+import { createContext, FC, useContext, useLayoutEffect } from "react";
 import * as backend from "../backend/backend";
 import { ActionButtonItem } from "./actionButtonItem";
 import { localizationManager, L } from "../i18n";
@@ -31,7 +31,7 @@ export const VersionComponent: FC = () => {
     backend.getVersionCore().then((x) => { coreVersionData.current = x });
     backend.getLatestVersionCore().then((x) => { coreVersionData.latest = x });
   }
-  useEffect(getVersions, []);
+  useLayoutEffect(getVersions, []);
 
   let uptButtonText = localizationManager.getString(L.REINSTALL_PLUGIN);
   if (pluginVersionData.current !== pluginVersionData.latest && Boolean(pluginVersionData.latest)) {

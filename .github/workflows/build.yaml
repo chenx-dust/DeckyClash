@@ -81,6 +81,6 @@ jobs:
           name: Release ${{ github.ref_name }}
           draft: false
           generate_release_notes: true
-          prerelease: contains(github.ref, 'pre')
+          prerelease: ${{ contains(github.ref, 'pre') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

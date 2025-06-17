@@ -298,6 +298,7 @@ const Content: FC<{}> = ({}) => {
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
+            label={localizationManager.getString(L.SELECT_SUBSCRIPTION)}
             strDefaultLabel={localizationManager.getString(
               L.SELECT_SUBSCRIPTION
             )}

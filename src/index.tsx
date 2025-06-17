@@ -14,11 +14,12 @@ import {
 } from "@decky/ui";
 import {
   addEventListener,
+  removeEventListener,
   definePlugin,
   routerHook,
   toaster
 } from "@decky/api"
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useLayoutEffect, useState } from "react";
 import { GiCat } from "react-icons/gi";
 
 import { Subscriptions, About } from "./pages";
@@ -29,12 +30,12 @@ import { Config, EnhancedMode } from "./backend";
 import { ActionButtonItem, VersionComponent } from "./components";
 import { localizationManager, L } from "./i18n";
 
-let subscriptions: Record<string, string> = {}
-let dashboards: string[] = []
+let subscriptions: Record<string, string> = {};
+let ignoreSaving = true;
 
 const Content: FC<{}> = ({}) => {
   const [clashState, setClashState] = useState(false);
-  const [exitCode, setExitCode] = useState<number | null>(null);
+  const [clashStateChanging, setClashStateChanging] = useState(false);
   const [subOptions, setSubOptions] = useState<DropdownOption[]>([]);
   const [selectionTips, setSelectionTips] = useState(
     localizationManager.getString(L.ENABLE_CLASH_DESC)
@@ -48,8 +49,10 @@ const Content: FC<{}> = ({}) => {
   const [secret, setSecret] = useState<string>("");
 
 
-  const setSubscriptions = (subs: Record<string, string>) => {
+  const setSubscriptions = (subs: Record<string, string>, save: boolean = true) => {
     subscriptions = subs;
+    if (save)
+      window.localStorage.setItem("decky-clash-subscriptions", JSON.stringify(subs));
     let items: DropdownOption[] = [];
     for (const key in subs) {
       items.push({
@@ -65,8 +68,9 @@ const Content: FC<{}> = ({}) => {
     setSubscriptions(subs);
   };
 
-  const setDashboards = (boards: string[]) => {
-    dashboards = boards;
+  const setDashboards = (boards: string[], save: boolean = true) => {
+    if (save)
+      window.localStorage.setItem("decky-clash-dashboards", JSON.stringify(boards));
     let items: DropdownOption[] = [];
     for (const idx in boards) {
       items.push({
@@ -75,9 +79,6 @@ const Content: FC<{}> = ({}) => {
       });
     }
     setDashboardOption(items);
-    if (boards.length > 0 && currentDashboard === undefined) {
-      setCurrentDashboard(boards[0]);
-    }
   };
   const updateDashboards = async () => {
     const boards = await backend.getDashboardList();
@@ -85,12 +86,16 @@ const Content: FC<{}> = ({}) => {
     setDashboards(boards);
   };
 
-  const setConfig = (config: Config) => {
-    if (config.status === true) {
-      setSelectionTips(
-        localizationManager.getString(L.ENABLE_CLASH_IS_RUNNING)
-      );
+  const setConfig = (config: Config, save: boolean = true) => {
+    if (save) {
+      console.trace("saving config with set", config);
+      window.localStorage.setItem("decky-clash-config", JSON.stringify(config));
     }
+    setSelectionTips(
+      config.status ?
+        localizationManager.getString(L.ENABLE_CLASH_IS_RUNNING) :
+        localizationManager.getString(L.ENABLE_CLASH_DESC)
+    );
     setClashState(config.status);
     setCurrentSub(config.current);
     setSecret(config.secret);
@@ -101,9 +106,11 @@ const Content: FC<{}> = ({}) => {
   }
 
   const updateConfig = async () => {
+    ignoreSaving = true;
     const config = await backend.getConfig();
     console.log(config);
     setConfig(config);
+    ignoreSaving = false;
   };
 
   const reloadFullConfig = () => {
@@ -112,46 +119,59 @@ const Content: FC<{}> = ({}) => {
     updateDashboards();
   }
 
+  const getCurrentConfig = (): Config => {
+    return {
+      status: clashState,
+      current: currentSub,
+      secret: secret,
+      override_dns: overrideDNS,
+      enhanced_mode: enhancedMode,
+      allow_remote_access: allowRemoteAccess,
+      dashboard: currentDashboard,
+    };
+  }
+
   useEffect(() => {
-    const localConfig = window.localStorage.getItem("decky-clash-config")
+    if (!ignoreSaving) {
+      console.trace("saving config", getCurrentConfig());
+      window.localStorage.setItem("decky-clash-config", JSON.stringify(getCurrentConfig()));
+    } else {
+      console.trace("ignoring saving config");
+    }
+  }, [clashState, currentSub, overrideDNS, enhancedMode, allowRemoteAccess, currentDashboard])
+
+  useLayoutEffect(() => {
+    console.log("init load");
+    const localConfig = window.localStorage.getItem("decky-clash-config");
     if (localConfig) {
       const config = JSON.parse(localConfig);
-      setConfig(config);
+      setConfig(config, false);
     }
-    const localSubscriptions = window.localStorage.getItem("decky-clash-subscriptions")
+    const localSubscriptions = window.localStorage.getItem("decky-clash-subscriptions");
     if (localSubscriptions) {
       const subs = JSON.parse(localSubscriptions);
-      setSubscriptions(subs);
+      setSubscriptions(subs, false);
     }
-    const localDashboard = window.localStorage.getItem("decky-clash-dashboards")
+    const localDashboard = window.localStorage.getItem("decky-clash-dashboards");
     if (localDashboard) {
       const dashboard = JSON.parse(localDashboard);
-      setDashboards(dashboard);
+      setDashboards(dashboard, false);
     }
 
     reloadFullConfig();
-
-    return () => {
-      const config: Config = {
-        status: clashState,
-        current: currentSub,
-        secret: secret,
-        override_dns: overrideDNS,
-        enhanced_mode: enhancedMode,
-        allow_remote_access: allowRemoteAccess,
-        dashboard: currentDashboard,
-      };
-      window.localStorage.setItem("decky-clash-config", JSON.stringify(config));
-      window.localStorage.setItem("decky-clash-subscriptions", JSON.stringify(subscriptions));
-      window.localStorage.setItem("decky-clash-dashboard", JSON.stringify(dashboards));
-    };
   }, []);
 
   useEffect(() => {
-    addEventListener("core_exit", (code: number) => {
-      setExitCode(code);
+    const callback = (code: number) => {
       setClashState(false);
-    });
+      setSelectionTips(
+        localizationManager.getString(L.ENABLE_CLASH_FAILED) + " Code " + code
+      );
+    }
+    addEventListener("core_exit", callback);
+    return () => {
+      removeEventListener("core_exit", callback);
+    };
   }, []);
 
   const enhancedModeOptions = [
@@ -185,42 +205,32 @@ const Content: FC<{}> = ({}) => {
             label={localizationManager.getString(L.ENABLE_CLASH)}
             description={selectionTips}
             checked={clashState}
-            onChange={(value: boolean) => {
-              // 内核操作
-              if (value) {
-                setExitCode(null);
-                backend.setCoreStatus(true).then(([success, reason]) => {
-                  if (!success) {
-                    setClashState(false);
-                    toaster.toast({
-                      title: localizationManager.getString(L.ENABLE_CLASH_FAILED),
-                      body: reason,
-                      icon: <GiCat />,
-                    });
-                    setSelectionTips(
-                      localizationManager.getString(L.ENABLE_CLASH_FAILED) + " Err: " + reason
-                    );
-                  } else {
-                    setSelectionTips(
-                      localizationManager.getString(L.ENABLE_CLASH_IS_RUNNING)
-                    );
-                  }
-                });
-              } else if (exitCode === null) {
-                backend.setCoreStatus(false);
-              }
-              // 提示操作
-              if (value) {
-                setSelectionTips(
-                  localizationManager.getString(L.ENABLE_CLASH_LOADING)
-                );
-              } else if (exitCode === null || exitCode == 0) {
-                setSelectionTips(
+            disabled={clashStateChanging}
+            onChange={async (value: boolean) => {
+              setClashState(value);
+              setClashStateChanging(true);
+              setSelectionTips(
+                value ?
+                  localizationManager.getString(L.ENABLE_CLASH_LOADING) :
                   localizationManager.getString(L.ENABLE_CLASH_DESC)
+              );
+              const [success, reason] = await backend.setCoreStatus(value);
+              setClashStateChanging(false);
+              if (!success) {
+                setClashState(false);
+                toaster.toast({
+                  title: localizationManager.getString(L.ENABLE_CLASH_FAILED),
+                  body: reason,
+                  icon: <GiCat />,
+                });
+                setSelectionTips(
+                  localizationManager.getString(L.ENABLE_CLASH_FAILED) + " Err: " + reason
                 );
               } else {
                 setSelectionTips(
-                  localizationManager.getString(L.ENABLE_CLASH_FAILED) + " Code " + exitCode
+                  value ?
+                    localizationManager.getString(L.ENABLE_CLASH_IS_RUNNING) :
+                    localizationManager.getString(L.ENABLE_CLASH_DESC)
                 );
               }
             }}
@@ -235,11 +245,10 @@ const Content: FC<{}> = ({}) => {
             selectedOption={currentSub}
             onMenuWillOpen={updateSubscriptions}
             onChange={async (x) => {
+              setCurrentSub(x.data);
               const success = await backend.setCurrent(x.data);
               if (!success)
-                setCurrentSub(localizationManager.getString(
-                  L.SELECT_SUBSCRIPTION
-                ));
+                setCurrentSub(null);
             }}
           />
         </PanelSectionRow>
@@ -260,31 +269,31 @@ const Content: FC<{}> = ({}) => {
             onClick={() => {
               Router.CloseSideMenus();
               let param = "";
-              let page = "setup";
+              // let page = "setup";
               if (currentDashboard) {
-                param = `/${currentDashboard}/#`;
+                param = `/${currentDashboard}`;
                 if (secret) {
                   // secret 不为空时，使用完整的参数，但是不同 dashboard 使用不同的 page
-                  switch (currentDashboard) {
-                    case "metacubexd":
-                    case "zashboard":
-                      page = "setup";
-                      break;
-                    default:
-                      page = "proxies";
-                      break;
-                  }
-                  param += `/${page}?hostname=127.0.0.1&port=9090&secret=${secret}`;
-                } else if (currentDashboard == "metacubexd") {
+                  // switch (currentDashboard) {
+                  //   case "metacubexd":
+                  //   case "zashboard":
+                  //     page = "setup";
+                  //     break;
+                  //   default:
+                  //     page = "proxies";
+                  //     break;
+                  // }
+                  param += `/?hostname=127.0.0.1&port=9090&secret=${secret}`;
+                } else {
                   // 即使没有设置 secret，metacubexd 也会有奇怪的跳转问题，加上host和port
-                  param += `/${page}?hostname=127.0.0.1&port=9090`;
+                  param += `/?hostname=127.0.0.1&port=9090`;
                 }
               }
               Navigation.NavigateToExternalWeb(
                 "http://127.0.0.1:9090/ui" + param
               );
             }}
-            disabled={!clashState || currentDashboard === undefined}
+            disabled={clashStateChanging || !clashState || currentDashboard === null}
           >
             {localizationManager.getString(L.OPEN_DASHBOARD)}
           </ButtonItem>
@@ -297,6 +306,7 @@ const Content: FC<{}> = ({}) => {
             selectedOption={currentDashboard}
             onMenuWillOpen={updateDashboards}
             onChange={(value) => {
+              setCurrentDashboard(value.data);
               backend.setConfigValue("dashboard", value.data);
             }}
           />
@@ -309,6 +319,7 @@ const Content: FC<{}> = ({}) => {
             )}
             checked={allowRemoteAccess}
             onChange={(value: boolean) => {
+              setAllowRemoteAccess(value);
               backend.setConfigValue("allow_remote_access", value);
             }}
           ></ToggleField>
@@ -319,6 +330,7 @@ const Content: FC<{}> = ({}) => {
             description={localizationManager.getString(L.OVERRIDE_DNS_DESC)}
             checked={overrideDNS}
             onChange={(value: boolean) => {
+              setOverrideDNS(value);
               backend.setConfigValue("override_dns", value);
             }}
           ></ToggleField>
@@ -354,7 +366,7 @@ const Content: FC<{}> = ({}) => {
         </PanelSectionRow>
         <PanelSectionRow>
           <ActionButtonItem
-            disabled={clashState}
+            disabled={!clashState || clashStateChanging}
             layout="below"
             onClick={() => {
               backend.restartCore();

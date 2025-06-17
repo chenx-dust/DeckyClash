@@ -1,21 +1,29 @@
-.PHONY: all core mmdb dashboard external clean
+.PHONY: all binary mmdb dashboard external op clean
 
 OUT_DIR := out
 RESOURCE_DIR := $(OUT_DIR)/res
 DASHBOARD_DIR := $(RESOURCE_DIR)/dashboard
 
-all: core mmdb dashboard external
+all: binary mmdb dashboard external op
 
-core: $(OUT_DIR)/clash
+binary: $(OUT_DIR)/core $(OUT_DIR)/yq
 
 # Mihomo (Clash Meta)
-$(OUT_DIR)/clash:
+$(OUT_DIR)/core:
 	@echo "Downloading Mihomo to $(OUT_DIR)..."
 	@mkdir -p $(OUT_DIR)
 	@LATEST_URL=$$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | grep "browser_download_url.*linux-amd64-v.*gz\"" | cut -d '"' -f 4); \
-	wget -O $(OUT_DIR)/clash.gz $$LATEST_URL && \
-	gzip -d $(OUT_DIR)/clash.gz && \
-	chmod +x $(OUT_DIR)/clash
+	wget -O $(OUT_DIR)/core.gz $$LATEST_URL && \
+	gzip -d $(OUT_DIR)/core.gz && \
+	chmod +x $(OUT_DIR)/core
+
+# yq
+$(OUT_DIR)/yq:
+	@echo "Downloading yq to $(OUT_DIR)..."
+	@mkdir -p $(OUT_DIR)
+	@LATEST_URL=$$(curl -s https://api.github.com/repos/mikefarah/yq/releases/latest | grep "browser_download_url.*yq_linux_amd64\"" | cut -d '"' -f 4); \
+	wget -O $(OUT_DIR)/yq $$LATEST_URL && \
+	chmod +x $(OUT_DIR)/yq
 
 # country.mmdb, geosite.dat, asn.mmdb
 mmdb: $(RESOURCE_DIR)/country.mmdb $(RESOURCE_DIR)/geosite.dat $(RESOURCE_DIR)/asn.mmdb
@@ -33,18 +41,9 @@ $(RESOURCE_DIR)/asn.mmdb:
 	@wget -nc -O $@ https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-ASN.mmdb
 
 # Dashboard targets
-dashboard: $(DASHBOARD_DIR)/yacd \
-           $(DASHBOARD_DIR)/yacd-meta \
+dashboard: $(DASHBOARD_DIR)/yacd-meta \
            $(DASHBOARD_DIR)/metacubexd \
            $(DASHBOARD_DIR)/zashboard
-
-$(DASHBOARD_DIR)/yacd:
-	@echo "Installing yacd to $(DASHBOARD_DIR)..."
-	@mkdir -p $(DASHBOARD_DIR)
-	@wget -O $(OUT_DIR)/yacd.zip https://github.com/haishanh/yacd/archive/refs/heads/gh-pages.zip && \
-	unzip -q $(OUT_DIR)/yacd.zip -d $(OUT_DIR) && \
-	mv $(OUT_DIR)/yacd-gh-pages $@ && \
-	rm -f $(OUT_DIR)/yacd.zip
 
 $(DASHBOARD_DIR)/yacd-meta:
 	@echo "Installing yacd-meta..."
@@ -80,6 +79,14 @@ $(OUT_DIR)/external:
 	unzip -q $(OUT_DIR)/external.zip -d $(OUT_DIR) && \
 	mv $(OUT_DIR)/DeckyClash-gh-pages $@ && \
 	rm -f $(OUT_DIR)/external.zip
+
+# Override profile
+op: $(RESOURCE_DIR)/override.yaml
+
+ $(RESOURCE_DIR)/override.yaml:
+	@echo "Copying override profile..."
+	@mkdir -p $(OUT_DIR)
+	@cp ../override.yaml $@
 
 # Clean command
 clean:

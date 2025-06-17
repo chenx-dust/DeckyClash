@@ -1,13 +1,13 @@
 import asyncio
 import os
 from aiohttp import web
-from typing import Callable, Dict
+from typing import Awaitable, Callable, Dict
 from decky import logger
 import decky
 
 EXTERNAL_DIR = os.path.join(decky.DECKY_PLUGIN_DIR, "bin", "external")
 
-HandlerCallback = Callable[[web.Request], web.Response]
+HandlerCallback = Callable[[web.Request], Awaitable[web.Response]]
 
 class ExternalServer:
     def __init__(self):
@@ -19,7 +19,7 @@ class ExternalServer:
     async def _handle_request(self, request):
         path = request.path
         if path in self._callback_dict:
-            return self._callback_dict[path](request)
+            return await self._callback_dict[path](request)
         else:
             file_path = os.path.join(EXTERNAL_DIR, path.lstrip('/'))
             if os.path.isdir(file_path):

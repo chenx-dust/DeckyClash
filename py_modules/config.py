@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import decky
 
-YQ_PATH = os.path.join(decky.DECKY_PLUGIN_DIR, 'yq')
+YQ_PATH = os.path.join(decky.DECKY_PLUGIN_DIR, 'bin', 'yq')
 OVERRIDE_YAML = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, 'override.yaml')
 
 class EnhancedMode(Enum):
@@ -41,7 +41,7 @@ async def generate_config(
     await _edit_in_place(new_config, cmd)
 
     cmd = 'select(fi==0).tun = select(fi==1).tun-override | ' \
-        'select(fi==0) = select(fi==1).always-override | ' \
+        'select(fi==0) += select(fi==1).always-override | ' \
         'select(fi==0)'
     await _edit_in_place_with_ref(new_config, OVERRIDE_YAML, cmd)
 

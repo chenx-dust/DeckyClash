@@ -55,13 +55,13 @@ class Plugin:
 
         self.external = ExternalServer()
         from aiohttp import web
-        def _callback(request: web.Request) -> web.Response:
+        async def _callback(request: web.Request) -> web.Response:
             import http
             try:
                 link = request.query.get("link")
                 if link is None:
                     raise ValueError("missing link query")
-                success, error = self.download_subscription_impl(link)
+                success, error = await self.download_subscription(link)
                 if not success:
                     raise RuntimeError(error)
                 return web.Response(status=http.HTTPStatus.OK)
@@ -221,7 +221,7 @@ class Plugin:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
         return await subscription.update_subs(subs, self._get("timeout"))
 
-    def download_subscription_impl(self, url: str) -> Tuple[bool, Optional[str]]:
+    async def download_subscription(self, url: str) -> Tuple[bool, Optional[str]]:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
         ok, data = subscription.download_sub(url, subs, self._get("timeout"))
         if ok:
@@ -230,12 +230,10 @@ class Plugin:
             self.settings.setSetting("subscriptions", subs)
             if self.settings.getSetting("current") is None:
                 self.settings.setSetting("current", name)
+            await decky.emit("sub_update")
             return True, None
         else:
             return False, data # type: ignore
-
-    async def download_subscription(self, url: str) -> Tuple[bool, Optional[str]]:
-        return self.download_subscription_impl(url)
 
     async def remove_subscription(self, name: str) -> bool:
         logger.info(f"removing subscription: {name}")

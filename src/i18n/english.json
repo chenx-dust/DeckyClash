@@ -9,6 +9,7 @@
     "SELECT_SUBSCRIPTION": "Select a Subscription",
     "DOWNLOAD": "Download",
     "UPDATE_ALL": "Update All",
+    "UPDATING": "Updating ...",
     "UPDATE_FAILURE": "Failed to Update",
     "DOWNLOAD_FAILURE": "Failed to Download",
     "DELETE": "Delete",

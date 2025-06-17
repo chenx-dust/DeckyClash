@@ -9,6 +9,7 @@
     "SELECT_SUBSCRIPTION": "选择订阅",
     "DOWNLOAD": "下载",
     "UPDATE_ALL": "更新所有",
+    "UPDATING": "更新中 ...",
     "UPDATE_FAILURE": "更新失败",
     "DELETE": "删除",
     "ENABLE_CLASH": "启用 Clash",

@@ -22,7 +22,7 @@ def init_ssl_context(disable_verify: bool) -> None:
         logger.warning("SSL verification is disabled")
         _ssl_context = ssl._create_unverified_context()
     else:
-        _ssl_context = ssl.create_default_context()
+        _ssl_context = ssl.create_default_context(cafile='/etc/ssl/certs/ca-bundle.crt')
 
 def get_ssl_context() -> ssl.SSLContext:
     return _ssl_context

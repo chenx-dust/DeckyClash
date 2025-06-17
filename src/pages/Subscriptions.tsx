@@ -1,5 +1,5 @@
 import { PanelSectionRow, TextField, ButtonItem } from "@decky/ui";
-import { useReducer, useState, FC, useEffect } from "react";
+import { useState, FC, useEffect } from "react";
 import { cleanPadding } from "../style";
 import { SubList } from "../components";
 import { QRCodeCanvas } from "qrcode.react";
@@ -7,7 +7,7 @@ import { BsExclamationCircleFill } from "react-icons/bs";
 
 import * as backend from "../backend/backend";
 import { localizationManager, L } from "../i18n";
-import { toaster } from "@decky/api";
+import { addEventListener, removeEventListener, toaster } from "@decky/api";
 
 interface SubProp {
   Subscriptions: Record<string, string>;
@@ -19,14 +19,15 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
   const [subscriptions, setSubscriptions] = useState(Subscriptions);
   const [downlaodBtnDisable, setDownlaodBtnDisable] = useState(false);
   const [updateBtnDisable, setUpdateBtnDisable] = useState(false);
-  const [_, forceUpdate] = useReducer((x) => x + 1, 0);
   const [updateTips, setUpdateTips] = useState("");
   const [QRPageUrl, setQRPageUrl] = useState("");
 
   useEffect(() => {
     backend.setExternalStatus(true);
+    addEventListener("sub_update", refreshSubs);
     return () => {
       backend.setExternalStatus(false);
+      removeEventListener("sub_update", refreshSubs);
     };
   }, []);
 
@@ -39,8 +40,6 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
   backend.getExternalURL().then((url) => {
     setQRPageUrl(url);
   })
-
-  console.log("load Subs page");
 
   return (
     <>
@@ -99,6 +98,7 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
           description={updateTips}
           onClick={async () => {
             setUpdateBtnDisable(true);
+            setUpdateTips(localizationManager.getString(L.UPDATING));
             const failed = await backend.updateAllSubscriptions();
             if (failed.length > 0) {
               const error = failed.map((x) => `${x[0]}: ${x[1]}`).join("\n");
@@ -122,8 +122,7 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
       <PanelSectionRow>
         <SubList
           Subscriptions={subscriptions}
-          UpdateSub={setSubscriptions}
-          Refresh={forceUpdate}
+          Refresh={refreshSubs}
         ></SubList>
       </PanelSectionRow>
     </>

@@ -45,7 +45,7 @@ def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] 
         logger.error(f"download_sub: failed with {e}")
         return False, f"Exception: {e}"
 
-    logger.info(f"download_sub: status code: {resp.status}")
+    logger.debug(f"download_sub: status code: {resp.status}")
     if resp.status != 200:
         logger.error(f"body: {resp.read()}")
         return False, f"Invalid status code: {resp.status}"
@@ -70,7 +70,7 @@ def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] 
 
     def check_exist(name) -> bool:
         is_exist = False
-        for sub_name, _ in now_subs:
+        for sub_name in now_subs:
             if sub_name == name:
                 is_exist = True
                 break
@@ -126,7 +126,7 @@ async def update_subs(subs: SubscriptionDict, timeout: float) -> List[Tuple[str,
 
     promises = [
         _impl(name, url)
-        for name, url in subs
+        for name, url in subs.items()
     ]
     results = await asyncio.gather(*promises)
 

@@ -11,7 +11,7 @@ from decky import logger
 ExitCallback = Callable[[Optional[int]], Awaitable[None]]
 
 class CoreController:
-    CORE_PATH = Path(decky.DECKY_PLUGIN_DIR, "mihomo")
+    CORE_PATH = Path(decky.DECKY_PLUGIN_DIR, "bin", "core")
     RESOURCE_DIR = decky.DECKY_PLUGIN_RUNTIME_DIR
 
     def __init__(self):
@@ -42,14 +42,15 @@ class CoreController:
 
     async def start(self, config_path: str) -> None:
         if self._process and self._process.returncode is None:
-            raise RuntimeError("Core is already running")
+            logger.warning("core is already running")
+            await self.stop()
 
         command = self._gen_cmd(config_path)
         logger.info(f"starting core: {' '.join(command)}")
         self._command = command
 
         # 打开日志文件
-        log_path = os.path.join(decky.DECKY_PLUGIN_LOG_DIR, "kernel.log")
+        log_path = os.path.join(decky.DECKY_PLUGIN_LOG_DIR, "core.log")
         logger.info(f"core log file: {log_path}")
         self._logfile = open(log_path, 'w')
 

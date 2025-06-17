@@ -16,7 +16,7 @@ from decky import logger
 from external import ExternalServer
 import subscription
 import upgrade
-from metadata import CORE_REPO, PACKAGE_NAME
+from metadata import CORE_REPO, PACKAGE_NAME, PACKAGE_REPO
 from settings import SettingsManager
 import utils
 
@@ -178,7 +178,7 @@ class Plugin:
         return version
 
     async def get_latest_version(self) -> str:
-        version = upgrade.get_latest_version(PACKAGE_NAME, self._get("timeout"))
+        version = upgrade.get_latest_version(PACKAGE_REPO, self._get("timeout"))
         logger.info(f"latest package version: {version}")
         return version
 
@@ -234,7 +234,7 @@ class Plugin:
             self.settings.setSetting("subscriptions", subs)
             if self.settings.getSetting("current") is None:
                 self.settings.setSetting("current", name)
-            await decky.emit("sub_update")
+            await decky.emit("sub_update", name)
             return True, None
         else:
             return False, data # type: ignore
@@ -253,7 +253,7 @@ class Plugin:
             self.settings.setSetting("subscriptions", subs)
             return True
         else:
-            return False
+            return True
 
     async def set_current(self, name: str) -> bool:
         logger.info(f"setting current to: {name}")

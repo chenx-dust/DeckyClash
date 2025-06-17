@@ -84,4 +84,6 @@ else
   cp -R "${TEMP_DIR}/${PACKAGE}/*" $PLUGIN_DIR
 fi
 
+echo "Installation complete"
+echo "Restarting Decky Loader ..."
 sudo systemctl restart plugin_loader.service

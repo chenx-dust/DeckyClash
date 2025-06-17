@@ -3,7 +3,7 @@ import { useState, FC, useEffect } from "react";
 import { cleanPadding } from "../style";
 import { SubList } from "../components";
 import { QRCodeCanvas } from "qrcode.react";
-import { BsExclamationCircleFill } from "react-icons/bs";
+import { BsCheckCircleFill, BsExclamationCircleFill } from "react-icons/bs";
 
 import * as backend from "../backend/backend";
 import { localizationManager, L } from "../i18n";
@@ -24,10 +24,18 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
 
   useEffect(() => {
     backend.setExternalStatus(true);
-    addEventListener("sub_update", refreshSubs);
+    const callback = (name: string) => {
+      toaster.toast({
+        title: localizationManager.getString(L.DOWNLOAD_SUCCESS),
+        body: name,
+        icon: <BsCheckCircleFill />,
+      });
+      refreshSubs();
+    };
+    addEventListener("sub_update", callback);
     return () => {
       backend.setExternalStatus(false);
-      removeEventListener("sub_update", refreshSubs);
+      removeEventListener("sub_update", callback);
     };
   }, []);
 

@@ -140,10 +140,8 @@ def get_version() -> str:
     return f"{decky.DECKY_PLUGIN_VERSION}"
 
 def get_latest_version(repo: str, timeout: float) -> str:
-    gcontext = ssl.SSLContext()
-
     try:
-        response = urllib.request.urlopen(get_github_api_url(repo), context=gcontext, timeout=timeout)
+        response = urllib.request.urlopen(get_github_api_url(repo), context=utils.get_ssl_context(), timeout=timeout)
         json_data = json.load(response)
     except Exception as e:
         logger.error(f"get_latest_version: failed with {e}")

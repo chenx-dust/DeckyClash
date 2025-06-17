@@ -34,7 +34,7 @@ let subscriptions: Record<string, string> = {};
 
 const Content: FC<{}> = ({}) => {
   const [clashState, setClashState] = useState(false);
-  const [clashStateChanging, setClashStateChanging] = useState(true);
+  const [clashStateChanging, setClashStateChanging] = useState(false);
   const [subOptions, setSubOptions] = useState<DropdownOption[]>([]);
   const [clashStateTips, setClashStateTips] = useState(
     localizationManager.getString(L.ENABLE_CLASH_DESC)
@@ -45,8 +45,9 @@ const Content: FC<{}> = ({}) => {
   const [currentDashboard, setCurrentDashboard] = useState<string | null>(null);
   const [dashboardOptions, setDashboardOption] = useState<DropdownOption[]>([]);
   const [allowRemoteAccess, setAllowRemoteAccess] = useState(false);
-  const [secret, setSecret] = useState<string>("");
   const [controllerPort, setControllerPort] = useState(9090);
+  const [secret, setSecret] = useState<string>("");
+  const [initialized, setInitialized] = useState(false);
 
 
   const applySubscriptions = (subs: Record<string, string>, save: boolean = true) => {
@@ -107,11 +108,11 @@ const Content: FC<{}> = ({}) => {
   }
 
   const fetchConfig = async () => {
-    setClashStateChanging(true);
+    setInitialized(false);
     const config = await backend.getConfig();
     console.log(config);
     applyConfig(config);
-    setClashStateChanging(false);
+    setInitialized(true);
   };
 
   const fetchAllConfig = () => {
@@ -135,10 +136,10 @@ const Content: FC<{}> = ({}) => {
 
   useEffect(() => {
     // 主动保存
-    if (!clashStateChanging) {
+    if (initialized) {
       window.localStorage.setItem("decky-clash-config", JSON.stringify(getCurrentConfig()));
     }
-  }, [clashStateChanging, clashState, currentSub, overrideDNS, enhancedMode, allowRemoteAccess, currentDashboard])
+  }, [initialized, clashState, currentSub, overrideDNS, enhancedMode, allowRemoteAccess, currentDashboard])
 
   useLayoutEffect(() => {
     // 从 localStorage 恢复配置更快
@@ -200,6 +201,8 @@ const Content: FC<{}> = ({}) => {
   };
 
   const restartClash = async () => {
+    if (!clashState)
+      return;
     setClashStateChanging(true);
     const success = await backend.restartCore();
     setClashStateChanging(false);
@@ -211,6 +214,25 @@ const Content: FC<{}> = ({}) => {
       })
     }
   }
+
+  useEffect(() => {
+    // 自动重载
+    const timer = setTimeout(() => {
+      restartClash();
+    }, 1000);
+    setClashState((s) => {
+      // 如果没开启则停止重载
+      if (!s)
+        clearTimeout(timer);
+      return s;
+    })
+    setInitialized((s) => {
+      if (!s)
+        clearTimeout(timer);
+      return s;
+    })
+    return () => clearTimeout(timer);
+  }, [currentSub, overrideDNS, enhancedMode, allowRemoteAccess, currentDashboard])
 
   return (
     <div>
@@ -248,6 +270,7 @@ const Content: FC<{}> = ({}) => {
                     localizationManager.getString(L.ENABLE_CLASH_DESC)
                 );
               }
+              backend.getCoreStatus().then(setClashState);
             }}
           />
         </PanelSectionRow>
@@ -267,6 +290,7 @@ const Content: FC<{}> = ({}) => {
                 setCurrentSub(null);
               else
                 restartClash();
+              backend.getConfigValue("current").then(setCurrentSub);
             }}
           />
         </PanelSectionRow>
@@ -305,7 +329,8 @@ const Content: FC<{}> = ({}) => {
             disabled={clashStateChanging}
             onChange={(value) => {
               setCurrentDashboard(value.data);
-              backend.setConfigValue("dashboard", value.data);
+              backend.setConfigValue("dashboard", value.data).then(() =>
+                backend.getConfigValue("dashboard").then(setCurrentDashboard));
             }}
           />
         </PanelSectionRow>
@@ -319,7 +344,8 @@ const Content: FC<{}> = ({}) => {
             disabled={clashStateChanging}
             onChange={(value: boolean) => {
               setAllowRemoteAccess(value);
-              backend.setConfigValue("allow_remote_access", value).then(restartClash);
+              backend.setConfigValue("allow_remote_access", value).then(() =>
+                backend.getConfigValue("allow_remote_access").then(setAllowRemoteAccess));
             }}
           ></ToggleField>
         </PanelSectionRow>
@@ -331,7 +357,8 @@ const Content: FC<{}> = ({}) => {
             disabled={clashStateChanging}
             onChange={(value: boolean) => {
               setOverrideDNS(value);
-              backend.setConfigValue("override_dns", value).then(restartClash);
+              backend.setConfigValue("override_dns", value).then(() =>
+                backend.getConfigValue("override_dns").then(setOverrideDNS));
             }}
           ></ToggleField>
         </PanelSectionRow>
@@ -350,7 +377,8 @@ const Content: FC<{}> = ({}) => {
               onChange={(value: number) => {
                 const _enhancedMode = convertEnhancedMode(value);
                 setEnhancedMode(_enhancedMode);
-                backend.setConfigValue("enhanced_mode", _enhancedMode.toString()).then(restartClash);
+                backend.setConfigValue("enhanced_mode", _enhancedMode.toString()).then(() =>
+                  backend.getConfigValue("enhanced_mode").then(setEnhancedMode));
               }}
             />
           </PanelSectionRow>

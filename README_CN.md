@@ -4,14 +4,14 @@
 
 **中文** | [EN](./README.md)
 
-## Screenshots
+## 截图
 
 <div class="grid">
    <img src="./assets/fast.gif" alt="Blazing Fast" height="300px"/>
-   <img src="./assets/qa-menu-1.jpg" alt="Quick Access Menu 1" height="300px"/>
-   <img src="./assets/qa-menu-2.jpg" alt="Quick Access Menu 2" height="300px"/>
    <img src="./assets/sub_mng.jpg" alt="Subscription Manager" height="300px"/>
    <img src="./assets/external.jpg" alt="External Subscription Importer" height="300px"/>
+   <img src="./assets/qa-menu-1.jpg" alt="Quick Access Menu 1" height="300px"/>
+   <img src="./assets/qa-menu-2.jpg" alt="Quick Access Menu 2" height="300px"/>
 </div>
 
 ## 功能

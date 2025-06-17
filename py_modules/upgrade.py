@@ -42,7 +42,7 @@ async def upgrade_to_latest(timeout: float) -> None:
             # remove old plugin
             await asyncio.to_thread(shutil.rmtree, plugin_dir)
         except Exception as e:
-            logger.error(f"ota error during removal of old plugin: {e}")
+            logger.error(f"upgrade_to_latest: error during removal of old plugin: {e}")
 
         try:
             logger.info(f"extracting ota file to {plugin_dir}")
@@ -56,7 +56,7 @@ async def upgrade_to_latest(timeout: float) -> None:
             # cleanup downloaded files
             await asyncio.to_thread(os.remove, downloaded_filepath)
         except Exception as e:
-            logger.error(f"error during ota file extraction {e}")
+            logger.error(f"upgrade_to_latest: error during file extraction {e}")
 
         logger.info("restarting plugin_loader.service")
         cmd = "systemctl restart plugin_loader.service"
@@ -67,7 +67,7 @@ async def upgrade_to_latest(timeout: float) -> None:
             stderr=asyncio.subprocess.PIPE,
         )
         if result.returncode != 0:
-            logger.error(f"error during ota file extraction {result.stderr}")
+            logger.error(f"upgrade_to_latest: error during restart plugin_loader {result.stderr}")
         if result.stdout:
             logger.debug(result.stdout)
         if result.stderr:

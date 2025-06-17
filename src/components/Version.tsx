@@ -48,7 +48,8 @@ export const VersionComponent: FC = () => {
   return (
     <PanelSection title={localizationManager.getString(L.VERSION)}>
       <PanelSectionRow>
-        <ActionButtonItem
+        {/* 有 Bug 暂时禁用 */}
+        {/* <ActionButtonItem
           layout="below"
           onClick={() => backend.upgradeToLatest().then(([success, reason]) => {
             if (success) {
@@ -67,7 +68,7 @@ export const VersionComponent: FC = () => {
           })}
         >
           {uptButtonText}
-        </ActionButtonItem>
+        </ActionButtonItem> */}
       </PanelSectionRow>
       <PanelSectionRow>
         <Field
@@ -88,7 +89,8 @@ export const VersionComponent: FC = () => {
         </PanelSectionRow>
       )}
       <PanelSectionRow>
-        <ActionButtonItem
+        {/* 有 Bug 暂时禁用 */}
+        {/* <ActionButtonItem
           layout="below"
           onClick={() => backend.upgradeToLatestCore().then(([success, reason]) => {
             if (success) {
@@ -108,7 +110,7 @@ export const VersionComponent: FC = () => {
           })}
         >
           {uptButtonTextCore}
-        </ActionButtonItem>
+        </ActionButtonItem> */}
       </PanelSectionRow>
       <PanelSectionRow>
         <Field

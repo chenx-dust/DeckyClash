@@ -1,6 +1,6 @@
 {
   "name": "decky-clash",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Light-weight Clash/Mihomo proxy client for Steam OS",
   "type": "module",
   "scripts": {

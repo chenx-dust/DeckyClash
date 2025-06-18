@@ -1,5 +1,7 @@
+# this config is used to override the original Clash/Mihomo config file
 # 此处设置用于覆盖原始的 Clash/Mihomo 配置文件
 
+# dns config to override if dns-override is enabled
 # 启用 DNS 覆盖后采用
 dns-override:
   enable: true
@@ -28,6 +30,7 @@ dns-override:
     'geosite:private':
       - system
 
+# dns config to override if fake-ip is enabled
 # 启用 Fake-IP 后采用
 fake-ip-dns:
   enhanced-mode: fake-ip
@@ -45,10 +48,12 @@ fake-ip-dns:
     - +.stun.*.*.*
     - +.stun.*.*.*.*
 
+# dns config to override if redir-host is enabled
 # 启用 Redir-Host 后采用
 redir-host-dns:
   enhanced-mode: redir-host
 
+# tun config to override anyway
 # Tun 配置覆盖, 无论如何都会启用
 tun-override:
   enable: true
@@ -56,6 +61,7 @@ tun-override:
   auto-redirect: true
   auto-detect-interface: true
 
+# config to override anyway
 # 永远覆盖, 弱合并
 always-override:
   unified-delay: true

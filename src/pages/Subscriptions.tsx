@@ -44,7 +44,6 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
     setSubscriptions(subs);
   };
 
-  //获取 QR Page
   useEffect(() => {
     const f = async () => {
       const ip = await backend.getIP();

@@ -15,7 +15,6 @@ def get_dashboard_list() -> List[str]:
         return []
 
     try:
-        # 遍历 dashboard_dir 下深度 1 的路径, 如果存在 xxx/index.html 则认为是一个 dashboard
         for path in DASHBOARD_DIR.iterdir():
             if path.is_dir() and (path / "index.html").exists():
                 dashboard_list.append(path.name)

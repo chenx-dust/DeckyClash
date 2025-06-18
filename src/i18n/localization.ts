@@ -22,9 +22,9 @@ export class localizationManager {
 
     i18n.init({
       resources: resources,
-      lng: this.getLocale(), // 目标语言
-      fallbackLng: defaultLocale, // 回落语言
-      returnEmptyString: false, // 空字符串不返回, 使用回落语言
+      lng: this.getLocale(),
+      fallbackLng: defaultLocale,
+      returnEmptyString: false,
       interpolation: {
         escapeValue: false,
       },

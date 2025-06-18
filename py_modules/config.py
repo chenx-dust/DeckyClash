@@ -45,7 +45,7 @@ async def generate_config(
         'select(fi==0)'
     await _edit_in_place_with_ref(new_config, OVERRIDE_YAML, cmd)
 
-# 因为不方便安装其他包，使用 yq 来处理 yaml 文件
+# use yq to edit the config
 async def _exec_yq(cmd: List[str]) -> Optional[str]:
     command = [YQ_PATH, *cmd]
     print_cmd = "'" + "' '".join(command) + "'"

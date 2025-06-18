@@ -1,5 +1,5 @@
-import * as schinese from "./schinese.json";
-import * as english from "./english.json";
+import zh_CN from "./zh_CN.json";
+import en from "./en.json";
 
 export interface LanguageProps {
   label: string;
@@ -10,24 +10,24 @@ export interface LanguageProps {
 
 export const defaultLanguage = "english";
 export const defaultLocale = "en";
-export const defaultMessages = english;
+export const defaultMessages = en;
 
 export const localizeMap: { [key: string]: LanguageProps } = {
   schinese: {
-    label: "简体中文",
-    strings: schinese,
+    label: "中文（中国）",
+    strings: zh_CN,
     credit: [],
     locale: "zh-CN",
   },
   english: {
     label: "English",
-    strings: english,
+    strings: en,
     credit: [],
     locale: "en",
   },
 };
 
-// 创建一个类型安全的常量生成函数
+// generate key from array
 function createLocalizeConstants<T extends readonly string[]>(keys: T) {
   return keys.reduce((obj, key) => {
     obj[key as keyof typeof obj] = key;
@@ -35,7 +35,6 @@ function createLocalizeConstants<T extends readonly string[]>(keys: T) {
   }, {} as { [K in T[number]]: K });
 }
 
-// 定义所有键名
 const I18N_KEYS = [
   "SERVICE",
   "TOOLS",
@@ -90,11 +89,6 @@ const I18N_KEYS = [
   "CLASH_EXIT_TITLE",
 ] as const;
 
-// 创建常量对象并导出
 export const L = createLocalizeConstants(I18N_KEYS);
 
-// 导出类型
 export type LocalizeStrKey = keyof typeof L;
-
-// 为了向后兼容，保留 localizeStrEnum 名称
-// export const localizeStrEnum = L;

@@ -23,16 +23,16 @@ def get_path(filename: str) -> str:
 
 def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] = None) -> Tuple[bool, Subscription | str]:
     """
-    下载新订阅
+    Download new subscription
     Args:
-        url: 订阅链接
-        now_subs: 当前订阅列表
-        timeout: 超时时间
-        disable_verify: 是否禁用证书验证
+        url: Subscription url
+        now_subs: Currently subscriptions list
+        timeout: Download timeout
+        disable_verify: Disable SSL verification
     Returns:
         tuple(bool, Subscription | str)
-        bool: 是否下载成功
-        Subscription | str: 订阅链接或错误信息
+        bool: Whether download success
+        Subscription | str: Subscription detail or error message
     """
     logger.info(f"downloading subscription: {url}")
     if not os.path.exists(SUBSCRIPTIONS_DIR):
@@ -108,11 +108,12 @@ def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] 
 
 async def update_subs(subs: SubscriptionDict, timeout: float) -> List[Tuple[str, str]]:
     """
-    更新订阅
+    Update subscriptions
     Args:
-        subs: 订阅列表
+        subs: Subscriptions list
+        timeout: Download timeout
     Returns:
-        更新失败的订阅名称列表
+        list[Tuple[str, str]]: List of failed subscriptions
     """
     logger.info("update_subs: start updating")
     async def _impl(name: str, url: str) -> Optional[str]:
@@ -138,11 +139,11 @@ async def update_subs(subs: SubscriptionDict, timeout: float) -> List[Tuple[str,
 
 def check_subs(subs: SubscriptionDict) -> List[str]:
     """
-    检查订阅状态
+    Check subscriptions
     Args:
-        subs: 订阅列表
+        subs: Subscriptions list
     Returns:
-        检查失败需要删除的订阅列表
+        list[str]: List of failed subscriptions
     """
     failed = []
     for name in subs:

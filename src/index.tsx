@@ -110,7 +110,7 @@ const Content: FC<{}> = ({ }) => {
     applyDashboards(boards);
   };
 
-  // 批量设置配置
+  // batch applying config
   const applyConfig = (config: Config, save: boolean = true) => {
     if (save) {
       window.localStorage.setItem("decky-clash-config", JSON.stringify(config));
@@ -173,7 +173,7 @@ const Content: FC<{}> = ({ }) => {
   }
 
   useEffect(() => {
-    // 主动保存
+    // actively save
     if (initialized) {
       window.localStorage.setItem("decky-clash-config", JSON.stringify(getCurrentConfig()));
     }
@@ -182,7 +182,7 @@ const Content: FC<{}> = ({ }) => {
   useLayoutEffect(fetchAllConfig, []);
 
   useEffect(() => {
-    // 内核退出回调
+    // core exit callback
     const callback = (code: number) => {
       setClashState(false);
       setClashStateTips(
@@ -234,12 +234,11 @@ const Content: FC<{}> = ({ }) => {
   }
 
   useEffect(() => {
-    // 自动重载
+    // auto reload with debounce
     const timer = setTimeout(() => {
       restartClash();
     }, 1000);
     setClashState((s) => {
-      // 如果没开启则停止重载
       if (!s)
         clearTimeout(timer);
       return s;

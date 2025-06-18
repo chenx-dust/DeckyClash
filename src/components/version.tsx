@@ -48,7 +48,7 @@ export const VersionComponent: FC = () => {
   return (
     <PanelSection title={localizationManager.getString(L.VERSION)}>
       <PanelSectionRow>
-        {/* 有 Bug 暂时禁用 */}
+        {/* temporarily disabled due to bug */}
         {/* <ActionButtonItem
           layout="below"
           onClick={() => backend.upgradeToLatest().then(([success, reason]) => {
@@ -89,7 +89,7 @@ export const VersionComponent: FC = () => {
         </PanelSectionRow>
       )}
       <PanelSectionRow>
-        {/* 有 Bug 暂时禁用 */}
+        {/* temporarily disabled due to bug */}
         {/* <ActionButtonItem
           layout="below"
           onClick={() => backend.upgradeToLatestCore().then(([success, reason]) => {

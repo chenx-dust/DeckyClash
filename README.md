@@ -48,6 +48,9 @@ This project is licensed by **BSD 3-Clause License** .
 - [ ] Fix OTA upgrade
 - [ ] Better documentation
 - [ ] Upload to Decky Store
+- [ ] Joystick-friendly dashboard
+- [ ] Better subscription manager
+- [ ] I18n in external importer
 
 ## Acknowledge
 

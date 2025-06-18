@@ -43,16 +43,8 @@ This project is licensed by **BSD 3-Clause License** .
    curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash
    ```
 
-## Road Map
-
-- [ ] Fix OTA upgrade
-- [ ] Better documentation
-- [ ] Upload to Decky Store
-- [ ] Joystick-friendly dashboard
-- [ ] Better subscription manager
-- [ ] I18n in external importer
-
 ## Acknowledge
 
 - [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo): DeckyClash is powered by Mihomo.
+- [mikefarah/yq](https://github.com/mikefarah/yq) DeckyClash uses yq as its YAML processor.
 - [YukiCoco/ToMoon](https://github.com/YukiCoco/ToMoon): DeckyClash is inspired by To Moon.

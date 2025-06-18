@@ -41,15 +41,6 @@
    curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash
    ```
 
-## 路线图
-
-- [ ] 修复 OTA 升级
-- [ ] 更好的文档
-- [ ] 上传到 Decky Store
-- [ ] 便于摇杆使用的 Dashboard
-- [ ] 更完善的订阅管理
-- [ ] 订阅导入器的多语言支持
-
 ## 致谢
 
 - [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo): DeckyClash 由 Mihomo 提供支持。

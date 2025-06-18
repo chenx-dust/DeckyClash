@@ -1,9 +1,8 @@
-import { PanelSectionRow, TextField, ButtonItem } from "@decky/ui";
+import { PanelSectionRow, ButtonItem } from "@decky/ui";
 import { useState, FC, useEffect } from "react";
-import { cleanPadding } from "../style";
-import { SubList } from "../components";
+import { SubList, TextFieldWithButton } from "../components";
 import { QRCodeCanvas } from "qrcode.react";
-import { BsCheckCircleFill, BsExclamationCircleFill } from "react-icons/bs";
+import { BsCheckCircleFill, BsExclamationCircleFill, BsFillCloudDownloadFill } from "react-icons/bs";
 
 import * as backend from "../backend/backend";
 import { localizationManager, L } from "../i18n";
@@ -14,13 +13,15 @@ interface SubProp {
 }
 
 export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
-  const [text, setText] = useState("");
+  const [subUrl, setSubUrl] = useState("");
   const [downloadTips, setDownloadTips] = useState("");
   const [subscriptions, setSubscriptions] = useState(Subscriptions);
   const [downlaodBtnDisable, setDownlaodBtnDisable] = useState(false);
   const [updateBtnDisable, setUpdateBtnDisable] = useState(false);
   const [updateTips, setUpdateTips] = useState("");
   const [QRPageUrl, setQRPageUrl] = useState("");
+
+  const tipTimeout = 10000;
 
   useEffect(() => {
     backend.setExternalStatus(true);
@@ -55,16 +56,6 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
 
   return (
     <>
-      <style>
-        {`
-          #subscription-download-textfiled {
-              padding: 0px !important
-          }
-          #subscription-download-textfiled > div {
-              margin-bottom: 0px !important
-          }
-        `}
-      </style>
       <PanelSectionRow>
         { QRPageUrl && (
           <div id="subscription-qrcode">
@@ -85,38 +76,34 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
         }}>
           {localizationManager.getString(L.ENABLE_CLASH_LOADING)}
         </p>)}
-        <div id="subscription-download-textfiled" style={cleanPadding}>
-          <TextField
-            label={localizationManager.getString(L.SUBSCRIPTIONS_LINK)}
-            value={text}
-            onChange={(e) => setText(e?.target.value)}
-          />
-        </div>
-        <ButtonItem
-          layout="below"
+        <TextFieldWithButton
+          label={localizationManager.getString(L.DOWNLOAD_SUBSCRIPTION)}
           description={downloadTips}
+          placeholder={localizationManager.getString(L.SUBSCRIPTION_LINK)}
+          value={subUrl}
+          onChange={(e) => setSubUrl(e?.target.value)}
           disabled={downlaodBtnDisable}
           onClick={async () => {
             setDownlaodBtnDisable(true);
             setDownloadTips(localizationManager.getString(L.DOWNLOADING));
-            const [success, error] = await backend.downloadSubscription(text);
+            const [success, error] = await backend.downloadSubscription(subUrl);
             if (!success) {
               toaster.toast({
                 title: localizationManager.getString(L.DOWNLOAD_FAILURE),
                 body: error,
                 icon: <BsExclamationCircleFill />,
               });
-              setDownloadTips(L.DOWNLOAD_FAILURE + ": " + error);
-              setTimeout (() => {
+              setDownloadTips(localizationManager.getString(L.DOWNLOAD_FAILURE) + ": " + error);
+              setTimeout(() => {
                 setDownloadTips("");
-              }, 5000);
+              }, tipTimeout);
             }
             setDownlaodBtnDisable(false);
             refreshSubs();
           }}
         >
-          {localizationManager.getString(L.DOWNLOAD)}
-        </ButtonItem>
+          <BsFillCloudDownloadFill />
+        </TextFieldWithButton>
         <ButtonItem
           layout="below"
           description={updateTips}
@@ -134,12 +121,12 @@ export const Subscriptions: FC<SubProp> = ({ Subscriptions }) => {
               setUpdateTips(localizationManager.getString(L.UPDATE_FAILURE) + ": " + error);
               setTimeout(() => {
                 setUpdateTips("");
-              }, 5000);
+              }, tipTimeout);
             } else {
               setUpdateTips(localizationManager.getString(L.UPDATE_SUCCESS));
               setTimeout(() => {
                 setUpdateTips("");
-              }, 5000);
+              }, tipTimeout);
             }
             setUpdateBtnDisable(false);
           }}

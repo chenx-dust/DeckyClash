@@ -3,6 +3,7 @@ import { Field, Navigation, PanelSection } from "@decky/ui";
 import { FiGithub } from "react-icons/fi";
 import { localizationManager, L } from "../i18n";
 import * as backend from "../backend/backend";
+import { DescriptionField } from "../components";
 
 export const About: FC = () => {
   const [version, setVersion] = useState<string>();
@@ -20,16 +21,12 @@ export const About: FC = () => {
     // The outermost div is to push the content down into the visible area
     <>
       <PanelSection>
-        <h2
-          style={{ fontWeight: "bold", fontSize: "1.5em", marginBottom: "0px" }}
-        >
-          DeckyClash
-        </h2>
-        <p>
+        <DescriptionField label="DeckyClash">
           Light-weight Clash/Mihomo proxy client for Steam OS.
-        </p>
+        </DescriptionField>
         <Field
           label={localizationManager.getString(L.INSTALLED_VERSION)}
+          focusable={true}
         >
           {version}
         </Field>
@@ -44,18 +41,17 @@ export const About: FC = () => {
         >
           GitHub Repo
         </Field>
-        <h2
-          style={{ fontWeight: "bold", fontSize: "1.5em", marginBottom: "0px" }}
-        >
-          Mihomo
-        </h2>
-        <p>
-          Another Clash Kernel.
+
+      </PanelSection>
+      <PanelSection title={localizationManager.getString(L.ACKNOWLEDGE)}>
+        <DescriptionField label="Mihomo">
+          Light-weight Clash/Mihomo proxy client for Steam OS.
           <br />
           <i>DeckyClash is powered by Mihomo.</i>
-        </p>
+        </DescriptionField>
         <Field
           label={localizationManager.getString(L.INSTALLED_CORE_VERSION)}
+          focusable={true}
         >
           {coreVersion}
         </Field>
@@ -71,18 +67,28 @@ export const About: FC = () => {
           GitHub Repo
         </Field>
 
-      </PanelSection>
-      <PanelSection title={localizationManager.getString(L.ACKNOWLEDGE)}>
-        <h2
-          style={{ fontWeight: "bold", fontSize: "1.5em", marginBottom: "0px" }}
+        <DescriptionField label="YQ">
+          A portable command-line YAML, JSON, XML, CSV, TOML and properties processor.
+          <br />
+          <i>DeckyClash uses yq as its YAML processor.</i>
+        </DescriptionField>
+        <Field
+          icon={<FiGithub style={{ display: "block" }} />}
+          label="mikefarah/yq"
+          onClick={() => {
+            Navigation.NavigateToExternalWeb(
+              "https://github.com/mikefarah/yq"
+            );
+          }}
         >
-          To Moon
-        </h2>
-        <p>
+          GitHub Repo
+        </Field>
+
+        <DescriptionField label="To Moon">
           A network toolbox for SteamOS.
           <br />
           <i>DeckyClash is inspired by To Moon.</i>
-        </p>
+        </DescriptionField>
         <Field
           icon={<FiGithub style={{ display: "block" }} />}
           label="YukiCoco/ToMoon"

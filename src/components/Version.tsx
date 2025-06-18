@@ -1,7 +1,7 @@
 import { PanelSection, PanelSectionRow, Field } from "@decky/ui";
 import { createContext, FC, useContext, useLayoutEffect } from "react";
 import * as backend from "../backend/backend";
-import { ActionButtonItem } from "./actionButtonItem";
+import { ActionButtonItem } from "./ActionButtonItem";
 import { localizationManager, L } from "../i18n";
 import { BsExclamationCircleFill, BsCheckCircleFill } from "react-icons/bs";
 import { toaster } from "@decky/api";

@@ -1,0 +1,14 @@
+{
+    "import-tip": "导入 Clash / Mihomo订阅",
+    "sub-link": "订阅链接",
+    "sel-lang": "语言：",
+    "loading": "下载中",
+    "loading-msg": "正在下载订阅，请稍候……",
+    "success": "成功",
+    "success-msg": "订阅已导入",
+    "backend-err": "后端错误",
+    "resp-status": "响应状态：",
+    "frontend-err": "前端错误",
+    "err-msg": "错误信息：",
+    "err-name": "错误名称："
+}

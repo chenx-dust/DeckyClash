@@ -1,0 +1,14 @@
+{
+    "import-tip": "Clash / Mihomo Subscription Import",
+    "sub-link": "Subscription Link",
+    "sel-lang": "Language:",
+    "loading": "Downloading",
+    "loading-msg": "Downloading subscription, please wait ...",
+    "success": "Success",
+    "success-msg": "Subscription Imported",
+    "backend-err": "Backend Error",
+    "resp-status": "Response Status:",
+    "frontend-err": "Frontend Error",
+    "err-msg": "Error Message:",
+    "err-name": "Error Name:"
+}

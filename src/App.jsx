@@ -59,7 +59,7 @@ function App() {
           background: colorSet.background,
           color: colorSet.text,
           icon: 'error',
-          title: t('backend-error'),
+          title: t('backend-err'),
           html:
             <div>
               <b>{t('resp-status')}</b>
@@ -81,7 +81,7 @@ function App() {
         background: colorSet.background,
         color: colorSet.text,
         icon: 'error',
-        title: t('frontend-error'),
+        title: t('frontend-err'),
         html:
           <div>
             <b>{t('err-name')}</b>

@@ -24,7 +24,6 @@ class CoreController:
 
     @property
     def is_running(self) -> bool:
-        """获取当前子程序状态"""
         if not self._process:
             return False
         if self._process.returncode is None:
@@ -50,7 +49,6 @@ class CoreController:
         logger.info(f"starting core: {' '.join(command)}")
         self._command = command
 
-        # 打开日志文件
         log_path = os.path.join(decky.DECKY_PLUGIN_LOG_DIR, "core.log")
         logger.info(f"core log file: {log_path}")
         self._logfile = open(log_path, 'w')
@@ -92,20 +90,17 @@ class CoreController:
                 self._logfile = None
 
     async def _monitor_exit(self):
-        """监控子进程退出状态"""
         assert self._process is not None
         returncode = await self._process.wait()
         logger.debug(f"core exited with code: {returncode}")
 
-        # 触发回调
         if self._exit_callback:
             try:
-                self._exit_callback(returncode)  # 调用回调
+                self._exit_callback(returncode)
             except Exception as e:
                 logger.error(f"error in exit callback: {str(e)}")
 
     def set_exit_callback(self, callback: Optional[ExitCallback]):
-        """注册子进程退出回调函数"""
         self._exit_callback = callback
 
     @classmethod

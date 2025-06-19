@@ -1,2 +1,2 @@
 export * from "./localization"
-export * from "./localizeMap"
+export * from "./props"

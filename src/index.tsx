@@ -21,8 +21,9 @@ import {
 } from "@decky/api"
 import { FC, useEffect, useLayoutEffect, useState } from "react";
 import { GiCat } from "react-icons/gi";
+import i18n from "i18next";
 
-import { Subscriptions, About } from "./pages";
+import { Import, About } from "./pages";
 
 import * as backend from "./backend/backend";
 
@@ -30,6 +31,7 @@ import { Config, EnhancedMode } from "./backend";
 import { ActionButtonItem, VersionComponent } from "./components";
 import { localizationManager, L } from "./i18n";
 import { QRCodeCanvas } from "qrcode.react";
+import { Manage } from "./pages/Manage";
 
 let subscriptions: Record<string, string> = {};
 
@@ -72,8 +74,8 @@ const Content: FC<{}> = ({ }) => {
   const [subOptions, setSubOptions] = useState<DropdownOption[]>(parseSubOptions(localSubscriptions));
   const [clashStateTips, setClashStateTips] = useState(
     localConfig.status ?
-      localizationManager.getString(L.ENABLE_CLASH_IS_RUNNING) :
-      localizationManager.getString(L.ENABLE_CLASH_DESC)
+      i18n.t(L.ENABLE_CLASH_IS_RUNNING) :
+      i18n.t(L.ENABLE_CLASH_DESC)
   );
   const [currentSub, setCurrentSub] = useState<string | null>(localConfig.current);
   const [overrideDNS, setOverrideDNS] = useState(localConfig.override_dns);
@@ -117,8 +119,8 @@ const Content: FC<{}> = ({ }) => {
     }
     setClashStateTips(
       config.status ?
-        localizationManager.getString(L.ENABLE_CLASH_IS_RUNNING) :
-        localizationManager.getString(L.ENABLE_CLASH_DESC)
+        i18n.t(L.ENABLE_CLASH_IS_RUNNING) :
+        i18n.t(L.ENABLE_CLASH_DESC)
     );
     setClashState(config.status);
     setCurrentSub(config.current);
@@ -186,7 +188,7 @@ const Content: FC<{}> = ({ }) => {
     const callback = (code: number) => {
       setClashState(false);
       setClashStateTips(
-        localizationManager.getString(L.ENABLE_CLASH_FAILED) + " Code " + code
+        i18n.t(L.ENABLE_CLASH_FAILED) + " Code " + code
       );
     }
     addEventListener("core_exit", callback);
@@ -226,8 +228,8 @@ const Content: FC<{}> = ({ }) => {
     setClashStateChanging(false);
     if (!success) {
       toaster.toast({
-        title: localizationManager.getString(L.RESTART_CORE),
-        body: localizationManager.getString(L.ENABLE_CLASH_FAILED),
+        title: i18n.t(L.RESTART_CORE),
+        body: i18n.t(L.ENABLE_CLASH_FAILED),
         icon: <GiCat />,
       })
     }
@@ -253,10 +255,10 @@ const Content: FC<{}> = ({ }) => {
 
   return (
     <div>
-      <PanelSection title={localizationManager.getString(L.SERVICE)}>
+      <PanelSection title={i18n.t(L.SERVICE)}>
         <PanelSectionRow>
           <ToggleField
-            label={localizationManager.getString(L.ENABLE_CLASH)}
+            label={i18n.t(L.ENABLE_CLASH)}
             description={clashStateTips}
             checked={clashState}
             disabled={clashStateChanging}
@@ -265,26 +267,26 @@ const Content: FC<{}> = ({ }) => {
               setClashStateChanging(true);
               setClashStateTips(
                 value ?
-                  localizationManager.getString(L.ENABLE_CLASH_LOADING) :
-                  localizationManager.getString(L.ENABLE_CLASH_DESC)
+                  i18n.t(L.ENABLE_CLASH_LOADING) :
+                  i18n.t(L.ENABLE_CLASH_DESC)
               );
               const [success, reason] = await backend.setCoreStatus(value);
               setClashStateChanging(false);
               if (!success) {
                 setClashState(false);
                 toaster.toast({
-                  title: localizationManager.getString(L.ENABLE_CLASH_FAILED),
+                  title: i18n.t(L.ENABLE_CLASH_FAILED),
                   body: reason,
                   icon: <GiCat />,
                 });
                 setClashStateTips(
-                  localizationManager.getString(L.ENABLE_CLASH_FAILED) + " Err: " + reason
+                  i18n.t(L.ENABLE_CLASH_FAILED) + " Err: " + reason
                 );
               } else {
                 setClashStateTips(
                   value ?
-                    localizationManager.getString(L.ENABLE_CLASH_IS_RUNNING) :
-                    localizationManager.getString(L.ENABLE_CLASH_DESC)
+                    i18n.t(L.ENABLE_CLASH_IS_RUNNING) :
+                    i18n.t(L.ENABLE_CLASH_DESC)
                 );
               }
               backend.getCoreStatus().then(setClashState);
@@ -293,8 +295,8 @@ const Content: FC<{}> = ({ }) => {
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
-            label={localizationManager.getString(L.SELECT_SUBSCRIPTION)}
-            strDefaultLabel={localizationManager.getString(
+            label={i18n.t(L.SELECT_SUBSCRIPTION)}
+            strDefaultLabel={i18n.t(
               L.SELECT_SUBSCRIPTION
             )}
             rgOptions={subOptions}
@@ -317,10 +319,10 @@ const Content: FC<{}> = ({ }) => {
             layout="below"
             onClick={() => {
               Router.CloseSideMenus();
-              Router.Navigate("/clash-config");
+              Router.Navigate("/decky-clash");
             }}
           >
-            {localizationManager.getString(L.MANAGE_SUBSCRIPTIONS)}
+            {i18n.t(L.MANAGE_SUBSCRIPTIONS)}
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
@@ -334,13 +336,13 @@ const Content: FC<{}> = ({ }) => {
             }}
             disabled={clashStateChanging || !clashState || !currentDashboard}
           >
-            {localizationManager.getString(L.OPEN_DASHBOARD)}
+            {i18n.t(L.OPEN_DASHBOARD)}
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
-            label={localizationManager.getString(L.SELECT_DASHBOARD)}
-            strDefaultLabel={localizationManager.getString(L.SELECT_DASHBOARD)}
+            label={i18n.t(L.SELECT_DASHBOARD)}
+            strDefaultLabel={i18n.t(L.SELECT_DASHBOARD)}
             rgOptions={dashboardOptions}
             selectedOption={currentDashboard}
             onMenuWillOpen={fetchDashboards}
@@ -354,7 +356,7 @@ const Content: FC<{}> = ({ }) => {
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField
-            label={localizationManager.getString(L.ALLOW_REMOTE_ACCESS)}
+            label={i18n.t(L.ALLOW_REMOTE_ACCESS)}
             description=
             {allowRemoteAccess && clashState && !clashStateChanging && qrPageUrl && (
               <div style={{ overflowWrap: "break-word" }}>
@@ -364,7 +366,7 @@ const Content: FC<{}> = ({ }) => {
                 }} value={qrPageUrl} size={128} />
                 {qrPageUrl}
               </div>
-            ) || localizationManager.getString(L.ALLOW_REMOTE_ACCESS_DESC) }
+            ) || i18n.t(L.ALLOW_REMOTE_ACCESS_DESC) }
             checked={allowRemoteAccess}
             disabled={clashStateChanging}
             onChange={(value: boolean) => {
@@ -377,8 +379,8 @@ const Content: FC<{}> = ({ }) => {
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField
-            label={localizationManager.getString(L.OVERRIDE_DNS)}
-            description={localizationManager.getString(L.OVERRIDE_DNS_DESC)}
+            label={i18n.t(L.OVERRIDE_DNS)}
+            description={i18n.t(L.OVERRIDE_DNS_DESC)}
             checked={overrideDNS}
             disabled={clashStateChanging}
             onChange={(value: boolean) => {
@@ -391,7 +393,7 @@ const Content: FC<{}> = ({ }) => {
         {overrideDNS && (
           <PanelSectionRow>
             <SliderField
-              label={localizationManager.getString(L.ENHANCED_MODE)}
+              label={i18n.t(L.ENHANCED_MODE)}
               value={convertEnhancedModeValue(enhancedMode)}
               min={0}
               max={enhancedModeNotchLabels.length - 1}
@@ -410,13 +412,13 @@ const Content: FC<{}> = ({ }) => {
           </PanelSectionRow>
         )}
       </PanelSection>
-      <PanelSection title={localizationManager.getString(L.TOOLS)}>
+      <PanelSection title={i18n.t(L.TOOLS)}>
         <PanelSectionRow>
           <ActionButtonItem
             layout="below"
             onClick={fetchAllConfig}
           >
-            {localizationManager.getString(L.RELOAD_CONFIG)}
+            {i18n.t(L.RELOAD_CONFIG)}
           </ActionButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
@@ -425,7 +427,7 @@ const Content: FC<{}> = ({ }) => {
             layout="below"
             onClick={restartClash}
           >
-            {localizationManager.getString(L.RESTART_CORE)}
+            {i18n.t(L.RESTART_CORE)}
           </ActionButtonItem>
         </PanelSectionRow>
       </PanelSection>
@@ -439,7 +441,7 @@ const DeckyPluginRouter: FC = () => {
   addEventListener("core_exit", (code: number) => {
     if (code != 0) {
       toaster.toast({
-        title: localizationManager.getString(L.CLASH_EXIT_TITLE),
+        title: i18n.t(L.CLASH_EXIT_TITLE),
         body: "Code: " + code,
         icon: <GiCat />,
       });
@@ -447,18 +449,23 @@ const DeckyPluginRouter: FC = () => {
   });
   return (
     <SidebarNavigation
-      title="DeckyClash"
+      title={i18n.t(L.SUBSCRIPTIONS)}
       showTitle
       pages={[
         {
-          title: localizationManager.getString(L.SUBSCRIPTIONS),
-          content: <Subscriptions Subscriptions={subscriptions} />,
-          route: "/clash-config/subscriptions",
+          title: i18n.t(L.MANAGE),
+          content: <Manage Subscriptions={subscriptions} />,
+          route: "/decky-clash/import",
         },
         {
-          title: localizationManager.getString(L.ABOUT),
+          title: i18n.t(L.IMPORT),
+          content: <Import />,
+          route: "/decky-clash/manage",
+        },
+        {
+          title: i18n.t(L.ABOUT),
           content: <About />,
-          route: "/clash-config/about",
+          route: "/decky-clash/about",
         },
       ]}
     />
@@ -467,7 +474,7 @@ const DeckyPluginRouter: FC = () => {
 
 export default definePlugin(() => {
   localizationManager.init();
-  routerHook.addRoute("/clash-config", DeckyPluginRouter);
+  routerHook.addRoute("/decky-clash", DeckyPluginRouter);
   patchLocalConfig("status", false);
 
   return {

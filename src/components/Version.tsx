@@ -2,9 +2,10 @@ import { PanelSection, PanelSectionRow, Field } from "@decky/ui";
 import { createContext, FC, useContext, useLayoutEffect } from "react";
 import * as backend from "../backend/backend";
 import { ActionButtonItem } from "./ActionButtonItem";
-import { localizationManager, L } from "../i18n";
+import { L } from "../i18n";
 import { BsExclamationCircleFill, BsCheckCircleFill } from "react-icons/bs";
 import { toaster } from "@decky/api";
+import i18n from "i18next";
 
 class VersionData {
   current: string;
@@ -33,34 +34,33 @@ export const VersionComponent: FC = () => {
   }
   useLayoutEffect(getVersions, []);
 
-  let uptButtonText = localizationManager.getString(L.REINSTALL_PLUGIN);
+  let uptButtonText = i18n.t(L.REINSTALL_PLUGIN);
   if (pluginVersionData.current !== pluginVersionData.latest && Boolean(pluginVersionData.latest)) {
     uptButtonText =
-      localizationManager.getString(L.UPDATE_TO) + ` ${pluginVersionData.latest}`;
+      i18n.t(L.UPDATE_TO) + ` ${pluginVersionData.latest}`;
   }
 
-  let uptButtonTextCore = localizationManager.getString(L.REINSTALL_CORE);
+  let uptButtonTextCore = i18n.t(L.REINSTALL_CORE);
   if (coreVersionData.current !== coreVersionData.latest && Boolean(coreVersionData.latest)) {
     uptButtonTextCore =
-      localizationManager.getString(L.UPDATE_TO_CORE) + ` ${coreVersionData.latest}`;
+      i18n.t(L.UPDATE_TO_CORE) + ` ${coreVersionData.latest}`;
   }
 
   return (
-    <PanelSection title={localizationManager.getString(L.VERSION)}>
+    <PanelSection title={i18n.t(L.VERSION)}>
       <PanelSectionRow>
-        {/* temporarily disabled due to bug */}
-        {/* <ActionButtonItem
+        <ActionButtonItem
           layout="below"
           onClick={() => backend.upgradeToLatest().then(([success, reason]) => {
             if (success) {
               toaster.toast({
-                title: localizationManager.getString(L.PLUGIN_INSTALLED),
+                title: i18n.t(L.PLUGIN_INSTALLED),
                 body: pluginVersionData.latest,
                 icon: <BsCheckCircleFill />,
               });
             } else {
               toaster.toast({
-                title: localizationManager.getString(L.PLUGIN_INSTALL_FAILED),
+                title: i18n.t(L.PLUGIN_INSTALL_FAILED),
                 body: reason,
                 icon: <BsExclamationCircleFill />,
               });
@@ -68,12 +68,12 @@ export const VersionComponent: FC = () => {
           })}
         >
           {uptButtonText}
-        </ActionButtonItem> */}
+        </ActionButtonItem>
       </PanelSectionRow>
       <PanelSectionRow>
         <Field
           focusable
-          label={localizationManager.getString(L.INSTALLED_VERSION)}
+          label={i18n.t(L.INSTALLED_VERSION)}
         >
           {pluginVersionData.current}
         </Field>
@@ -82,27 +82,26 @@ export const VersionComponent: FC = () => {
         <PanelSectionRow>
           <Field
             focusable
-            label={localizationManager.getString(L.LATEST_VERSION)}
+            label={i18n.t(L.LATEST_VERSION)}
           >
             {pluginVersionData.latest}
           </Field>
         </PanelSectionRow>
       )}
       <PanelSectionRow>
-        {/* temporarily disabled due to bug */}
-        {/* <ActionButtonItem
+        <ActionButtonItem
           layout="below"
           onClick={() => backend.upgradeToLatestCore().then(([success, reason]) => {
             if (success) {
               toaster.toast({
-                title: localizationManager.getString(L.CORE_INSTALLED),
+                title: i18n.t(L.CORE_INSTALLED),
                 body: coreVersionData.latest,
                 icon: <BsCheckCircleFill />,
               });
               getVersions();
             } else {
               toaster.toast({
-                title: localizationManager.getString(L.CORE_INSTALL_FAILED),
+                title: i18n.t(L.CORE_INSTALL_FAILED),
                 body: reason,
                 icon: <BsExclamationCircleFill />,
               });
@@ -110,12 +109,12 @@ export const VersionComponent: FC = () => {
           })}
         >
           {uptButtonTextCore}
-        </ActionButtonItem> */}
+        </ActionButtonItem>
       </PanelSectionRow>
       <PanelSectionRow>
         <Field
           focusable
-          label={localizationManager.getString(L.INSTALLED_CORE_VERSION)}
+          label={i18n.t(L.INSTALLED_CORE_VERSION)}
         >
           {coreVersionData.current}
         </Field>
@@ -124,7 +123,7 @@ export const VersionComponent: FC = () => {
         <PanelSectionRow>
           <Field
             focusable
-            label={localizationManager.getString(L.LATEST_CORE_VERSION)}
+            label={i18n.t(L.LATEST_CORE_VERSION)}
           >
             {coreVersionData.latest}
           </Field>

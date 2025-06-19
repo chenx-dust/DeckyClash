@@ -1,2 +1,2 @@
-export * from "./Subscriptions";
+export * from "./Import";
 export * from "./About";

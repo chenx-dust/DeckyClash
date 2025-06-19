@@ -1,7 +1,8 @@
 import { FC, useLayoutEffect, useState } from "react";
 import { Field, Navigation, PanelSection } from "@decky/ui";
 import { FiGithub } from "react-icons/fi";
-import { localizationManager, L } from "../i18n";
+import i18n from "i18next";
+import { L } from "../i18n";
 import * as backend from "../backend/backend";
 import { DescriptionField } from "../components";
 
@@ -25,7 +26,7 @@ export const About: FC = () => {
           Light-weight Clash/Mihomo proxy client for Steam OS.
         </DescriptionField>
         <Field
-          label={localizationManager.getString(L.INSTALLED_VERSION)}
+          label={i18n.t(L.INSTALLED_VERSION)}
           focusable={true}
         >
           {version}
@@ -43,14 +44,14 @@ export const About: FC = () => {
         </Field>
 
       </PanelSection>
-      <PanelSection title={localizationManager.getString(L.ACKNOWLEDGE)}>
+      <PanelSection title={i18n.t(L.ACKNOWLEDGE)}>
         <DescriptionField label="Mihomo">
           Light-weight Clash/Mihomo proxy client for Steam OS.
           <br />
           <i>DeckyClash is powered by Mihomo.</i>
         </DescriptionField>
         <Field
-          label={localizationManager.getString(L.INSTALLED_CORE_VERSION)}
+          label={i18n.t(L.INSTALLED_CORE_VERSION)}
           focusable={true}
         >
           {coreVersion}

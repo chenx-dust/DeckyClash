@@ -1,4 +1,4 @@
-import { defaultLocale, localizeMap, LocalizeStrKey } from "./localizeMap";
+import { defaultLocale, langProps } from "./props";
 
 import i18n, { Resource } from "i18next";
 
@@ -10,14 +10,14 @@ export class localizationManager {
       (await SteamClient.Settings.GetCurrentLanguage()) || "english";
     this.language = language;
 
-    const resources: Resource = Object.keys(localizeMap).reduce(
-      (acc: Resource, key) => {
-        acc[localizeMap[key].locale] = {
-          translation: localizeMap[key].strings,
+    const resources: Resource = Object.keys(langProps).reduce(
+      (acc, key) => {
+        acc[langProps[key].locale] = {
+          translation: langProps[key].strings,
         };
         return acc;
       },
-      {}
+      {} as Resource
     );
 
     i18n.init({
@@ -32,13 +32,6 @@ export class localizationManager {
   }
 
   private static getLocale() {
-    return localizeMap[this.language]?.locale ?? defaultLocale;
-  }
-
-  public static getString(
-    defaultString: LocalizeStrKey,
-    variables?: Record<string, unknown>
-  ) {
-    return i18n.t(defaultString, variables);
+    return langProps[this.language]?.locale ?? defaultLocale;
   }
 }

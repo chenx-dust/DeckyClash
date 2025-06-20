@@ -77,11 +77,8 @@ class CoreController:
             self._monitor_task = None
         try:
             self._process.terminate()
-            code = await self._process.wait()
-            if self._exit_callback is not None:
-                await self._exit_callback(code)
-        except ProcessLookupError:
-            pass
+        except Exception as e:
+            logger.error(f"failed to terminate core with error: {e}")
         finally:
             self._process = None
             logger.debug("core terminated")

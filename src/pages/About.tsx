@@ -1,5 +1,5 @@
 import { FC, useLayoutEffect, useState } from "react";
-import { Field, Navigation, PanelSection } from "@decky/ui";
+import { DialogBody, DialogControlsSection, DialogControlsSectionHeader, Field, Navigation } from "@decky/ui";
 import { FiGithub } from "react-icons/fi";
 import i18n from "i18next";
 import { L } from "../i18n";
@@ -20,8 +20,8 @@ export const About: FC = () => {
   }, []);
   return (
     // The outermost div is to push the content down into the visible area
-    <>
-      <PanelSection>
+    <DialogBody>
+      <DialogControlsSection>
         <DescriptionField label="DeckyClash">
           Light-weight Clash/Mihomo proxy client for Steam OS.
         </DescriptionField>
@@ -43,8 +43,11 @@ export const About: FC = () => {
           GitHub Repo
         </Field>
 
-      </PanelSection>
-      <PanelSection title={i18n.t(L.ACKNOWLEDGE)}>
+      </DialogControlsSection>
+      <DialogControlsSection>
+        <DialogControlsSectionHeader>
+          {i18n.t(L.ACKNOWLEDGE)}
+        </DialogControlsSectionHeader>
         <DescriptionField label="Mihomo">
           Light-weight Clash/Mihomo proxy client for Steam OS.
           <br />
@@ -102,7 +105,7 @@ export const About: FC = () => {
           GitHub Repo
         </Field>
 
-      </PanelSection>
-    </>
+      </DialogControlsSection>
+    </DialogBody>
   );
 };

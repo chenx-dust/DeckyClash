@@ -1,7 +1,7 @@
-import { ButtonItem } from "@decky/ui";
-import { useState, FC, useEffect } from "react";
+import { ButtonItem, DialogBody } from "@decky/ui";
+import { useState, FC, useLayoutEffect } from "react";
 import { SubList } from "../components";
-import { BsCheckCircleFill, BsExclamationCircleFill } from "react-icons/bs";
+import { BsExclamationCircleFill } from "react-icons/bs";
 import i18n from "i18next";
 
 import * as backend from "../backend/backend";
@@ -19,30 +19,24 @@ export const Manage: FC<ManageProp> = ({ Subscriptions }) => {
 
   const tipTimeout = 10000;
 
-  useEffect(() => {
-    backend.setExternalStatus(true);
-    const callback = (name: string) => {
-      toaster.toast({
-        title: i18n.t(L.DOWNLOAD_SUCCESS),
-        body: name,
-        icon: <BsCheckCircleFill />,
-      });
-      refreshSubs();
-    };
-    addEventListener("sub_update", callback);
-    return () => {
-      backend.setExternalStatus(false);
-      removeEventListener("sub_update", callback);
-    };
-  }, []);
-
   const refreshSubs = async () => {
     const subs = await backend.getSubscriptionList();
     setSubscriptions(subs);
   };
 
+  useLayoutEffect(() => {
+    refreshSubs();
+    const callback = (_: string) => {
+      refreshSubs();
+    };
+    addEventListener("sub_update", callback);
+    return () => {
+      removeEventListener("sub_update", callback);
+    };
+  }, []);
+
   return (
-    <>
+    <DialogBody>
       <ButtonItem
         layout="below"
         description={updateTips}
@@ -77,6 +71,6 @@ export const Manage: FC<ManageProp> = ({ Subscriptions }) => {
         Subscriptions={subscriptions}
         Refresh={refreshSubs}
       ></SubList>
-    </>
+    </DialogBody>
   );
 };

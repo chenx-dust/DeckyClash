@@ -438,15 +438,6 @@ const Content: FC<{}> = ({ }) => {
 };
 
 const DeckyPluginRouter: FC = () => {
-  addEventListener("core_exit", (code: number) => {
-    if (code != 0) {
-      toaster.toast({
-        title: i18n.t(L.CLASH_EXIT_TITLE),
-        body: "Code: " + code,
-        icon: <GiCat />,
-      });
-    }
-  });
   return (
     <SidebarNavigation
       title={i18n.t(L.SUBSCRIPTIONS)}
@@ -476,6 +467,23 @@ export default definePlugin(() => {
   localizationManager.init();
   routerHook.addRoute("/decky-clash", DeckyPluginRouter);
   patchLocalConfig("status", false);
+
+  addEventListener("core_exit", (code: number) => {
+    if (code != 0) {
+      toaster.toast({
+        title: i18n.t(L.CLASH_EXIT_TITLE),
+        body: "Code: " + code,
+        icon: <GiCat />,
+      });
+    }
+  });
+  addEventListener("sub_update", (name: string) => {
+    toaster.toast({
+      title: i18n.t(L.DOWNLOAD_SUCCESS),
+      body: name,
+      icon: <GiCat />,
+    });
+  });
 
   return {
     // The name shown in various decky menus

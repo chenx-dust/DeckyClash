@@ -51,6 +51,7 @@ class Plugin:
         self._set_default("timeout", 15.0)
         self._set_default("disable_verify", False)
         self._set_default("skip_copy_res", False)
+        self._set_default("external_run_bg", False)
         self._set_default("log_level", logging.getLevelName(logging.INFO))
 
         level = self._get("log_level")
@@ -81,6 +82,8 @@ class Plugin:
                 logger.error(f"external_callback: runtime error {e}")
                 return web.json_response({"error": str(e)}, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
         self.external.register_callback("/download_sub", _callback)
+        if self._get("external_run_bg"):
+            await self.set_external_status(True)
 
     # Function called first during the unload process, utilize this to handle your plugin being removed
     async def _unload(self):
@@ -161,11 +164,11 @@ class Plugin:
 
     async def set_config_value(self, key: str, value: Any):
         PERMITTED_KEYS = [
-            "current",
             "override_dns",
             "enhanced_mode",
             "allow_remote_access",
             "dashboard",
+            "external_run_bg",
         ]
         if key not in PERMITTED_KEYS:
             logger.error(f"not permitted key: {key}")

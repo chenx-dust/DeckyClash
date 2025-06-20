@@ -1,94 +1,152 @@
-import { useState, FC, useEffect } from "react";
+import { useState, FC, useEffect, useLayoutEffect } from "react";
 import { TextFieldWithButton } from "../components";
 import { QRCodeCanvas } from "qrcode.react";
-import { BsCheckCircleFill, BsExclamationCircleFill, BsFillCloudDownloadFill } from "react-icons/bs";
+import { BsFillCloudDownloadFill } from "react-icons/bs";
 import i18n from "i18next";
 
 import * as backend from "../backend/backend";
 import { L } from "../i18n";
-import { addEventListener, removeEventListener, toaster } from "@decky/api";
+import { DialogBody, DialogControlsSection, DialogControlsSectionHeader, Field, ToggleField } from "@decky/ui";
+
+interface ExternalImporterConfig {
+  url: string;
+  enabled: boolean;
+  background: boolean;
+}
 
 export const Import: FC = () => {
+  const localConfig = JSON.parse(window.localStorage.getItem("decky-clash-external-importer") ||
+    JSON.stringify({
+      url: "",
+      enabled: false,
+      background: false,
+    } as ExternalImporterConfig)
+  );
+
   const [subUrl, setSubUrl] = useState("");
   const [downloadTips, setDownloadTips] = useState("");
   const [downlaodBtnDisable, setDownlaodBtnDisable] = useState(false);
-  const [QRPageUrl, setQRPageUrl] = useState("");
+  const [externalUrl, setExternalUrl] = useState(localConfig.url);
+  const [enableExImporter, setEnableExImporter] = useState(localConfig.enabled);
+  const [bgExImporter, setBgExImporter] = useState(localConfig.background);
+  const [initialized, setInitialized] = useState(false);
 
   const tipTimeout = 10000;
 
-  useEffect(() => {
-    backend.setExternalStatus(true);
-    const callback = (name: string) => {
-      toaster.toast({
-        title: i18n.t(L.DOWNLOAD_SUCCESS),
-        body: name,
-        icon: <BsCheckCircleFill />,
-      });
-    };
-    addEventListener("sub_update", callback);
-    return () => {
-      backend.setExternalStatus(false);
-      removeEventListener("sub_update", callback);
-    };
+  const fetchUrl = async () => {
+    const ip = await backend.getIP();
+    const port = await backend.getConfigValue("external_port");
+    setExternalUrl(`http://${ip}:${port}`);
+  };
+
+  useLayoutEffect(() => {
+    Promise.all([
+      fetchUrl(),
+      backend.getConfigValue("external_run_bg").then((value: boolean) => {
+        setBgExImporter(value);
+        if (value)
+          setEnableExImporter(true);
+      }),
+    ]).then(() => setInitialized(true));
   }, []);
 
   useEffect(() => {
-    const f = async () => {
-      const ip = await backend.getIP();
-      const port = await backend.getConfigValue("external_port");
-      setQRPageUrl(`http://${ip}:${port}`);
+    if (initialized) {
+      window.localStorage.setItem("decky-clash-external-importer", JSON.stringify({
+        url: externalUrl,
+        enabled: enableExImporter,
+        background: bgExImporter,
+      } as ExternalImporterConfig));
+    }
+  }, [initialized, externalUrl, enableExImporter, bgExImporter]);
+
+  useLayoutEffect(() => {
+    backend.setExternalStatus(enableExImporter);
+    return () => {
+      if (enableExImporter && !bgExImporter)
+        backend.setExternalStatus(false);
     };
-    f();
-  }, []);
+  }, [enableExImporter, bgExImporter]);
+
+  useLayoutEffect(() => {
+    if (initialized && enableExImporter)
+      fetchUrl();
+  }, [initialized, enableExImporter]);
+
+  const changeRunInBackground = (x: boolean) => {
+    setBgExImporter(x);
+    backend.setConfigValue("external_run_bg", x).then(() =>
+      backend.getConfigValue("external_run_bg").then(setBgExImporter));
+  };
 
   return (
-    <>
-      { QRPageUrl && (
-        <div id="subscription-qrcode">
-          <QRCodeCanvas style={{
-            display: "block",
-            margin: "8px auto",
-          }} value={QRPageUrl} size={128} />
-          <p style={{
-            textAlign: "center",
-            overflowWrap: "break-word"
-          }}>
-            {QRPageUrl}
-          </p>
-        </div>
-      ) || (<p style={{
-        textAlign: "center",
-        overflowWrap: "break-word"
-      }}>
-        {i18n.t(L.ENABLE_CLASH_LOADING)}
-      </p>)}
-      <TextFieldWithButton
-        label={i18n.t(L.DOWNLOAD_SUBSCRIPTION)}
-        description={downloadTips}
-        placeholder={i18n.t(L.SUBSCRIPTION_LINK)}
-        value={subUrl}
-        onChange={(e) => setSubUrl(e?.target.value)}
-        disabled={downlaodBtnDisable}
-        onClick={async () => {
-          setDownlaodBtnDisable(true);
-          setDownloadTips(i18n.t(L.DOWNLOADING));
-          const [success, error] = await backend.downloadSubscription(subUrl);
-          if (!success) {
-            toaster.toast({
-              title: i18n.t(L.DOWNLOAD_FAILURE),
-              body: error,
-              icon: <BsExclamationCircleFill />,
-            });
-            setDownloadTips(i18n.t(L.DOWNLOAD_FAILURE) + ": " + error);
-            setTimeout(() => {
-              setDownloadTips("");
-            }, tipTimeout);
-          }
-          setDownlaodBtnDisable(false);
-        }}
-      >
-        <BsFillCloudDownloadFill />
-      </TextFieldWithButton>
-    </>
+    <DialogBody>
+      <DialogControlsSection>
+        <DialogControlsSectionHeader>
+          {i18n.t(L.DOWNLOAD_SUBSCRIPTION)}
+        </DialogControlsSectionHeader>
+        <TextFieldWithButton
+          description={downloadTips}
+          placeholder={i18n.t(L.SUBSCRIPTION_LINK)}
+          value={subUrl}
+          onChange={(e) => setSubUrl(e?.target.value)}
+          disabled={downlaodBtnDisable}
+          onClick={async () => {
+            setDownlaodBtnDisable(true);
+            setDownloadTips(i18n.t(L.DOWNLOADING));
+            const [success, error] = await backend.downloadSubscription(subUrl);
+            if (!success) {
+              setDownloadTips(i18n.t(L.DOWNLOAD_FAILURE) + ": " + error);
+              setTimeout(() => {
+                setDownloadTips("");
+              }, tipTimeout);
+            }
+            setDownlaodBtnDisable(false);
+          }}
+        >
+          <BsFillCloudDownloadFill />
+        </TextFieldWithButton>
+      </DialogControlsSection>
+      <DialogControlsSection>
+        <DialogControlsSectionHeader>
+          {i18n.t(L.EXTERNAL_IMPORTER)}
+        </DialogControlsSectionHeader>
+        <ToggleField
+          label={i18n.t(L.ENABLE)}
+          checked={enableExImporter}
+          onChange={(x) => {
+            setEnableExImporter(x);
+            if (!x)
+              changeRunInBackground(false);
+          }}
+        />
+        {enableExImporter && <>
+          <ToggleField
+            label={i18n.t(L.RUN_IN_BACKGROUND)}
+            checked={bgExImporter}
+            onChange={changeRunInBackground}
+          />
+          {externalUrl && (
+            <Field
+              focusable={true}
+              label={
+                <div style={{
+                  flexGrow: 1,
+                  textAlign: "center",
+                  overflowWrap: "break-word"
+                }}>
+                  {externalUrl && (
+                    <QRCodeCanvas style={{
+                      display: "block",
+                      margin: "8px auto",
+                    }} value={externalUrl} size={128} />
+                  )}
+                  {externalUrl || i18n.t(L.ENABLE_CLASH_LOADING)}
+                </div>
+              } />
+          )}
+        </>}
+      </DialogControlsSection>
+    </DialogBody>
   );
 };

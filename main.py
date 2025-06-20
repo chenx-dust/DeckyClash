@@ -49,6 +49,7 @@ class Plugin:
         self._set_default("external_port", 50581)
         self._set_default("allow_remote_access", False)
         self._set_default("timeout", 15.0)
+        self._set_default("download_timeout", 120.0)
         self._set_default("disable_verify", False)
         self._set_default("skip_copy_res", False)
         self._set_default("external_run_bg", False)
@@ -178,7 +179,7 @@ class Plugin:
 
     async def upgrade_to_latest(self) -> Tuple[bool, Optional[str]]:
         try:
-            await upgrade.upgrade_to_latest(self._get("timeout"))
+            await upgrade.upgrade_to_latest(self._get("timeout"), self._get("download_timeout"))
         except Exception as e:
             logger.error(f"ota error: {e}")
             return False, str(e)
@@ -202,7 +203,7 @@ class Plugin:
             logger.error(f"upgrade_to_latest_core: failed with {e}")
             return False, str(e)
         try:
-            await upgrade.upgrade_to_latest_core(self._get("timeout"))
+            await upgrade.upgrade_to_latest_core(self._get("timeout"), self._get("download_timeout"))
         except Exception as e:
             logger.error(f"upgrade_to_latest_core: failed with {e}")
             return False, str(e)

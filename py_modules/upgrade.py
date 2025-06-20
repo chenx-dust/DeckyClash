@@ -27,9 +27,9 @@ def recursive_chmod(path: str, perms: int) -> None:
             os.chmod(os.path.join(dirpath, filename), current_perms | perms)
 
 
-async def upgrade_to_latest(timeout: float) -> None:
+async def upgrade_to_latest(timeout: float, download_timeout: float) -> None:
     logger.info("upgrading to latest version")
-    downloaded_filepath = await download_latest_build(timeout)
+    downloaded_filepath = await download_latest_build(timeout, download_timeout)
 
     if os.path.exists(downloaded_filepath):
         plugin_dir = decky.DECKY_PLUGIN_DIR
@@ -58,9 +58,9 @@ async def upgrade_to_latest(timeout: float) -> None:
         cmd = "systemctl restart plugin_loader.service"
         os.system(cmd)
 
-async def upgrade_to_latest_core(timeout: float) -> None:
+async def upgrade_to_latest_core(timeout: float, download_timeout) -> None:
     logger.info("upgrading to latest version of core")
-    downloaded_filepath = await download_latest_core(timeout)
+    downloaded_filepath = await download_latest_core(timeout, download_timeout)
     core_path = core.CoreController.CORE_PATH
 
     if os.path.exists(downloaded_filepath):
@@ -78,7 +78,7 @@ async def upgrade_to_latest_core(timeout: float) -> None:
         await asyncio.to_thread(_impl)
 
 
-async def download_latest_build(timeout: float) -> str:
+async def download_latest_build(timeout: float, download_timeout: float) -> str:
     json_data = await utils.get_url_to_json(get_github_api_url(PACKAGE_REPO), timeout)
 
     download_url = json_data.get("assets")[0].get("browser_download_url")
@@ -87,12 +87,12 @@ async def download_latest_build(timeout: float) -> str:
 
     file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, decky.DECKY_PLUGIN_NAME + ".zip")
 
-    await utils.get_url_to_file(download_url, file_path, timeout)
+    await utils.get_url_to_file(download_url, file_path, download_timeout)
 
     return file_path
 
 
-async def download_latest_core(timeout: float) -> str:
+async def download_latest_core(timeout: float, download_timeout: float) -> str:
     json_data = await utils.get_url_to_json(get_github_api_url(CORE_REPO), timeout)
 
     download_url: Optional[str] = None
@@ -109,7 +109,7 @@ async def download_latest_core(timeout: float) -> str:
 
     file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "mihomo.gz")
 
-    await utils.get_url_to_file(download_url, file_path)
+    await utils.get_url_to_file(download_url, file_path, download_timeout)
 
     return file_path
 

@@ -79,7 +79,7 @@ class CoreController:
             self._process.terminate()
             code = await self._process.wait()
             if self._exit_callback is not None:
-                self._exit_callback(code)
+                await self._exit_callback(code)
         except ProcessLookupError:
             pass
         finally:
@@ -94,9 +94,9 @@ class CoreController:
         returncode = await self._process.wait()
         logger.debug(f"core exited with code: {returncode}")
 
-        if self._exit_callback:
+        if self._exit_callback is not None:
             try:
-                self._exit_callback(returncode)
+                await self._exit_callback(returncode)
             except Exception as e:
                 logger.error(f"error in exit callback: {str(e)}")
 

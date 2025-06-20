@@ -32,6 +32,7 @@
     "ENABLE_CLASH": "启用 Clash",
     "ENABLE_CLASH_DESC": "运行 Clash 以代理流量",
     "ENABLE_CLASH_FAILED": "启动失败",
+    "ENABLE_CLASH_CRASH": "Clash 崩溃",
     "ENABLE_CLASH_LOADING": "加载中 ...",
     "ENABLE_CLASH_IS_RUNNING": "Clash 正在运行",
     "MANAGE_SUBSCRIPTIONS": "管理订阅",

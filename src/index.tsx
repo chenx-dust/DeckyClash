@@ -187,15 +187,29 @@ const Content: FC<{}> = ({ }) => {
     // core exit callback
     const callback = (code: number) => {
       setClashState(false);
-      setClashStateTips(
-        i18n.t(L.ENABLE_CLASH_FAILED) + " Code " + code
-      );
+      if (code != 0)
+        setClashStateTips(
+          i18n.t(L.ENABLE_CLASH_CRASH) + " Code " + code
+        );
+      else
+        setClashStateTips(i18n.t(L.ENABLE_CLASH_DESC));
     }
     addEventListener("core_exit", callback);
     return () => {
       removeEventListener("core_exit", callback);
     };
   }, []);
+
+  const tipsTimeout = 10000;
+  useEffect(() => {
+    if (!clashState && clashStateTips != i18n.t(L.ENABLE_CLASH_DESC)) {
+      const timer = setTimeout(() => {
+        setClashStateTips(i18n.t(L.ENABLE_CLASH_DESC));
+      }, tipsTimeout);
+      return () => clearTimeout(timer);
+    }
+    return;
+  }, [clashState, clashStateTips]);
 
   const enhancedModeOptions = [
     { mode: EnhancedMode.RedirHost, label: "Redir Host" },

@@ -1,5 +1,5 @@
 import { PanelSection, PanelSectionRow, Field } from "@decky/ui";
-import { createContext, FC, useContext, useLayoutEffect } from "react";
+import { FC, useLayoutEffect, useState } from "react";
 import * as backend from "../backend/backend";
 import { ActionButtonItem } from "./ActionButtonItem";
 import { L } from "../i18n";
@@ -7,43 +7,30 @@ import { BsExclamationCircleFill, BsCheckCircleFill } from "react-icons/bs";
 import { toaster } from "@decky/api";
 import i18n from "i18next";
 
-class VersionData {
-  current: string;
-  latest: string;
-  constructor(current: string = "", latest: string = "") {
-    this.current = current;
-    this.latest = latest;
-  }
-}
-export const PluginVersionContext = createContext<VersionData>(
-  new VersionData()
-);
-export const CoreVersionContext = createContext<VersionData>(
-  new VersionData()
-);
-
 export const VersionComponent: FC = () => {
-  const pluginVersionData = useContext(PluginVersionContext);
-  const coreVersionData = useContext(CoreVersionContext);
+  const [pluginCurrent, setPluginCurrent] = useState<string>();
+  const [pluginLatest, setPluginLatest] = useState<string>();
+  const [coreCurrent, setCoreCurrent] = useState<string>();
+  const [coreLatest, setCoreLatest] = useState<string>();
 
   const getVersions = () => {
-    backend.getVersion().then((x) => { pluginVersionData.current = x });
-    backend.getLatestVersion().then((x) => { pluginVersionData.latest = x });
-    backend.getVersionCore().then((x) => { coreVersionData.current = x });
-    backend.getLatestVersionCore().then((x) => { coreVersionData.latest = x });
+    backend.getVersion().then(setPluginCurrent);
+    backend.getLatestVersion().then(setPluginLatest);
+    backend.getVersionCore().then(setCoreCurrent);
+    backend.getLatestVersionCore().then(setCoreLatest);
   }
   useLayoutEffect(getVersions, []);
 
   let uptButtonText = i18n.t(L.REINSTALL_PLUGIN);
-  if (pluginVersionData.current !== pluginVersionData.latest && Boolean(pluginVersionData.latest)) {
+  if (pluginCurrent !== pluginLatest && Boolean(pluginLatest)) {
     uptButtonText =
-      i18n.t(L.UPDATE_TO) + ` ${pluginVersionData.latest}`;
+      i18n.t(L.UPDATE_TO) + ` ${pluginLatest}`;
   }
 
   let uptButtonTextCore = i18n.t(L.REINSTALL_CORE);
-  if (coreVersionData.current !== coreVersionData.latest && Boolean(coreVersionData.latest)) {
+  if (coreCurrent !== coreLatest && Boolean(coreLatest)) {
     uptButtonTextCore =
-      i18n.t(L.UPDATE_TO_CORE) + ` ${coreVersionData.latest}`;
+      i18n.t(L.UPDATE_TO_CORE) + ` ${coreLatest}`;
   }
 
   return (
@@ -55,7 +42,7 @@ export const VersionComponent: FC = () => {
             if (success) {
               toaster.toast({
                 title: i18n.t(L.PLUGIN_INSTALLED),
-                body: pluginVersionData.latest,
+                body: pluginLatest,
                 icon: <BsCheckCircleFill />,
               });
             } else {
@@ -75,16 +62,16 @@ export const VersionComponent: FC = () => {
           focusable
           label={i18n.t(L.INSTALLED_VERSION)}
         >
-          {pluginVersionData.current}
+          {pluginCurrent}
         </Field>
       </PanelSectionRow>
-      {Boolean(pluginVersionData.latest) && (
+      {Boolean(pluginLatest) && (
         <PanelSectionRow>
           <Field
             focusable
             label={i18n.t(L.LATEST_VERSION)}
           >
-            {pluginVersionData.latest}
+            {pluginLatest}
           </Field>
         </PanelSectionRow>
       )}
@@ -95,7 +82,7 @@ export const VersionComponent: FC = () => {
             if (success) {
               toaster.toast({
                 title: i18n.t(L.CORE_INSTALLED),
-                body: coreVersionData.latest,
+                body: coreLatest,
                 icon: <BsCheckCircleFill />,
               });
               getVersions();
@@ -116,16 +103,16 @@ export const VersionComponent: FC = () => {
           focusable
           label={i18n.t(L.INSTALLED_CORE_VERSION)}
         >
-          {coreVersionData.current}
+          {coreCurrent}
         </Field>
       </PanelSectionRow>
-      {Boolean(coreVersionData.latest) && (
+      {Boolean(coreLatest) && (
         <PanelSectionRow>
           <Field
             focusable
             label={i18n.t(L.LATEST_CORE_VERSION)}
           >
-            {coreVersionData.latest}
+            {coreLatest}
           </Field>
         </PanelSectionRow>
       )}

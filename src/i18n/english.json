@@ -32,6 +32,7 @@
     "ENABLE_CLASH": "Enable Clash",
     "ENABLE_CLASH_DESC": "Run Clash to proxy traffic",
     "ENABLE_CLASH_FAILED": "Failed to start",
+    "ENABLE_CLASH_CRASH": "Clash crashed",
     "ENABLE_CLASH_LOADING": "Loading ...",
     "ENABLE_CLASH_IS_RUNNING": "Clash is running",
     "MANAGE_SUBSCRIPTIONS": "Manage Subscriptions",

@@ -49,7 +49,7 @@ export const VersionComponent: FC = () => {
   return (
     <PanelSection title={i18n.t(L.VERSION)}>
       <PanelSectionRow>
-        <ActionButtonItem
+        {/* <ActionButtonItem
           layout="below"
           onClick={() => backend.upgradeToLatest().then(([success, reason]) => {
             if (success) {
@@ -68,7 +68,7 @@ export const VersionComponent: FC = () => {
           })}
         >
           {uptButtonText}
-        </ActionButtonItem>
+        </ActionButtonItem> */}
       </PanelSectionRow>
       <PanelSectionRow>
         <Field
@@ -89,7 +89,7 @@ export const VersionComponent: FC = () => {
         </PanelSectionRow>
       )}
       <PanelSectionRow>
-        <ActionButtonItem
+        {/* <ActionButtonItem
           layout="below"
           onClick={() => backend.upgradeToLatestCore().then(([success, reason]) => {
             if (success) {
@@ -109,7 +109,7 @@ export const VersionComponent: FC = () => {
           })}
         >
           {uptButtonTextCore}
-        </ActionButtonItem>
+        </ActionButtonItem> */}
       </PanelSectionRow>
       <PanelSectionRow>
         <Field

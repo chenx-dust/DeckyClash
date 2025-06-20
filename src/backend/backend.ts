@@ -18,8 +18,11 @@ export const getLatestVersionCore = callable<[], string>("get_latest_version_cor
 
 export const getSubscriptionList = callable<[], Record<string, string>>("get_subscription_list");
 export const updateAllSubscriptions = callable<[], Array<[string, string]>>("update_all_subscriptions");
+export const updateSubscription = callable<[string], [boolean, string]>("update_subscription");
 export const downloadSubscription = callable<[string], [boolean, string]>("download_subscription");
-export const removeSubscription = callable<[string], boolean>("remove_subscription");
+export const removeSubscription = callable<[string], []>("remove_subscription");
+export const duplicateSubscription = callable<[string], []>("duplicate_subscription");
+export const editSubscription = callable<[string, string, string], []>("edit_subscription");
 export const setCurrent = callable<[string], boolean>("set_current");
 
 export const getDashboardList = callable<[], string[]>("get_dashboard_list");

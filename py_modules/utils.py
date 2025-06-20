@@ -2,6 +2,7 @@ import asyncio
 import base64
 import json
 import random
+import re
 import ssl
 import urllib.request
 import fcntl
@@ -90,3 +91,6 @@ def get_ip() -> str:
     if ip is not None:
         return ip
     return '127.0.0.1'
+
+def sanitize_filename(name: str) -> str:
+    return re.sub('[/]', '-', name)

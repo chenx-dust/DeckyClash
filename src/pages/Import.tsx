@@ -24,14 +24,14 @@ export const Import: FC = () => {
   );
 
   const [subUrl, setSubUrl] = useState("");
-  const [downloadTips, setDownloadTips] = useState("");
-  const [downlaodBtnDisable, setDownlaodBtnDisable] = useState(false);
+  const [downloadTips, setDownloadTips] = useState(i18n.t(L.DOWNLOAD_DESC));
+  const [downloading, setDownloading] = useState(false);
   const [externalUrl, setExternalUrl] = useState(localConfig.url);
   const [enableExImporter, setEnableExImporter] = useState(localConfig.enabled);
   const [bgExImporter, setBgExImporter] = useState(localConfig.background);
   const [initialized, setInitialized] = useState(false);
 
-  const tipTimeout = 10000;
+  const tipsTimeout = 10000;
 
   const fetchUrl = async () => {
     const ip = await backend.getIP();
@@ -63,8 +63,13 @@ export const Import: FC = () => {
   useLayoutEffect(() => {
     backend.setExternalStatus(enableExImporter);
     return () => {
-      if (enableExImporter && !bgExImporter)
-        backend.setExternalStatus(false);
+      if (enableExImporter)
+        setBgExImporter((x: boolean) => {
+          // get latest value to avoid conflict
+          if (!x)
+            backend.setExternalStatus(false);
+          return x;
+        })
     };
   }, [enableExImporter, bgExImporter]);
 
@@ -72,6 +77,16 @@ export const Import: FC = () => {
     if (initialized && enableExImporter)
       fetchUrl();
   }, [initialized, enableExImporter]);
+
+  useEffect(() => {
+    if (!downloading && downloadTips != i18n.t(L.DOWNLOAD_DESC)) {
+      const timer = setTimeout(() => {
+        setDownloadTips(i18n.t(L.DOWNLOAD_DESC));
+      }, tipsTimeout);
+      return () => clearTimeout(timer);
+    }
+    return;
+  }, [downloadTips, downloading]);
 
   const changeRunInBackground = (x: boolean) => {
     setBgExImporter(x);
@@ -90,18 +105,17 @@ export const Import: FC = () => {
           placeholder={i18n.t(L.SUBSCRIPTION_LINK)}
           value={subUrl}
           onChange={(e) => setSubUrl(e?.target.value)}
-          disabled={downlaodBtnDisable}
+          disabled={downloading}
           onClick={async () => {
-            setDownlaodBtnDisable(true);
+            setDownloading(true);
             setDownloadTips(i18n.t(L.DOWNLOADING));
             const [success, error] = await backend.downloadSubscription(subUrl);
             if (!success) {
               setDownloadTips(i18n.t(L.DOWNLOAD_FAILURE) + ": " + error);
-              setTimeout(() => {
-                setDownloadTips("");
-              }, tipTimeout);
+            } else {
+              setDownloadTips(i18n.t(L.DOWNLOAD_SUCCESS));
             }
-            setDownlaodBtnDisable(false);
+            setDownloading(false);
           }}
         >
           <BsFillCloudDownloadFill />

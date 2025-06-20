@@ -237,6 +237,48 @@ class Plugin:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
         return await subscription.update_subs(subs, self._get("timeout"))
 
+    async def update_subscription(self, name: str) -> Tuple[bool, Optional[str]]:
+        logger.error(f"updating subscription: {name}")
+        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        if name not in subs:
+            logger.error(f"subscription {name} not found")
+            return False, "subscription not found"
+        result = await subscription.update_sub(name, subs[name], self._get("timeout"))
+        if result is None:
+            return True, None
+        else:
+            return False, result
+
+    async def duplicate_subscription(self, name: str) -> None:
+        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        new_name = subscription.duplicate_sub(subs, name)
+        if new_name is not None:
+            logger.info(f"duplicated subscription: {name} to {new_name}")
+            subs[new_name] = subs[name]
+            self.settings.setSetting("subscriptions", subs)
+
+    async def edit_subscription(self, name: str, new_name: str, new_url: str) -> None:
+        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        new_name = utils.sanitize_filename(new_name)
+        logger.info(f"edit_subscription: {name} -> {new_name}, {new_url}")
+        if name in subs:
+            if new_name == name:
+                subs[name] = new_url
+            elif new_name in subs:
+                logger.error(f"edit_subscription: duplicated name {new_name}")
+                return
+            else:
+                try:
+                    shutil.move(subscription.get_path(name), subscription.get_path(new_name))
+                except Exception as e:
+                    logger.error(f"edit_subscription: move error {e}")
+                    return
+                subs.pop(name)
+                subs[new_name] = new_url
+            self.settings.setSetting("subscriptions", subs)
+        else:
+            logger.error(f"edit_subscription: {name} not found")
+
     async def download_subscription(self, url: str) -> Tuple[bool, Optional[str]]:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
         ok, data = subscription.download_sub(url, subs, self._get("timeout"))
@@ -251,7 +293,7 @@ class Plugin:
         else:
             return False, data # type: ignore
 
-    async def remove_subscription(self, name: str) -> bool:
+    async def remove_subscription(self, name: str) -> None:
         logger.info(f"removing subscription: {name}")
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
         if name in subs:
@@ -263,9 +305,6 @@ class Plugin:
             if self.settings.getSetting("current") == name:
                 self.settings.setSetting("current", None)
             self.settings.setSetting("subscriptions", subs)
-            return True
-        else:
-            return True
 
     async def set_current(self, name: str) -> bool:
         logger.info(f"setting current to: {name}")

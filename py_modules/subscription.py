@@ -1,6 +1,7 @@
 import asyncio
 import email
 import email.message
+import shutil
 from typing import Dict, List, Optional, Tuple
 import os
 import urllib.request
@@ -20,6 +21,26 @@ Subscription = Tuple[str, str]
 
 def get_path(filename: str) -> str:
     return os.path.join(SUBSCRIPTIONS_DIR, filename + ".yaml")
+
+def _deduplicate_name(now_subs: SubscriptionDict, filename: str) -> Optional[str]:
+    
+    def check_exist(name) -> bool:
+        is_exist = False
+        for sub_name in now_subs:
+            if sub_name == name:
+                is_exist = True
+                break
+        return is_exist
+    if check_exist(filename):
+        available = False
+        for i in range(100):
+            if not check_exist(f'{filename}_{i}'):
+                filename = f'{filename}_{i}'
+                available = True
+                break
+        if not available:
+            return None
+    return filename
 
 def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] = None) -> Tuple[bool, Subscription | str]:
     """
@@ -68,23 +89,12 @@ def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] 
     if filename.lower().endswith('.yaml'):
         filename = filename[:-5]
 
-    def check_exist(name) -> bool:
-        is_exist = False
-        for sub_name in now_subs:
-            if sub_name == name:
-                is_exist = True
-                break
-        return is_exist
-    if check_exist(filename):
-        available = False
-        for i in range(100):
-            if not check_exist(f'{filename}_{i}'):
-                filename = f'{filename}_{i}'
-                available = True
-                break
-        if not available:
-            logger.error('download_sub: no available filename')
-            return False, 'No available filename'
+    filename = _deduplicate_name(now_subs, filename)
+    if filename is None:
+        logger.error(f'download_sub: failed to deduplicate name: {filename}')
+        return False, 'No available filename'
+
+    filename = utils.sanitize_filename(filename)
     path = get_path(filename)
     logger.info(f'saving to {path}')
 
@@ -106,6 +116,15 @@ def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] 
     
     return True, (filename, url)
 
+async def update_sub(name: str, url: str, timeout: float) -> Optional[str]:
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
+        await utils.get_url_to_file(req, get_path(name), timeout)
+    except Exception as e:
+        logger.error(f"update sub {name} error: {e}")
+        return str(e)
+    return None
+
 async def update_subs(subs: SubscriptionDict, timeout: float) -> List[Tuple[str, str]]:
     """
     Update subscriptions
@@ -116,17 +135,9 @@ async def update_subs(subs: SubscriptionDict, timeout: float) -> List[Tuple[str,
         list[Tuple[str, str]]: List of failed subscriptions
     """
     logger.info("update_subs: start updating")
-    async def _impl(name: str, url: str) -> Optional[str]:
-        try:
-            req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
-            await utils.get_url_to_file(req, get_path(name), timeout)
-        except Exception as e:
-            logger.error(f"update sub {name} error: {e}")
-            return str(e)
-        return None
 
     promises = [
-        _impl(name, url)
+        update_sub(name, url, timeout)
         for name, url in subs.items()
     ]
     results = await asyncio.gather(*promises)
@@ -152,3 +163,17 @@ def check_subs(subs: SubscriptionDict) -> List[str]:
             logger.info(f"check_subs: {name} not exists")
 
     return failed
+
+def duplicate_sub(subs: SubscriptionDict, name: str) -> Optional[str]:
+    if name not in subs:
+        return None
+    new_name = _deduplicate_name(subs, name)
+    if new_name is None:
+        logger.error("duplicate_sub: failed to deduplicate name")
+        return None
+    try:
+        shutil.copyfile(get_path(name), get_path(new_name))
+    except Exception as e:
+        logger.error(f"duplicate_sub: error {e}")
+        return None
+    return new_name

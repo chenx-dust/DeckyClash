@@ -9,9 +9,7 @@ export interface TextFieldWithButtonProps {
   children?: ReactNode;
   value?: string;
   onChange?: ChangeEventHandler<HTMLInputElement>;
-  onClick?: () => void;
-  loading?: boolean;
-  debugLabel?: string;
+  onClick?: (e: MouseEvent | GamepadEvent) => void;
 }
 
 export const TextFieldWithButton: FC<TextFieldWithButtonProps> =
@@ -38,6 +36,7 @@ export const TextFieldWithButton: FC<TextFieldWithButtonProps> =
                 disabled={props.disabled}
                 /* @ts-expect-error */
                 placeholder={props.placeholder}
+                mustBeURL={true}
                 onChange={props.onChange}
               />
             </div>
@@ -53,6 +52,7 @@ export const TextFieldWithButton: FC<TextFieldWithButtonProps> =
               }}
               disabled={props.disabled}
               onClick={props.onClick}
+              /* @ts-expect-error */
               onOKButton={props.onClick}
             >
               {props.children}

@@ -34,44 +34,29 @@ async def upgrade_to_latest(timeout: float) -> None:
     if os.path.exists(downloaded_filepath):
         plugin_dir = decky.DECKY_PLUGIN_DIR
 
-        try:
-            logger.info(f"removing old plugin from {plugin_dir}")
-            # add write perms to directory
-            await asyncio.to_thread(recursive_chmod, plugin_dir, stat.S_IWUSR)
+        logger.info(f"removing old plugin from {plugin_dir}")
+        # add write perms to directory
+        await asyncio.to_thread(recursive_chmod, plugin_dir, stat.S_IWUSR)
 
-            # remove old plugin
-            await asyncio.to_thread(shutil.rmtree, plugin_dir)
-        except Exception as e:
-            logger.error(f"upgrade_to_latest: error during removal of old plugin: {e}")
+        # remove old plugin
+        await asyncio.to_thread(shutil.rmtree, plugin_dir)
 
-        try:
-            logger.info(f"extracting ota file to {plugin_dir}")
-            await asyncio.to_thread(
-                shutil.unpack_archive,
-                downloaded_filepath,
-                plugin_dir,
-                format="zip",
-            )
+        logger.info(f"extracting ota file to {plugin_dir}")
+        await asyncio.to_thread(
+            shutil.unpack_archive,
+            downloaded_filepath,
+            str(Path(plugin_dir).parent),
+            format="zip",
+        )
+        
+        os.chmod(core.CoreController.CORE_PATH, 0o755)
 
-            # cleanup downloaded files
-            await asyncio.to_thread(os.remove, downloaded_filepath)
-        except Exception as e:
-            logger.error(f"upgrade_to_latest: error during file extraction {e}")
+        # cleanup downloaded files
+        await asyncio.to_thread(os.remove, downloaded_filepath)
 
         logger.info("restarting plugin_loader.service")
         cmd = "systemctl restart plugin_loader.service"
-        result = await asyncio.subprocess.create_subprocess_shell(
-            cmd,
-            shell=True,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        if result.returncode != 0:
-            logger.error(f"upgrade_to_latest: error during restart plugin_loader {result.stderr}")
-        if result.stdout:
-            logger.debug(result.stdout)
-        if result.stderr:
-            logger.error(result.stderr)
+        os.system(cmd)
 
 async def upgrade_to_latest_core(timeout: float) -> None:
     logger.info("upgrading to latest version of core")
@@ -79,25 +64,18 @@ async def upgrade_to_latest_core(timeout: float) -> None:
     core_path = core.CoreController.CORE_PATH
 
     if os.path.exists(downloaded_filepath):
+        logger.info(f"removing old plugin from {core_path}")
+        # remove old plugin
+        await asyncio.to_thread(os.remove, core_path)
 
-        try:
-            logger.info(f"removing old plugin from {core_path}")
-            # remove old plugin
-            await asyncio.to_thread(os.remove, core_path)
-        except Exception as e:
-            logger.error(f"ota error during removal of old plugin: {e}")
-
-        try:
-            logger.info(f"extracting ota file to {core_path}")
-            def _impl():
-                with gzip.open(downloaded_filepath, "rb") as f, open(core.CoreController.CORE_PATH, "wb") as d:
-                        d.write(f.read())
-                os.chmod(core.CoreController.CORE_PATH, 0o755)
-                # cleanup downloaded files
-                os.remove(downloaded_filepath)
-            await asyncio.to_thread(_impl)
-        except Exception as e:
-            logger.error(f"error during ota file extraction {e}")
+        logger.info(f"extracting ota file to {core_path}")
+        def _impl():
+            with gzip.open(downloaded_filepath, "rb") as f, open(core.CoreController.CORE_PATH, "wb") as d:
+                    d.write(f.read())
+            os.chmod(core.CoreController.CORE_PATH, 0o755)
+            # cleanup downloaded files
+            os.remove(downloaded_filepath)
+        await asyncio.to_thread(_impl)
 
 
 async def download_latest_build(timeout: float) -> str:

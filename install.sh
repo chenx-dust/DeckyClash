@@ -33,7 +33,7 @@ API_URL="https://api.github.com/repos/${AUTHOR}/${REPO_NAME}/releases/latest"
 echo "Installing $REPO_NAME"
 
 PLUGIN_DIR="${HOME}/homebrew/plugins/${PACKAGE}"
-mkdir -p $PLUGIN_DIR
+sudo mkdir -p $PLUGIN_DIR
 
 USE_JQ=false
 if [ -x "$(command -v jq)" ]; then
@@ -77,11 +77,11 @@ curl -L "$RELEASE_URL" -o "$DL_DEST"
 unzip "$DL_DEST" -d $TEMP_DIR
 if [[ $USE_RSYNC == true ]]; then
   echo "Using rsync"
-  rsync -av "${TEMP_DIR}/${PACKAGE}/" $PLUGIN_DIR --delete
+  sudo rsync -av "${TEMP_DIR}/${PACKAGE}/" $PLUGIN_DIR --delete
 else
   echo "Using cp"
-  rm -rf $PLUGIN_DIR/*
-  cp -R "${TEMP_DIR}/${PACKAGE}/*" $PLUGIN_DIR
+  sudo rm -rf $PLUGIN_DIR/*
+  sudo cp -R "${TEMP_DIR}/${PACKAGE}/*" $PLUGIN_DIR
 fi
 
 echo "Installation complete"

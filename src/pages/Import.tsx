@@ -4,9 +4,10 @@ import { QRCodeCanvas } from "qrcode.react";
 import { BsFillCloudDownloadFill } from "react-icons/bs";
 import i18n from "i18next";
 
-import * as backend from "../backend/backend";
+import { backend } from "../backend";
 import { L } from "../i18n";
 import { DialogBody, DialogControlsSection, DialogControlsSectionHeader, Field, ToggleField } from "@decky/ui";
+import { TIPS_TIMEOUT } from "../global";
 
 interface ExternalImporterConfig {
   url: string;
@@ -30,8 +31,6 @@ export const Import: FC = () => {
   const [enableExImporter, setEnableExImporter] = useState(localConfig.enabled);
   const [bgExImporter, setBgExImporter] = useState(localConfig.background);
   const [initialized, setInitialized] = useState(false);
-
-  const tipsTimeout = 10000;
 
   const fetchUrl = async () => {
     const ip = await backend.getIP();
@@ -82,7 +81,7 @@ export const Import: FC = () => {
     if (!downloading && downloadTips != i18n.t(L.DOWNLOAD_DESC)) {
       const timer = setTimeout(() => {
         setDownloadTips(i18n.t(L.DOWNLOAD_DESC));
-      }, tipsTimeout);
+      }, TIPS_TIMEOUT);
       return () => clearTimeout(timer);
     }
     return;

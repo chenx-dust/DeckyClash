@@ -7,16 +7,14 @@ export interface ActionButtonItemProps extends ButtonItemProps {
 }
 
 export const ActionButtonItem: FC<ActionButtonItemProps> = (props) => {
-  const { onClick, disabled, children, loading, layout, debugLabel } = props;
+  const { onClick, disabled, children, loading, layout } = props;
 
   const [_loading, setLoading] = useState(loading);
 
-  const handClick = async (event: MouseEvent, onClick?: (e: MouseEvent) => void) => {
+  const handleClick = async (event: MouseEvent, onClick?: (e: MouseEvent) => void) => {
     try {
-      console.log(`ActionButtonItem: ${debugLabel}`);
       setLoading(true);
       await onClick?.(event);
-      console.log(`ActionButtonItem: ${debugLabel} done`);
     } catch (e) {
       console.error(`ActionButtonItem error: ${e}`);
     } finally {
@@ -32,7 +30,7 @@ export const ActionButtonItem: FC<ActionButtonItemProps> = (props) => {
       {...props}
       layout={layout ?? "below"}
       disabled={isLoading || disabled}
-      onClick={(e) => handClick(e, onClick)}
+      onClick={(e) => handleClick(e, onClick)}
 
     >
       <span style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >

@@ -125,29 +125,6 @@ async def update_sub(name: str, url: str, timeout: float) -> Optional[str]:
         return str(e)
     return None
 
-async def update_subs(subs: SubscriptionDict, timeout: float) -> List[Tuple[str, str]]:
-    """
-    Update subscriptions
-    Args:
-        subs: Subscriptions list
-        timeout: Download timeout
-    Returns:
-        list[Tuple[str, str]]: List of failed subscriptions
-    """
-    logger.info("update_subs: start updating")
-
-    promises = [
-        update_sub(name, url, timeout)
-        for name, url in subs.items()
-    ]
-    results = await asyncio.gather(*promises)
-
-    failed = []
-    for name, result in zip(subs, results):
-        if result is not None:
-            failed.append((name, result))
-    return failed
-
 def check_subs(subs: SubscriptionDict) -> List[str]:
     """
     Check subscriptions

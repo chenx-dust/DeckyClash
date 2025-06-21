@@ -10,7 +10,7 @@ interface DeleteConfirmModalProps {
   closeModal?(): void;
 }
 
-const DeleteConfirmModal: FC<DeleteConfirmModalProps> = (props) => {
+export const DeleteConfirmModal: FC<DeleteConfirmModalProps> = (props) => {
   return (
     <ConfirmModal
       closeModal={props.closeModal}
@@ -35,5 +35,3 @@ const DeleteConfirmModal: FC<DeleteConfirmModalProps> = (props) => {
     </ConfirmModal>
   );
 };
-
-export default DeleteConfirmModal;

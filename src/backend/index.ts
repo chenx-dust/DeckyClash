@@ -1,2 +1,2 @@
 export * from "./type";
-export * from "./backend";
+export * as backend from "./backend";

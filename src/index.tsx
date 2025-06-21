@@ -25,13 +25,14 @@ import i18n from "i18next";
 
 import { Import, About } from "./pages";
 
-import * as backend from "./backend/backend";
+import { backend } from "./backend";
 
 import { Config, EnhancedMode } from "./backend";
 import { ActionButtonItem, VersionComponent } from "./components";
 import { localizationManager, L } from "./i18n";
 import { QRCodeCanvas } from "qrcode.react";
 import { Manage } from "./pages/Manage";
+import { TIPS_TIMEOUT } from "./global";
 
 let subscriptions: Record<string, string> = {};
 
@@ -200,12 +201,11 @@ const Content: FC<{}> = ({ }) => {
     };
   }, []);
 
-  const tipsTimeout = 10000;
   useEffect(() => {
     if (!clashState && clashStateTips != i18n.t(L.ENABLE_CLASH_DESC)) {
       const timer = setTimeout(() => {
         setClashStateTips(i18n.t(L.ENABLE_CLASH_DESC));
-      }, tipsTimeout);
+      }, TIPS_TIMEOUT);
       return () => clearTimeout(timer);
     }
     return;
@@ -372,7 +372,7 @@ const Content: FC<{}> = ({ }) => {
           <ToggleField
             label={i18n.t(L.ALLOW_REMOTE_ACCESS)}
             description=
-            {allowRemoteAccess && clashState && !clashStateChanging && qrPageUrl && (
+            {(allowRemoteAccess && clashState && !clashStateChanging && qrPageUrl) ? (
               <div style={{ overflowWrap: "break-word" }}>
                 <QRCodeCanvas style={{
                   display: "block",
@@ -380,7 +380,7 @@ const Content: FC<{}> = ({ }) => {
                 }} value={qrPageUrl} size={128} />
                 {qrPageUrl}
               </div>
-            ) || i18n.t(L.ALLOW_REMOTE_ACCESS_DESC) }
+            ) : i18n.t(L.ALLOW_REMOTE_ACCESS_DESC) }
             checked={allowRemoteAccess}
             disabled={clashStateChanging}
             onChange={(value: boolean) => {

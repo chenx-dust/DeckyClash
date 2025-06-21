@@ -3,7 +3,7 @@ import { DialogBody, DialogControlsSection, DialogControlsSectionHeader, Field, 
 import { FiGithub } from "react-icons/fi";
 import i18n from "i18next";
 import { L } from "../i18n";
-import * as backend from "../backend/backend";
+import { backend } from "../backend";
 import { DescriptionField } from "../components";
 
 export const About: FC = () => {

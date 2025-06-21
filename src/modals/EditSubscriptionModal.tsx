@@ -11,7 +11,7 @@ interface EditSubscriptionModalProps {
   checkName(name: string): string;
 }
 
-const EditSubscriptionModal: FC<EditSubscriptionModalProps> = (props) => {
+export const EditSubscriptionModal: FC<EditSubscriptionModalProps> = (props) => {
   const [name, setName] = useState(props.name);
   const [url, setUrl] = useState(props.url);
   const [nameInvalid, setNameInvalid] = useState(false);
@@ -48,5 +48,3 @@ const EditSubscriptionModal: FC<EditSubscriptionModalProps> = (props) => {
     </ConfirmModal>
   );
 };
-
-export default EditSubscriptionModal;

@@ -1,6 +1,6 @@
 import { PanelSection, PanelSectionRow, Field } from "@decky/ui";
 import { FC, useLayoutEffect, useState } from "react";
-import * as backend from "../backend/backend";
+import { backend } from "../backend";
 import { ActionButtonItem } from "./ActionButtonItem";
 import { L } from "../i18n";
 import { BsExclamationCircleFill, BsCheckCircleFill } from "react-icons/bs";
@@ -38,7 +38,8 @@ export const VersionComponent: FC = () => {
       <PanelSectionRow>
         <ActionButtonItem
           layout="below"
-          onClick={() => backend.upgradeToLatest().then(([success, reason]) => {
+          onClick={async () => {
+            const [success, reason] = await backend.upgradeToLatest();
             if (success) {
               toaster.toast({
                 title: i18n.t(L.PLUGIN_INSTALLED),
@@ -52,7 +53,7 @@ export const VersionComponent: FC = () => {
                 icon: <BsExclamationCircleFill />,
               });
             }
-          })}
+          }}
         >
           {uptButtonText}
         </ActionButtonItem>
@@ -78,7 +79,8 @@ export const VersionComponent: FC = () => {
       <PanelSectionRow>
         <ActionButtonItem
           layout="below"
-          onClick={() => backend.upgradeToLatestCore().then(([success, reason]) => {
+          onClick={async () => {
+            const [success, reason] = await backend.upgradeToLatestCore();
             if (success) {
               toaster.toast({
                 title: i18n.t(L.CORE_INSTALLED),
@@ -93,7 +95,7 @@ export const VersionComponent: FC = () => {
                 icon: <BsExclamationCircleFill />,
               });
             }
-          })}
+          }}
         >
           {uptButtonTextCore}
         </ActionButtonItem>

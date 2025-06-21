@@ -1,14 +1,14 @@
-import { ButtonItem, DialogBody, Menu, MenuItem, showContextMenu, showModal } from "@decky/ui";
-import { useState, FC, useLayoutEffect, useEffect } from "react";
+import { DialogBody, DialogButton, Field, Focusable, Menu, MenuItem, showContextMenu, showModal } from "@decky/ui";
+import { useState, FC, useLayoutEffect, useRef, RefObject } from "react";
 import { BsExclamationCircleFill } from "react-icons/bs";
 import i18n from "i18next";
 
-import * as backend from "../backend/backend";
+import { backend } from "../backend";
 import { L } from "../i18n";
 import { addEventListener, removeEventListener, toaster } from "@decky/api";
-import { SubscriptionField } from "../components/SubscriptionField";
-import DeleteConfirmModal from "../modals/DeleteConfirmModal";
-import EditSubscriptionModal from "../modals/EditSubscriptionModal";
+import { CallbackRef, SubscriptionField } from "../components";
+import { DeleteConfirmModal, EditSubscriptionModal } from "../modals";
+import { TIPS_TIMEOUT } from "../global";
 
 export interface ManageProp {
   Subscriptions: Record<string, string>;
@@ -16,10 +16,11 @@ export interface ManageProp {
 
 export const Manage: FC<ManageProp> = (props) => {
   const [subscriptions, setSubscriptions] = useState(props.Subscriptions);
-  const [updating, setUpdating] = useState(false);
-  const [updateTips, setUpdateTips] = useState("");
+  const [editMode, setEditMode] = useState(false);
+  const refs: RefObject<Record<string, CallbackRef>> = useRef({});
 
-  const tipsTimeout = 10000;
+  const updateSubs = () => 
+    Object.values(refs.current).forEach(ref => ref?.());
 
   const refreshSubs = async () => {
     const subs = await backend.getSubscriptionList();
@@ -37,36 +38,28 @@ export const Manage: FC<ManageProp> = (props) => {
     };
   }, []);
 
-  useEffect(() => {
-    if (!updating && updateTips != "") {
-      const timer = setTimeout(() => {
-        setUpdateTips("");
-      }, tipsTimeout);
-      return () => clearTimeout(timer);
-    }
-    return;
-  }, [updateTips, updating]);
+  const showEditModal = (name: string, url: string) => showModal(
+    <EditSubscriptionModal
+      name={name} url={url}
+      checkName={(new_name) => {
+        if (/[/]/.test(new_name))
+          return i18n.t(L.NAME_INVALID_CHARACTER);
+        if (new_name != name && Object.keys(subscriptions).includes(new_name))
+          return i18n.t(L.NAME_DUPLICATED);
+        return "";
+      }}
+      onOk={async (new_name, new_url) => {
+        await backend.editSubscription(name, new_name, new_url);
+        refreshSubs();
+      }}
+    />);
 
   const showCtxMenu = (name: string, url: string) => {
     return (e: MouseEvent) => {
       showContextMenu(
         <Menu label={i18n.t(L.SUBSCRIPTION_ACTIONS)}>
           <MenuItem
-            onSelected={() => showModal(
-              <EditSubscriptionModal
-                name={name} url={url}
-                checkName={(new_name) => {
-                  if (/[/]/.test(new_name))
-                    return i18n.t(L.NAME_INVALID_CHARACTER);
-                  if (new_name != name && Object.keys(subscriptions).includes(new_name))
-                    return i18n.t(L.NAME_DUPLICATED);
-                  return "";
-                }}
-                onOk={async (new_name, new_url) => {
-                  await backend.editSubscription(name, new_name, new_url);
-                  refreshSubs();
-                }}
-              />)}
+            onSelected={() => showEditModal(name, url)}
           >
             {i18n.t(L.EDIT)}
           </MenuItem>
@@ -98,61 +91,59 @@ export const Manage: FC<ManageProp> = (props) => {
 
   return (
     <DialogBody>
+      <Field label={i18n.t(L.SUBSCRIPTION_LIST)}>
+        { /* @ts-expect-error */
+          <Focusable style={{
+            display: 'flex',
+            flexWrap: 'nowrap',
+            columnGap: '10px',
+          }}>
+            <DialogButton
+              disabled={Object.entries(subscriptions).length == 0}
+              onClick={updateSubs}
+            >
+              {i18n.t(L.UPDATE_ALL)}
+            </DialogButton>
+            <DialogButton
+              disabled={Object.entries(subscriptions).length == 0}
+              onClick={() => setEditMode(!editMode)}
+            >
+              {editMode ? i18n.t(L.QUICK_EDIT_EXIT) : i18n.t(L.QUICK_EDIT)}
+            </DialogButton>
+          </Focusable>}
+      </Field>
       <style>
         {`
-        @keyframes spin {
-          0% {
-              transform: rotate(0);
-          }
+@keyframes dc_spin {
+  0% {
+      transform: rotate(0);
+  }
 
-          25% {
-              transform: rotate(90deg);
-          }
+  25% {
+      transform: rotate(90deg);
+  }
 
-          50% {
-              transform: rotate(180deg);
-          }
+  50% {
+      transform: rotate(180deg);
+  }
 
-          75% {
-              transform: rotate(270deg);
-          }
+  75% {
+      transform: rotate(270deg);
+  }
 
-          100% {
-              transform: rotate(360deg);
-          }
-        }
+  100% {
+      transform: rotate(360deg);
+  }
+}
         `}
       </style>
-      <ButtonItem
-        layout="below"
-        description={updateTips}
-        onClick={async () => {
-          setUpdating(true);
-          setUpdateTips(i18n.t(L.UPDATING));
-          const failed = await backend.updateAllSubscriptions();
-          if (failed.length > 0) {
-            const error = failed.map((x) => `${x[0]}: ${x[1]}`).join("\n");
-            toaster.toast({
-              title: i18n.t(L.UPDATE_FAILURE),
-              body: error,
-              icon: <BsExclamationCircleFill />,
-            });
-            setUpdateTips(i18n.t(L.UPDATE_FAILURE) + ": " + error);
-          } else {
-            setUpdateTips(i18n.t(L.UPDATE_ALL_SUCCESS));
-          }
-          setUpdating(false);
-        }}
-        disabled={updating || Object.entries(subscriptions).length == 0}
-      >
-        {i18n.t(L.UPDATE_ALL)}
-      </ButtonItem>
-      {Object.keys(subscriptions).length && Object.entries(subscriptions).map(([name, url]) => {
+      {Object.keys(subscriptions).length > 0 ? Object.entries(subscriptions).map(([name, url]) => {
         return (
           <SubscriptionField
+            ref={(el) => refs.current[name] = el}
             label={name}
             description={url}
-            tipsTimeout={tipsTimeout}
+            editMode={editMode}
             updateCallback={async () => {
               const [success, error] = await backend.updateSubscription(name);
               if (!success) {
@@ -160,15 +151,18 @@ export const Manage: FC<ManageProp> = (props) => {
                   title: i18n.t(L.UPDATE_FAILURE),
                   body: error,
                   icon: <BsExclamationCircleFill />,
-                  duration: tipsTimeout,
+                  duration: TIPS_TIMEOUT,
                 });
               }
               return success;
             }}
             onOtherClick={showCtxMenu(name, url)}
+            onEditClick={() => showEditModal(name, url)}
+            onCopyClick={() => backend.duplicateSubscription(name).then(refreshSubs)}
+            onDelClick={() => backend.removeSubscription(name).then(refreshSubs)}
           />
         );
-      }) || <p style={{ textAlign: 'center' }}>{i18n.t(L.NO_SUBSCRIPTIONS)}</p>}
+      }) : <p style={{ textAlign: 'center' }}>{i18n.t(L.NO_SUBSCRIPTIONS)}</p>}
     </DialogBody>
   );
 };

@@ -234,10 +234,6 @@ class Plugin:
         logger.debug(f"get_subscription_list: {subs}")
         return subs
 
-    async def update_all_subscriptions(self) -> List[Tuple[str, str]]:
-        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
-        return await subscription.update_subs(subs, self._get("timeout"))
-
     async def update_subscription(self, name: str) -> Tuple[bool, Optional[str]]:
         logger.error(f"updating subscription: {name}")
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")

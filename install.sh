@@ -2,88 +2,304 @@
 
 set -e
 
-if [ "$EUID" -eq 0 ]; then
-  echo "Please do not run as root"
-  exit
-fi
-
-TEMP_DIR=$(mktemp -d)
-
-function cleanup() {
-    rm -rf "$TEMP_DIR"
-}
-trap cleanup EXIT
-
-function check_requirement() {
-    if ! command -v $1 &> /dev/null; then
-        echo "Error: curl is not installed"
-        exit 1
-    fi
-}
-REQUIREMENTS=("curl" "unzip")
-for req in "${REQUIREMENTS[@]}"; do
-    check_requirement $req
-done
-
 AUTHOR="chenx-dust"
 REPO_NAME="DeckyClash"
 PACKAGE="DeckyClash"
-API_URL="https://api.github.com/repos/${AUTHOR}/${REPO_NAME}/releases/latest"
+SCRIPT_URL="https://github.com/${AUTHOR}/${REPO_NAME}/raw/refs/heads/main/install.sh"
+BASE_DIR=${OVERRIDE_BASE_DIR:-"${HOME}/homebrew"}
+PLUGIN_DIR=${OVERRIDE_PLUGIN_DIR:-"${BASE_DIR}/plugins/${PACKAGE}"}
+DATA_DIR=${OVERRIDE_DATA_DIR:-"${BASE_DIR}/data/${PACKAGE}"}
+CLEAN_DIRS=(
+  "${PLUGIN_DIR}"
+  "${DATA_DIR}"
+  "${BASE_DIR}/settings/${PACKAGE}"
+  "${BASE_DIR}/logs/${PACKAGE}"
+)
+SUDO="sudo"
 
-echo "Installing $REPO_NAME"
+function usage() {
+  echo "Usage: install.sh [options]"
+  echo "       curl -L ${SCRIPT_URL} | bash [-s -- [options]]"
+  echo
+  echo "Options:"
+  echo "  -h, --help                  Show this help message and exit"
+  echo "  -y, --yes                   Assume yes for all prompts, except specified by args"
+  echo "      --no-privilege          Run without sudo"
+  echo "      --without-plugin        Skip installing ${PACKAGE} plugin"
+  echo "      --without-binary        Skip installing Mihomo and yq"
+  echo "      --without-geo           Skip installing country.mmdb, geosite.dat and asn.mmdb"
+  echo "      --without-dashboard     Skip installing dashboards"
+  echo "      --without-external      Skip installing external importer"
+  echo "      --without-restart       Skip restarting Decky Loader"
+  echo "      --clean                 Remove all plugin files (includes config) before installing"
+  echo "      --clean-uninstall       Uninstall and remove all plugin files (includes config)"
+  echo
+  echo "Examples:"
+  echo "  Basic install:   curl -L ${SCRIPT_URL} | bash"
+  echo "  Clean install:   curl -L ${SCRIPT_URL} | bash -s -- --clean"
+  echo "  Clean uninstall: curl -L ${SCRIPT_URL} | bash -s -- --clean-uninstall"
+  echo "  Update blobs:    curl -L ${SCRIPT_URL} | bash -s -- --without-plugin"
+}
 
-PLUGIN_DIR="${HOME}/homebrew/plugins/${PACKAGE}"
-sudo mkdir -p $PLUGIN_DIR
+function prompt_continue() {
+  local bypass_flag=$1
+  if [ "$bypass_flag" = "true" ]; then
+    echo "Skip this step."
+    false
+    return
+  fi
+  if [ "$YES_ALL" = "true" ]; then
+    true
+    return
+  fi
 
-USE_JQ=false
-if [ -x "$(command -v jq)" ]; then
-  USE_JQ=true
+  local response
+  read -p "Do you want to continue? [Y/n] " response
+
+  # Convert the response to lowercase
+  response=${response,,}
+
+  # Check the response
+  if [[ -z "$response" || "$response" == "y" || "$response" == "yes" ]]; then
+    true
+  elif [[ "$response" == "n" || "$response" == "no" ]]; then
+    echo "Skip this step."
+    false
+  else
+    echo "Invalid response. Not continuing."
+    false
+  fi
+}
+
+function clean_all {
+  for dir in "${CLEAN_DIRS[@]}"; do
+    if [ -d "$dir" ]; then
+      echo "Removing $dir ..."
+      $SUDO rm -rf "$dir"
+    fi
+  done
+}
+
+while [[ $# -gt 0 ]]; do
+  key=$1
+  case $key in
+    -y|--yes)
+      YES_ALL=true
+      shift
+      ;;
+    --no-privileges)
+      SUDO=""
+      shift
+      ;;
+    --without-plugin)
+      WITHOUT_PLUGIN=true
+      shift
+      ;;
+    --without-binary)
+      WITHOUT_BINARY=true
+      shift
+      ;;
+    --without-geo)
+      WITHOUT_GEO=true
+      shift
+      ;;
+    --without-dashboard)
+      WITHOUT_DASHBOARD=true
+      shift
+      ;;
+    --without-external)
+      WITHOUT_EXTERNAL=true
+      shift
+      ;;
+    --without-restart)
+      WITHOUT_RESTART=true
+      shift
+      ;;
+    --clean)
+      clean_all
+      shift
+      ;;
+    --clean-uninstall)
+      clean_all
+      exit 0
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $key"
+      echo
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+TEMP_DIR=$(mktemp -d)
+
+function finish() {
+    rm -rf "$TEMP_DIR"
+}
+trap finish EXIT
+
+REQUIREMENTS=("curl" "unzip" "tar" "gzip")
+for req in "${REQUIREMENTS[@]}"; do
+  if ! command -v $req &> /dev/null; then
+    echo "Error: $req is not installed"
+    exit 1
+  fi
+done
+
+echo "Installing $REPO_NAME ..."
+if prompt_continue $WITHOUT_PLUGIN; then
+  API_URL="https://api.github.com/repos/${AUTHOR}/${REPO_NAME}/releases/latest"
+  RELEASE=$(curl -s "$API_URL")
+  echo "${RELEASE}"
+  MESSAGE=$(echo "${RELEASE}" | grep "message" | cut -d '"' -f 4)
+  RELEASE_VERSION=$(echo "${RELEASE}" | grep "tag_name" | cut -d '"' -f 4)
+  RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url" | cut -d '"' -f 4)
+
+  if [[ "${MESSAGE}" != "" ]]; then
+    echo "Github Error: ${MESSAGE}" >&2
+    exit 1
+  fi
+  if [ -z "${RELEASE_URL}" ]; then
+    echo "Failed to get latest release" >&2
+    exit 1
+  fi
+  echo "Version: ${RELEASE_VERSION}"
+
+  DL_DEST="${TEMP_DIR}/${PACKAGE}.zip"
+  wget -O "${DL_DEST}" "${RELEASE_URL}"
+  unzip "${DL_DEST}" -d "${TEMP_DIR}"
+  $SUDO rm -rf "${PLUGIN_DIR}"
+  $SUDO mv "${TEMP_DIR}/${PACKAGE}" "${PLUGIN_DIR}"
 fi
 
-USE_RSYNC=false
-if [ -x "$(command -v rsync)" ]; then
-  USE_RSYNC=true
+echo "Installing Binaries ..."
+if prompt_continue $WITHOUT_BINARY; then
+  BIN_DIR="${PLUGIN_DIR}/bin"
+  $SUDO mkdir -p "${BIN_DIR}"
+  $SUDO chmod +w "${BIN_DIR}"
+	echo "Installing Mihomo ..."
+
+  RELEASE=$(curl -s "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest")
+  MESSAGE=$(echo "${RELEASE}" | grep "message" | cut -d '"' -f 4)
+  RELEASE_VERSION=$(echo "${RELEASE}" | grep "tag_name" | cut -d '"' -f 4)
+	RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url.*linux-amd64-v.*gz\"" | cut -d '"' -f 4);
+
+  if [[ "${MESSAGE}" != "" ]]; then
+    echo "Github Error: ${MESSAGE}" >&2
+    exit 1
+  fi
+  if [ -z "${RELEASE_URL}" ]; then
+    echo "Failed to get latest release" >&2
+    exit 1
+  fi
+  echo "Version: ${RELEASE_VERSION}"
+
+  DL_DEST="${TEMP_DIR}/mihomo.gz"
+  INSTALL_DEST="${BIN_DIR}/mihomo"
+  wget -O "${DL_DEST}" "${RELEASE_URL}"
+	gzip -d "${DL_DEST}"
+  $SUDO rm -f "${INSTALL_DEST}"
+  mv "${TEMP_DIR}/mihomo" "${INSTALL_DEST}"
+	chmod +x "${INSTALL_DEST}"
+
+	echo "Installing yq ..."
+  RELEASE=$(curl -s "https://api.github.com/repos/mikefarah/yq/releases/latest")
+  MESSAGE=$(echo "${RELEASE}" | grep "message" | cut -d '"' -f 4)
+  RELEASE_VERSION=$(echo "${RELEASE}" | grep "tag_name" | cut -d '"' -f 4)
+	RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url.*yq_linux_amd64\"" | cut -d '"' -f 4);
+
+  if [[ "${MESSAGE}" != "" ]]; then
+    echo "Github Error: ${MESSAGE}" >&2
+    exit 1
+  fi
+  if [ -z "${RELEASE_URL}" ]; then
+    echo "Failed to get latest release" >&2
+    exit 1
+  fi
+  echo "Version: ${RELEASE_VERSION}"
+
+  DEST="${BIN_DIR}/yq"
+  $SUDO rm -f "${DEST}"
+	wget -O "${DEST}" "${RELEASE_URL}"
+	chmod +x "${DEST}"
 fi
 
-RELEASE=$(curl -s "$API_URL")
+echo "Installing Geos ..."
+if prompt_continue $WITHOUT_GEO; then
+  $SUDO mkdir -p "${DATA_DIR}"
+  $SUDO chmod +w "${DATA_DIR}"
 
-if [[ $USE_JQ == true ]]; then
-  echo "Using jq"
-  MESSAGE=$(echo "$RELEASE" | jq -r '.message')
-  RELEASE_VERSION=$(echo "$RELEASE" | jq -r '.tag_name')
-  RELEASE_URL=$(echo "$RELEASE" | jq -r '.assets[0].browser_download_url')
-else
-  echo "Using grep"
-  MESSAGE=$(echo $RELEASE | grep "message" | cut -d '"' -f 4)
-  RELEASE_URL=$(echo $RELEASE | grep "browser_download_url" | cut -d '"' -f 4)
-  RELEASE_VERSION=$(echo $RELEASE | grep "tag_name" | cut -d '"' -f 4)
+  echo "Downloading country.mmdb ..."
+  RELEASE_URL="https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb"
+  DEST="${DATA_DIR}/country.mmdb"
+  $SUDO rm -f "${DEST}"
+	wget -O "${DEST}" "${RELEASE_URL}"
+
+  echo "Downloading geosite.dat ..."
+  RELEASE_URL="https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
+  DEST="${DATA_DIR}/geosite.dat"
+  $SUDO rm -f "${DEST}"
+	wget -O "${DEST}" "${RELEASE_URL}"
+
+  echo "Downloading asn.mmdb ..."
+  RELEASE_URL="https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb"
+  DEST="${DATA_DIR}/asn.mmdb"
+  $SUDO rm -f "${DEST}"
+	wget -O "${DEST}" "${RELEASE_URL}"
 fi
 
-if [[ "$MESSAGE" != "null" ]]; then
-  echo "Error: $MESSAGE" >&2
-  exit 1
+echo "Installing Dashboards ..."
+if prompt_continue $WITHOUT_DASHBOARD; then
+  DASHBOARD_DIR="${DATA_DIR}/dashboard"
+  $SUDO mkdir -p "${DASHBOARD_DIR}"
+  $SUDO chmod +w "${DASHBOARD_DIR}"
+
+	echo "Installing yacd-meta..."
+  DL_DEST="${TEMP_DIR}/yacd-meta.zip"
+  INSTALL_DEST="${DASHBOARD_DIR}/yacd-meta"
+	wget -O "${DL_DEST}" https://github.com/MetaCubeX/yacd/archive/gh-pages.zip
+	unzip -q "${DL_DEST}" -d "${TEMP_DIR}"
+  $SUDO rm -rf "${INSTALL_DEST}"
+	mv "${TEMP_DIR}/Yacd-meta-gh-pages" "${INSTALL_DEST}"
+
+	echo "Installing metacubexd..."
+  DL_DEST="${TEMP_DIR}/metacubexd.zip"
+  INSTALL_DEST="${DASHBOARD_DIR}/metacubexd"
+	wget -O "${DL_DEST}" https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip
+	unzip -q "${DL_DEST}" -d "${TEMP_DIR}"
+  $SUDO rm -rf "${INSTALL_DEST}"
+	mv "${TEMP_DIR}/metacubexd-gh-pages" "${INSTALL_DEST}"
+
+	echo "Installing zashboard..."
+  DL_DEST="${TEMP_DIR}/zashboard.zip"
+  INSTALL_DEST="${DASHBOARD_DIR}/zashboard"
+	wget -O "${DL_DEST}" https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip
+	unzip -q "${DL_DEST}" -d "${TEMP_DIR}"
+  $SUDO rm -rf "${INSTALL_DEST}"
+	mv "${TEMP_DIR}/dist" "${INSTALL_DEST}"
 fi
 
-if [ -z "$RELEASE_URL" ]; then
-  echo "Failed to get latest release" >&2
-  exit 1
+echo "Installing External Importer ..."
+if prompt_continue $WITHOUT_EXTERNAL; then
+  $SUDO mkdir -p "${DATA_DIR}"
+  $SUDO chmod +w "${DATA_DIR}"
+
+  DL_DEST="${TEMP_DIR}/external.zip"
+  INSTALL_DEST="${DATA_DIR}/external"
+	wget -O "${DL_DEST}" https://github.com/chenx-dust/DeckyClash/archive/gh-pages.zip
+	unzip -q "${DL_DEST}" -d "${TEMP_DIR}"
+  $SUDO rm -rf "${INSTALL_DEST}"
+	mv "${TEMP_DIR}/DeckyClash-gh-pages" "${INSTALL_DEST}"
 fi
 
-DL_DEST="${TEMP_DIR}/${PACKAGE}.zip"
-
-echo "Downloading $PACKAGE $RELEASE_VERSION"
-curl -L "$RELEASE_URL" -o "$DL_DEST"
-
-unzip "$DL_DEST" -d $TEMP_DIR
-if [[ $USE_RSYNC == true ]]; then
-  echo "Using rsync"
-  sudo rsync -av "${TEMP_DIR}/${PACKAGE}/" $PLUGIN_DIR --delete
-else
-  echo "Using cp"
-  sudo rm -rf $PLUGIN_DIR/*
-  sudo cp -R "${TEMP_DIR}/${PACKAGE}/*" $PLUGIN_DIR
-fi
-
-echo "Installation complete"
+echo "Installation complete."
+echo
 echo "Restarting Decky Loader ..."
-sudo systemctl restart plugin_loader.service
+if prompt_continue $WITHOUT_RESTART; then
+  $SUDO systemctl restart plugin_loader.service
+fi

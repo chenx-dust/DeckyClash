@@ -11,7 +11,7 @@ from decky import logger
 ExitCallback = Callable[[Optional[int]], Awaitable[None]]
 
 class CoreController:
-    CORE_PATH = os.path.join(decky.DECKY_PLUGIN_DIR, "bin", "core")
+    CORE_PATH = os.path.join(decky.DECKY_PLUGIN_DIR, "bin", "mihomo")
     CONFIG_PATH = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "running_config.yaml")
     RESOURCE_DIR = decky.DECKY_PLUGIN_RUNTIME_DIR
 

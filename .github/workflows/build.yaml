@@ -40,7 +40,7 @@ jobs:
       - name: Collect files
         run: |
           mkdir -p release/DeckyClash
-          cp -R default/* ./release/DeckyClash/
+          cp -R defaults/* ./release/DeckyClash/
           cp -R dist ./release/DeckyClash/
           cp -R py_modules ./release/DeckyClash/
           cp main.py ./release/DeckyClash/main.py

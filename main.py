@@ -29,18 +29,6 @@ class Plugin:
         )
         logger.info(f"starting {PACKAGE_NAME} ...")
 
-        if self._get("version", True) != decky.DECKY_PLUGIN_VERSION:
-            if self._get("skip_copy_res", True) != False:
-                logger.info("first launched or updated, copying resources ...")
-                shutil.rmtree(decky.DECKY_PLUGIN_RUNTIME_DIR, ignore_errors=True)
-                shutil.copytree(
-                    Path(decky.DECKY_PLUGIN_DIR, "bin", "res"),
-                    decky.DECKY_PLUGIN_RUNTIME_DIR,
-                    dirs_exist_ok=True,
-                )
-            else:
-                logger.info("skip copying resources")
-            self.settings.setSetting("version", decky.DECKY_PLUGIN_VERSION)
         self._set_default("subscriptions", {})
         self._set_default("secret", utils.rand_thing())
         self._set_default("override_dns", True)
@@ -51,7 +39,6 @@ class Plugin:
         self._set_default("timeout", 15.0)
         self._set_default("download_timeout", 120.0)
         self._set_default("disable_verify", False)
-        self._set_default("skip_copy_res", False)
         self._set_default("external_run_bg", False)
         self._set_default("log_level", logging.getLevelName(logging.INFO))
 

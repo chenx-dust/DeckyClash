@@ -37,15 +37,10 @@ jobs:
           pnpm install --no-frozen-lockfile
           pnpm build
 
-      - name: Make backend
-        run: |
-          cd ./backend
-          make all
-
       - name: Collect files
         run: |
           mkdir -p release/DeckyClash
-          cp -R backend/out ./release/DeckyClash/bin
+          cp -R default/* ./release/DeckyClash/
           cp -R dist ./release/DeckyClash/
           cp -R py_modules ./release/DeckyClash/
           cp main.py ./release/DeckyClash/main.py

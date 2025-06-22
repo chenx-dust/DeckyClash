@@ -7,7 +7,7 @@ from typing import List, Optional
 import decky
 
 YQ_PATH = os.path.join(decky.DECKY_PLUGIN_DIR, 'bin', 'yq')
-OVERRIDE_YAML = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, 'override.yaml')
+OVERRIDE_YAML = os.path.join(decky.DECKY_PLUGIN_DIR, 'override.yaml')
 
 class EnhancedMode(Enum):
     RedirHost = 'redir-host'

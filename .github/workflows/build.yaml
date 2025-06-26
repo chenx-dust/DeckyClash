@@ -14,8 +14,9 @@ jobs:
     permissions:
       contents: write
     steps:
-      #build tomoon start
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Install dependencies
         run: |
@@ -41,6 +42,7 @@ jobs:
         run: |
           mkdir -p release/DeckyClash
           cp -R defaults/* ./release/DeckyClash/
+          rm -rf release/DeckyClash/defaults/external/.git
           cp -R dist ./release/DeckyClash/
           cp -R py_modules ./release/DeckyClash/
           cp main.py ./release/DeckyClash/main.py

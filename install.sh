@@ -24,6 +24,7 @@ function usage() {
   echo "Options:"
   echo "  -h, --help                  Show this help message and exit"
   echo "  -y, --yes                   Assume yes for all prompts, except specified by args"
+  echo "  -v, --version <version>     Specify version"
   echo "      --no-privilege          Run without sudo"
   echo "      --without-plugin        Skip installing ${PACKAGE} plugin"
   echo "      --without-binary        Skip installing Mihomo and yq"
@@ -39,6 +40,7 @@ function usage() {
   echo "  Clean install:   curl -L ${SCRIPT_URL} | bash -s -- --clean"
   echo "  Clean uninstall: curl -L ${SCRIPT_URL} | bash -s -- --clean-uninstall"
   echo "  Update blobs:    curl -L ${SCRIPT_URL} | bash -s -- --without-plugin"
+  echo "  Nightly version: curl -L ${SCRIPT_URL} | bash -s -- --version nightly"
 }
 
 function prompt_continue() {
@@ -85,6 +87,11 @@ while [[ $# -gt 0 ]]; do
   case $key in
     -y|--yes)
       YES_ALL=true
+      shift
+      ;;
+    -v|--version)
+      SPECIFIED_VERSION=$2
+      shift
       shift
       ;;
     --no-privileges)
@@ -153,34 +160,38 @@ done
 
 echo "Installing $REPO_NAME ..."
 if prompt_continue $WITHOUT_PLUGIN; then
-  API_URL="https://api.github.com/repos/${AUTHOR}/${REPO_NAME}/releases/latest"
-  RELEASE=$(curl -s "$API_URL")
-  echo "${RELEASE}"
-  MESSAGE=$(echo "${RELEASE}" | grep "message" | cut -d '"' -f 4)
-  RELEASE_VERSION=$(echo "${RELEASE}" | grep "tag_name" | cut -d '"' -f 4)
-  RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url" | cut -d '"' -f 4)
+  if [ -z "${SPECIFIED_VERSION}"]; then
+    API_URL="https://api.github.com/repos/${AUTHOR}/${REPO_NAME}/releases/latest"
+    RELEASE=$(curl -s "$API_URL")
+    MESSAGE=$(echo "${RELEASE}" | grep "message" | cut -d '"' -f 4)
+    RELEASE_VERSION=$(echo "${RELEASE}" | grep "tag_name" | cut -d '"' -f 4)
+    RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url" | cut -d '"' -f 4)
 
-  if [[ "${MESSAGE}" != "" ]]; then
-    echo "Github Error: ${MESSAGE}" >&2
-    exit 1
+    if [[ "${MESSAGE}" != "" ]]; then
+      echo "Github Error: ${MESSAGE}" >&2
+      exit 1
+    fi
+    echo "Version: ${RELEASE_VERSION}"
+  else
+    RELEASE_URL="https://github.com/${AUTHOR}/${REPO_NAME}/releases/download/${SPECIFIED_VERSION}/${PACKAGE}.zip"
   fi
   if [ -z "${RELEASE_URL}" ]; then
     echo "Failed to get latest release" >&2
     exit 1
   fi
-  echo "Version: ${RELEASE_VERSION}"
 
   DL_DEST="${TEMP_DIR}/${PACKAGE}.zip"
   wget -O "${DL_DEST}" "${RELEASE_URL}"
   unzip "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${PLUGIN_DIR}"
   $SUDO mv "${TEMP_DIR}/${PACKAGE}" "${PLUGIN_DIR}"
+  $SUDO chmod +w "${PLUGIN_DIR}"
 fi
 
 echo "Installing Binaries ..."
 if prompt_continue $WITHOUT_BINARY; then
   BIN_DIR="${PLUGIN_DIR}/bin"
-  $SUDO mkdir -p "${BIN_DIR}"
+  mkdir -p "${BIN_DIR}"
   $SUDO chmod +w "${BIN_DIR}"
 	echo "Installing Mihomo ..."
 

@@ -30,7 +30,6 @@ function usage() {
   echo "      --without-binary        Skip installing Mihomo and yq"
   echo "      --without-geo           Skip installing country.mmdb, geosite.dat and asn.mmdb"
   echo "      --without-dashboard     Skip installing dashboards"
-  echo "      --without-external      Skip installing external importer"
   echo "      --without-restart       Skip restarting Decky Loader"
   echo "      --clean                 Remove all plugin files (includes config) before installing"
   echo "      --clean-uninstall       Uninstall and remove all plugin files (includes config)"
@@ -112,10 +111,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --without-dashboard)
       WITHOUT_DASHBOARD=true
-      shift
-      ;;
-    --without-external)
-      WITHOUT_EXTERNAL=true
       shift
       ;;
     --without-restart)
@@ -293,19 +288,6 @@ if prompt_continue $WITHOUT_DASHBOARD; then
 	unzip -q "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${INSTALL_DEST}"
 	mv "${TEMP_DIR}/dist" "${INSTALL_DEST}"
-fi
-
-echo "Installing External Importer ..."
-if prompt_continue $WITHOUT_EXTERNAL; then
-  $SUDO mkdir -p "${DATA_DIR}"
-  $SUDO chmod +w "${DATA_DIR}"
-
-  DL_DEST="${TEMP_DIR}/external.zip"
-  INSTALL_DEST="${DATA_DIR}/external"
-	wget -O "${DL_DEST}" https://github.com/chenx-dust/DeckyClash/archive/gh-pages.zip
-	unzip -q "${DL_DEST}" -d "${TEMP_DIR}"
-  $SUDO rm -rf "${INSTALL_DEST}"
-	mv "${TEMP_DIR}/DeckyClash-gh-pages" "${INSTALL_DEST}"
 fi
 
 echo "Installation complete."

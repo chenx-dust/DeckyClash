@@ -54,9 +54,7 @@ async def upgrade_to_latest(timeout: float, download_timeout: float) -> None:
         # cleanup downloaded files
         await asyncio.to_thread(os.remove, downloaded_filepath)
 
-        logger.info("restarting plugin_loader.service")
-        cmd = "pkill -HUP PluginLoader"
-        os.system(cmd)
+        logger.info("upgrade complete")
 
 async def upgrade_to_latest_core(timeout: float, download_timeout) -> None:
     logger.info("upgrading to latest version of core")

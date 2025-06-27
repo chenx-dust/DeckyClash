@@ -1,5 +1,5 @@
 import { DialogButton, Field, Focusable } from "@decky/ui";
-import i18n from "i18next";
+import { t } from 'i18next';
 import { CSSProperties, FC, ForwardedRef, forwardRef, ReactNode, RefAttributes, useEffect, useImperativeHandle, useState } from "react";
 import { FaRedoAlt, FaEllipsisH, FaCopy, FaEdit, FaTrashAlt } from 'react-icons/fa';
 import { L } from "../i18n";
@@ -43,17 +43,17 @@ export type CallbackRef = (() => void) | null;
 export const SubscriptionField: FC<SubscriptionFieldProps & RefAttributes<any>> =
   forwardRef((props: SubscriptionFieldProps, ref: ForwardedRef<CallbackRef>) => {
     const [updating, setUpdating] = useState(false);
-    const [updateTips, setUpdateTips] = useState(i18n.t(L.UPDATE));
+    const [updateTips, setUpdateTips] = useState(t(L.UPDATE));
 
     const handleUpdateClick = () => {
       setUpdating(true);
-      setUpdateTips(i18n.t(L.UPDATING));
+      setUpdateTips(t(L.UPDATING));
       props.updateCallback().then((success) => {
         setUpdating(false);
         if (success) {
-          setUpdateTips(i18n.t(L.UPDATE_SUCCESS))
+          setUpdateTips(t(L.UPDATE_SUCCESS))
         } else {
-          setUpdateTips(i18n.t(L.UPDATE_FAILURE));
+          setUpdateTips(t(L.UPDATE_FAILURE));
         }
       });
     };
@@ -61,9 +61,9 @@ export const SubscriptionField: FC<SubscriptionFieldProps & RefAttributes<any>> 
     useImperativeHandle(ref, () => handleUpdateClick, []);
 
     useEffect(() => {
-      if (!updating && updateTips != i18n.t(L.UPDATE)) {
+      if (!updating && updateTips != t(L.UPDATE)) {
         const timer = setTimeout(() => {
-          setUpdateTips(i18n.t(L.UPDATE));
+          setUpdateTips(t(L.UPDATE));
         }, TIPS_TIMEOUT);
         return () => clearTimeout(timer);
       }

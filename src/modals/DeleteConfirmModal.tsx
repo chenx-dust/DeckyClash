@@ -1,5 +1,5 @@
 import { ConfirmModal } from '@decky/ui';
-import i18n from 'i18next';
+import { t } from 'i18next';
 import { FC } from 'react';
 import { L } from '../i18n';
 
@@ -15,12 +15,12 @@ export const DeleteConfirmModal: FC<DeleteConfirmModalProps> = (props) => {
     <ConfirmModal
       closeModal={props.closeModal}
       onOK={props.onOk}
-      strTitle={i18n.t(L.DELETE_SUBSCRIPTION)}
-      strOKButtonText={i18n.t(L.DELETE)}
+      strTitle={t(L.DELETE_SUBSCRIPTION)}
+      strOKButtonText={t(L.DELETE)}
       bDestructiveWarning={true}
     >
       <p>
-        {i18n.t(L.DELETE_CONFIRM)}
+        {t(L.DELETE_CONFIRM)}
       </p>
       <div style={{ padding: "0 16px" }}>
         <b>{props.name}</b>

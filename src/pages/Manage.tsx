@@ -1,7 +1,7 @@
 import { DialogBody, DialogButton, Field, Focusable, Menu, MenuItem, showContextMenu, showModal } from "@decky/ui";
 import { useState, FC, useLayoutEffect, useRef, RefObject } from "react";
 import { BsExclamationCircleFill } from "react-icons/bs";
-import i18n from "i18next";
+import { t } from 'i18next';
 
 import { backend } from "../backend";
 import { L } from "../i18n";
@@ -43,9 +43,9 @@ export const Manage: FC<ManageProp> = (props) => {
       name={name} url={url}
       checkName={(new_name) => {
         if (/[/]/.test(new_name))
-          return i18n.t(L.NAME_INVALID_CHARACTER);
+          return t(L.NAME_INVALID_CHARACTER);
         if (new_name != name && Object.keys(subscriptions).includes(new_name))
-          return i18n.t(L.NAME_DUPLICATED);
+          return t(L.NAME_DUPLICATED);
         return "";
       }}
       onOk={async (new_name, new_url) => {
@@ -57,18 +57,18 @@ export const Manage: FC<ManageProp> = (props) => {
   const showCtxMenu = (name: string, url: string) => {
     return (e: MouseEvent) => {
       showContextMenu(
-        <Menu label={i18n.t(L.SUBSCRIPTION_ACTIONS)}>
+        <Menu label={t(L.SUBSCRIPTION_ACTIONS)}>
           <MenuItem
             onSelected={() => showEditModal(name, url)}
           >
-            {i18n.t(L.EDIT)}
+            {t(L.EDIT)}
           </MenuItem>
           <MenuItem
             onSelected={() => {
               backend.duplicateSubscription(name).then(refreshSubs);
             }}
           >
-            {i18n.t(L.DUPLICATE)}
+            {t(L.DUPLICATE)}
           </MenuItem>
           <MenuItem
             onSelected={() => showModal(
@@ -81,7 +81,7 @@ export const Manage: FC<ManageProp> = (props) => {
               />)}
             tone="destructive"
           >
-            {i18n.t(L.DELETE)}
+            {t(L.DELETE)}
           </MenuItem>
         </Menu>,
         e.currentTarget ?? window,
@@ -91,7 +91,7 @@ export const Manage: FC<ManageProp> = (props) => {
 
   return (
     <DialogBody>
-      <Field label={i18n.t(L.SUBSCRIPTION_LIST)}>
+      <Field label={t(L.SUBSCRIPTION_LIST)}>
         { /* @ts-expect-error */
           <Focusable style={{
             display: 'flex',
@@ -102,13 +102,13 @@ export const Manage: FC<ManageProp> = (props) => {
               disabled={Object.entries(subscriptions).length == 0}
               onClick={updateSubs}
             >
-              {i18n.t(L.UPDATE_ALL)}
+              {t(L.UPDATE_ALL)}
             </DialogButton>
             <DialogButton
               disabled={Object.entries(subscriptions).length == 0}
               onClick={() => setEditMode(!editMode)}
             >
-              {editMode ? i18n.t(L.QUICK_EDIT_EXIT) : i18n.t(L.QUICK_EDIT)}
+              {editMode ? t(L.QUICK_EDIT_EXIT) : t(L.QUICK_EDIT)}
             </DialogButton>
           </Focusable>}
       </Field>
@@ -148,7 +148,7 @@ export const Manage: FC<ManageProp> = (props) => {
               const [success, error] = await backend.updateSubscription(name);
               if (!success) {
                 toaster.toast({
-                  title: i18n.t(L.UPDATE_FAILURE),
+                  title: t(L.UPDATE_FAILURE),
                   body: error,
                   icon: <BsExclamationCircleFill />,
                   duration: TIPS_TIMEOUT,
@@ -162,7 +162,7 @@ export const Manage: FC<ManageProp> = (props) => {
             onDelClick={() => backend.removeSubscription(name).then(refreshSubs)}
           />
         );
-      }) : <p style={{ textAlign: 'center' }}>{i18n.t(L.NO_SUBSCRIPTIONS)}</p>}
+      }) : <p style={{ textAlign: 'center' }}>{t(L.NO_SUBSCRIPTIONS)}</p>}
     </DialogBody>
   );
 };

@@ -2,7 +2,7 @@ import { useState, FC, useEffect, useLayoutEffect } from "react";
 import { TextFieldWithButton } from "../components";
 import { QRCodeCanvas } from "qrcode.react";
 import { BsFillCloudDownloadFill } from "react-icons/bs";
-import i18n from "i18next";
+import { t } from 'i18next';
 
 import { backend } from "../backend";
 import { L } from "../i18n";
@@ -25,7 +25,7 @@ export const Import: FC = () => {
   );
 
   const [subUrl, setSubUrl] = useState("");
-  const [downloadTips, setDownloadTips] = useState(i18n.t(L.DOWNLOAD_DESC));
+  const [downloadTips, setDownloadTips] = useState(t(L.DOWNLOAD_DESC));
   const [downloading, setDownloading] = useState(false);
   const [externalUrl, setExternalUrl] = useState(localConfig.url);
   const [enableExImporter, setEnableExImporter] = useState(localConfig.enabled);
@@ -78,9 +78,9 @@ export const Import: FC = () => {
   }, [initialized, enableExImporter]);
 
   useEffect(() => {
-    if (!downloading && downloadTips != i18n.t(L.DOWNLOAD_DESC)) {
+    if (!downloading && downloadTips != t(L.DOWNLOAD_DESC)) {
       const timer = setTimeout(() => {
-        setDownloadTips(i18n.t(L.DOWNLOAD_DESC));
+        setDownloadTips(t(L.DOWNLOAD_DESC));
       }, TIPS_TIMEOUT);
       return () => clearTimeout(timer);
     }
@@ -97,22 +97,22 @@ export const Import: FC = () => {
     <DialogBody>
       <DialogControlsSection>
         <DialogControlsSectionHeader>
-          {i18n.t(L.DOWNLOAD_SUBSCRIPTION)}
+          {t(L.DOWNLOAD_SUBSCRIPTION)}
         </DialogControlsSectionHeader>
         <TextFieldWithButton
           description={downloadTips}
-          placeholder={i18n.t(L.SUBSCRIPTION_LINK)}
+          placeholder={t(L.SUBSCRIPTION_LINK)}
           value={subUrl}
           onChange={(e) => setSubUrl(e?.target.value)}
           disabled={downloading}
           onClick={async () => {
             setDownloading(true);
-            setDownloadTips(i18n.t(L.DOWNLOADING));
+            setDownloadTips(t(L.DOWNLOADING));
             const [success, error] = await backend.downloadSubscription(subUrl);
             if (!success) {
-              setDownloadTips(i18n.t(L.DOWNLOAD_FAILURE) + ": " + error);
+              setDownloadTips(t(L.DOWNLOAD_FAILURE) + ": " + error);
             } else {
-              setDownloadTips(i18n.t(L.DOWNLOAD_SUCCESS));
+              setDownloadTips(t(L.DOWNLOAD_SUCCESS));
             }
             setDownloading(false);
           }}
@@ -122,10 +122,10 @@ export const Import: FC = () => {
       </DialogControlsSection>
       <DialogControlsSection>
         <DialogControlsSectionHeader>
-          {i18n.t(L.EXTERNAL_IMPORTER)}
+          {t(L.EXTERNAL_IMPORTER)}
         </DialogControlsSectionHeader>
         <ToggleField
-          label={i18n.t(L.ENABLE)}
+          label={t(L.ENABLE)}
           checked={enableExImporter}
           onChange={(x) => {
             setEnableExImporter(x);
@@ -135,7 +135,7 @@ export const Import: FC = () => {
         />
         {enableExImporter && <>
           <ToggleField
-            label={i18n.t(L.RUN_IN_BACKGROUND)}
+            label={t(L.RUN_IN_BACKGROUND)}
             checked={bgExImporter}
             onChange={changeRunInBackground}
           />
@@ -154,7 +154,7 @@ export const Import: FC = () => {
                       margin: "8px auto",
                     }} value={externalUrl} size={128} />
                   )}
-                  {externalUrl || i18n.t(L.ENABLE_CLASH_LOADING)}
+                  {externalUrl || t(L.ENABLE_CLASH_LOADING)}
                 </div>
               } />
           )}

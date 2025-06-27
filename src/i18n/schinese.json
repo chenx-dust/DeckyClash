@@ -67,5 +67,13 @@
     "NAME": "名称",
     "LINK": "链接",
     "NAME_INVALID_CHARACTER": "非法字符 \"/\"",
-    "NAME_DUPLICATED": "命名重复"
+    "NAME_DUPLICATED": "命名重复",
+    "INSTALLATION_FAILED": "安装失败",
+    "INSTALLATION_GUIDE": "安装向导",
+    "INSTALLATION_MSG": "第一次使用？请安装依赖：",
+    "INSTALLATION_GEO": "Geo 文件（可选）",
+    "INSTALLATION_DASHBOARD": "Dashboards（可选）",
+    "INSTALLATION_ALL": "安装全部",
+    "INSTALLATION_SKIP": "跳过安装",
+    "INSTALLATION_FINISH": "完成安装"
 }

@@ -1,7 +1,7 @@
 import { FC, useLayoutEffect, useState } from "react";
 import { DialogBody, DialogControlsSection, DialogControlsSectionHeader, Field, Navigation } from "@decky/ui";
 import { FiGithub } from "react-icons/fi";
-import i18n from "i18next";
+import { t } from 'i18next';
 import { L } from "../i18n";
 import { backend } from "../backend";
 import { DescriptionField } from "../components";
@@ -26,7 +26,7 @@ export const About: FC = () => {
           Light-weight Clash/Mihomo proxy client for Steam OS.
         </DescriptionField>
         <Field
-          label={i18n.t(L.INSTALLED_VERSION)}
+          label={t(L.INSTALLED_VERSION)}
           focusable={true}
         >
           {version}
@@ -46,7 +46,7 @@ export const About: FC = () => {
       </DialogControlsSection>
       <DialogControlsSection>
         <DialogControlsSectionHeader>
-          {i18n.t(L.ACKNOWLEDGE)}
+          {t(L.ACKNOWLEDGE)}
         </DialogControlsSectionHeader>
         <DescriptionField label="Mihomo">
           Light-weight Clash/Mihomo proxy client for Steam OS.
@@ -54,7 +54,7 @@ export const About: FC = () => {
           <i>DeckyClash is powered by Mihomo.</i>
         </DescriptionField>
         <Field
-          label={i18n.t(L.INSTALLED_CORE_VERSION)}
+          label={t(L.INSTALLED_CORE_VERSION)}
           focusable={true}
         >
           {coreVersion}

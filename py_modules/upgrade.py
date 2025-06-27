@@ -8,7 +8,8 @@ import ssl
 import stat
 import subprocess
 import tempfile
-from typing import Optional
+import time
+from typing import Dict, Optional, Tuple
 import urllib.request
 
 import core
@@ -202,7 +203,14 @@ async def download_latest_yq(timeout: float, download_timeout: float) -> str:
 def get_version() -> str:
     return f"{decky.DECKY_PLUGIN_VERSION}"
 
-async def get_latest_version(repo: str, timeout: float) -> str:
+QUERY_HISTORY: Dict[str, Tuple[str, float]] = {}
+
+async def get_latest_version(repo: str, timeout: float, debounce_time: float) -> str:
+    if repo in QUERY_HISTORY:
+        last_query, last_time = QUERY_HISTORY[repo]
+        if time.time() - last_time <= debounce_time:
+            return last_query
+
     try:
         json_data = await utils.get_url_to_json(get_github_api_url(repo), timeout=timeout)
     except Exception as e:
@@ -210,11 +218,10 @@ async def get_latest_version(repo: str, timeout: float) -> str:
         return ""
 
     tag = json_data.get("tag_name")
-    # if tag is a v* tag, remove the v
     if tag.startswith("v"):
         tag = tag[1:]
-    else:
-        return ""
+
+    QUERY_HISTORY[repo] = (tag, time.time())
     return tag
 
 GEO_FILES = {
@@ -233,7 +240,7 @@ async def download_geos(timeout: float):
                 timeout=timeout))
     await asyncio.gather(*promises)
 
-DASHBOARDS = {
+DASHBOARDS: Dict[str, Tuple[str, str]] = {
     "yacd-meta": ("Yacd-meta-gh-pages", "https://github.com/MetaCubeX/yacd/archive/gh-pages.zip"),
     "metacubexd": ("metacubexd-gh-pages", "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"),
     "zashboard": ("dist", "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip"),
@@ -258,11 +265,15 @@ async def download_dashboards(timeout: float):
             tmpdir,
             format="zip")
 
+        dashboard_dir = os.path.join(dashboard.DASHBOARD_DIR, filename)
+        logger.debug(f"removing old dashboard {dashboard_dir}")
+        await asyncio.to_thread(shutil.rmtree, dashboard_dir, ignore_errors=True)
+
         logger.debug(f"copying {filename} dashboard files")
         await asyncio.to_thread(
             shutil.copytree,
             os.path.join(tmpdir, subdir),
-            os.path.join(dashboard.DASHBOARD_DIR, filename),
+            dashboard_dir,
             dirs_exist_ok=True)
 
     for filename, (subdir, url) in DASHBOARDS.items():

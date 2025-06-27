@@ -9,6 +9,7 @@ import { DescriptionField } from "../components";
 export const About: FC = () => {
   const [version, setVersion] = useState<string>();
   const [coreVersion, setCoreVersion] = useState<string>();
+  const [yqVersion, setYqVersion] = useState<string>();
 
   useLayoutEffect(() => {
     backend.getVersion().then((x) => {
@@ -16,6 +17,9 @@ export const About: FC = () => {
     });
     backend.getVersionCore().then((x) => {
       setCoreVersion(x);
+    });
+    backend.getVersionYq().then((x) => {
+      setYqVersion(x);
     });
   }, []);
   return (
@@ -26,9 +30,7 @@ export const About: FC = () => {
           Light-weight Clash/Mihomo proxy client for Steam OS.
         </DescriptionField>
         <Field
-          label={t(L.INSTALLED_VERSION)}
-          focusable={true}
-        >
+          label={t(L.INSTALLED_VERSION)} focusable >
           {version}
         </Field>
         <Field
@@ -54,7 +56,7 @@ export const About: FC = () => {
           <i>DeckyClash is powered by Mihomo.</i>
         </DescriptionField>
         <Field
-          label={t(L.INSTALLED_CORE_VERSION)}
+          label={t(L.INSTALLED_VERSION)}
           focusable={true}
         >
           {coreVersion}
@@ -76,6 +78,9 @@ export const About: FC = () => {
           <br />
           <i>DeckyClash uses yq as its YAML processor.</i>
         </DescriptionField>
+        <Field label={t(L.INSTALLED_VERSION)} focusable >
+          {yqVersion}
+        </Field>
         <Field
           icon={<FiGithub style={{ display: "block" }} />}
           label="mikefarah/yq"

@@ -321,6 +321,21 @@ class Plugin:
 
     async def get_ip(self) -> str:
         return utils.get_ip()
+
+    async def install_geos(self) -> Tuple[bool, str]:
+        try:
+            await upgrade.download_geos(timeout=self._get("download_timeout"))
+        except Exception as e:
+            return False, str(e)
+        return True, ""
+
+    async def install_dashboards(self) -> Tuple[bool, str]:
+        try:
+            await upgrade.download_dashboards(timeout=self._get("download_timeout"))
+        except Exception as e:
+            return False, str(e)
+        return True, ""
+        ...
     
     async def set_external_status(self, status: bool) -> None:
         if status:

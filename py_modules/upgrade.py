@@ -7,10 +7,12 @@ import shutil
 import ssl
 import stat
 import subprocess
+import tempfile
 from typing import Optional
 import urllib.request
 
 import core
+import dashboard
 import decky
 from decky import logger
 from metadata import CORE_REPO, PACKAGE_REPO, YQ_REPO
@@ -214,3 +216,59 @@ async def get_latest_version(repo: str, timeout: float) -> str:
     else:
         return ""
     return tag
+
+GEO_FILES = {
+    "country.mmdb": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb",
+    "geosite.dat": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat",
+    "asn.mmdb": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb",
+}
+
+async def download_geos(timeout: float):
+    promises = []
+    for filename, url in GEO_FILES.items():
+        promises.append(
+            utils.get_url_to_file(
+                url, 
+                os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, filename),
+                timeout=timeout))
+    await asyncio.gather(*promises)
+
+DASHBOARDS = {
+    "yacd-meta": ("Yacd-meta-gh-pages", "https://github.com/MetaCubeX/yacd/archive/gh-pages.zip"),
+    "metacubexd": ("metacubexd-gh-pages", "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"),
+    "zashboard": ("dist", "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip"),
+}
+
+async def download_dashboards(timeout: float):
+    promises = []
+    if not os.path.exists(dashboard.DASHBOARD_DIR):
+        logger.debug("dashboard dir not exists, creating")
+        os.mkdir(dashboard.DASHBOARD_DIR)
+    tmpdir = tempfile.mkdtemp()
+
+    async def _impl(filename, subdir, url):
+        dest_file = os.path.join(tmpdir, f"{filename}.zip")
+        logger.info(f"downloading dashboard to: {dest_file}")
+        await utils.get_url_to_file(url, dest_file, timeout=timeout)
+
+        logger.debug(f"extracting dashboard file to {tmpdir}")
+        await asyncio.to_thread(
+            shutil.unpack_archive,
+            dest_file,
+            tmpdir,
+            format="zip")
+
+        logger.debug(f"copying {filename} dashboard files")
+        await asyncio.to_thread(
+            shutil.copytree,
+            os.path.join(tmpdir, subdir),
+            os.path.join(dashboard.DASHBOARD_DIR, filename),
+            dirs_exist_ok=True)
+
+    for filename, (subdir, url) in DASHBOARDS.items():
+        promises.append(_impl(filename, subdir, url))
+
+    try:
+        await asyncio.gather(*promises)
+    finally:
+        shutil.rmtree(tmpdir)

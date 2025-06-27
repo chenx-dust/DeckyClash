@@ -52,7 +52,7 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
     setGeosInstalling(true);
     const [success, error] = await backend.installGeos();
     setGeosInstalling(false);
-    setGeosInstalled(true);
+    setGeosInstalled(success);
     if (!success)
       toaster.toast({
         title: t(L.INSTALLATION_FAILED),
@@ -65,7 +65,7 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
     setDashboardsInstalling(true);
     const [success, error] = await backend.installDashboards();
     setDashboardsInstalling(false);
-    setDashboardsInstalled(true);
+    setDashboardsInstalled(success);
     if (!success)
       toaster.toast({
         title: t(L.INSTALLATION_FAILED),

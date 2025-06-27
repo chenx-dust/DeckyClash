@@ -11,6 +11,7 @@ import {
   DropdownItem,
   SliderField,
   NotchLabel,
+  Field,
 } from "@decky/ui";
 import {
   addEventListener,
@@ -18,20 +19,17 @@ import {
   definePlugin,
   routerHook,
   toaster
-} from "@decky/api"
+} from "@decky/api";
+
 import { FC, useEffect, useLayoutEffect, useState } from "react";
 import { GiCat } from "react-icons/gi";
 import { t } from 'i18next';
-
-import { Import, About } from "./pages";
-
-import { backend } from "./backend";
-
-import { Config, EnhancedMode } from "./backend";
-import { ActionButtonItem, InstallationGuide, VersionComponent } from "./components";
-import { localizationManager, L } from "./i18n";
 import { QRCodeCanvas } from "qrcode.react";
-import { Manage } from "./pages/Manage";
+
+import { About, Import, Manage, Upgrade } from "./pages";
+import { backend, Config, EnhancedMode } from "./backend";
+import { ActionButtonItem, InstallationGuide } from "./components";
+import { localizationManager, L } from "./i18n";
 import { TIPS_TIMEOUT } from "./global";
 
 let subscriptions: Record<string, string> = {};
@@ -71,6 +69,7 @@ const Content: FC<{}> = ({ }) => {
   };
 
   const [installGuide, setInstallGuide] = useState(false);
+  const [pluginVersion, setPluginVersion] = useState("");
   const [coreVersion, setCoreVersion] = useState("");
   const [yqVersion, setYqVersion] = useState("");
   const [clashState, setClashState] = useState(localConfig.status);
@@ -96,8 +95,10 @@ const Content: FC<{}> = ({ }) => {
   const refreshVersions = async () => {
     const _coreVersion = await backend.getVersionCore();
     const _yqVersion = await backend.getVersionYq();
+    const _pluginVersion = await backend.getVersion();
     setCoreVersion(_coreVersion);
     setYqVersion(_yqVersion);
+    setPluginVersion(_pluginVersion);
     return [_coreVersion, _yqVersion];
   };
 
@@ -166,11 +167,13 @@ const Content: FC<{}> = ({ }) => {
     window.localStorage.setItem("decky-clash-ip", ip);
   };
 
-  const fetchAllConfig = () => {
-    fetchConfig();
-    fetchSubscriptions();
-    fetchDashboards();
-    fetchIP();
+  const fetchAllConfig = async () => {
+    await Promise.all([
+      fetchConfig(),
+      fetchSubscriptions(),
+      fetchDashboards(),
+      fetchIP(),
+    ]);
   }
 
   useEffect(() => {
@@ -200,7 +203,7 @@ const Content: FC<{}> = ({ }) => {
     }
   }, [initialized, clashState, currentSub, overrideDNS, enhancedMode, allowRemoteAccess, currentDashboard])
 
-  useLayoutEffect(fetchAllConfig, []);
+  useLayoutEffect(() => { fetchAllConfig(); }, []);
 
   useEffect(() => {
     // core exit callback
@@ -309,17 +312,17 @@ const Content: FC<{}> = ({ }) => {
                   t(L.ENABLE_CLASH_LOADING) :
                   t(L.ENABLE_CLASH_DESC)
               );
-              const [success, reason] = await backend.setCoreStatus(value);
+              const [success, error] = await backend.setCoreStatus(value);
               setClashStateChanging(false);
               if (!success) {
                 setClashState(false);
                 toaster.toast({
                   title: t(L.ENABLE_CLASH_FAILED),
-                  body: reason,
+                  body: error,
                   icon: <GiCat />,
                 });
                 setClashStateTips(
-                  t(L.ENABLE_CLASH_FAILED) + " Err: " + reason
+                  t(L.ENABLE_CLASH_FAILED) + " Err: " + error
                 );
               } else {
                 setClashStateTips(
@@ -358,7 +361,7 @@ const Content: FC<{}> = ({ }) => {
             layout="below"
             onClick={() => {
               Router.CloseSideMenus();
-              Router.Navigate("/decky-clash");
+              Router.Navigate("/decky-clash/manage");
             }}
           >
             {t(L.MANAGE_SUBSCRIPTIONS)}
@@ -470,15 +473,62 @@ const Content: FC<{}> = ({ }) => {
           </ActionButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
-          <ActionButtonItem
+          <ButtonItem
             layout="below"
             onClick={() => setInstallGuide(true)}
           >
             {t(L.INSTALLATION_GUIDE)}
-          </ActionButtonItem>
+          </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
-      <VersionComponent />
+      <PanelSection title={t(L.VERSION)}>
+        <PanelSectionRow>
+          <Field
+            focusable
+            label={t(L.PLUGIN)}
+          >
+            {pluginVersion}
+          </Field>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <Field
+            focusable
+            label="Mihomo"
+          >
+            {coreVersion}
+          </Field>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <Field
+            focusable
+            label="YQ"
+          >
+            {yqVersion}
+          </Field>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ButtonItem
+            layout="below"
+            onClick={() => {
+              Router.CloseSideMenus();
+              Router.Navigate("/decky-clash/upgrade");
+            }}
+          >
+            {t(L.UPGRADE_MANAGE)}
+          </ButtonItem>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ButtonItem
+            layout="below"
+            onClick={() => {
+              Router.CloseSideMenus();
+              Router.Navigate("/decky-clash/about");
+            }}
+          >
+            {t(L.ABOUT_PLUGIN)}
+          </ButtonItem>
+        </PanelSectionRow>
+      </PanelSection>
     </>
   );
 };
@@ -486,18 +536,23 @@ const Content: FC<{}> = ({ }) => {
 const DeckyPluginRouter: FC = () => {
   return (
     <SidebarNavigation
-      title={t(L.SUBSCRIPTIONS)}
+      title="DeckyClash"
       showTitle
       pages={[
         {
           title: t(L.MANAGE),
           content: <Manage Subscriptions={subscriptions} />,
-          route: "/decky-clash/import",
+          route: "/decky-clash/manage",
         },
         {
           title: t(L.IMPORT),
           content: <Import />,
-          route: "/decky-clash/manage",
+          route: "/decky-clash/import",
+        },
+        {
+          title: t(L.UPGRADE),
+          content: <Upgrade />,
+          route: "/decky-clash/upgrade",
         },
         {
           title: t(L.ABOUT),
@@ -530,6 +585,19 @@ export default definePlugin(() => {
       icon: <GiCat />,
     });
   });
+  addEventListener("upgrade_notice", (msg: string) => {
+    toaster.toast({
+      title: t(L.UPGRADE_AVAILABLE),
+      body: msg,
+      icon: <GiCat />,
+      onClick: () => {
+        Router.CloseSideMenus();
+        Router.Navigate("/decky-clash/upgrade");
+      },
+    });
+  });
+
+  backend.checkUpgrade();
 
   return {
     // The name shown in various decky menus

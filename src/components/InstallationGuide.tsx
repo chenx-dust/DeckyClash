@@ -30,8 +30,8 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
     setCoreInstalling(false);
     if (!success)
       toaster.toast({
-        title: t(L.INSTALLATION_FAILED),
-        body: error,
+        title: t(L.INSTALL_FAILURE),
+        body: `Mihomo: ${error}`,
         icon: <GiCat />,
       });
   };
@@ -42,8 +42,8 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
     setYqInstalling(false);
     if (!success)
       toaster.toast({
-        title: t(L.INSTALLATION_FAILED),
-        body: error,
+        title: t(L.INSTALL_FAILURE),
+        body: `yq: ${error}`,
         icon: <GiCat />,
       });
   };
@@ -55,8 +55,8 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
     setGeosInstalled(success);
     if (!success)
       toaster.toast({
-        title: t(L.INSTALLATION_FAILED),
-        body: error,
+        title: t(L.INSTALL_FAILURE),
+        body: `Geo-files: ${error}`,
         icon: <GiCat />,
       });
   };
@@ -68,8 +68,8 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
     setDashboardsInstalled(success);
     if (!success)
       toaster.toast({
-        title: t(L.INSTALLATION_FAILED),
-        body: error,
+        title: t(L.INSTALL_FAILURE),
+        body: `Dashboards: ${error}`,
         icon: <GiCat />,
       });
   };

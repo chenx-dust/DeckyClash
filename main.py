@@ -16,7 +16,7 @@ from decky import logger
 from external import ExternalServer
 import subscription
 import upgrade
-from metadata import CORE_REPO, PACKAGE_NAME, PACKAGE_REPO
+from metadata import CORE_REPO, PACKAGE_NAME, PACKAGE_REPO, YQ_REPO
 from settings import SettingsManager
 import utils
 
@@ -38,6 +38,7 @@ class Plugin:
         self._set_default("allow_remote_access", False)
         self._set_default("timeout", 15.0)
         self._set_default("download_timeout", 120.0)
+        self._set_default("debounce_time", 10.0)
         self._set_default("disable_verify", False)
         self._set_default("external_run_bg", False)
         self._set_default("log_level", logging.getLevelName(logging.INFO))
@@ -76,6 +77,8 @@ class Plugin:
         if self._get("external_run_bg"):
             await self.set_external_status(True)
 
+        await self.check_upgrade()
+
     # Function called first during the unload process, utilize this to handle your plugin being removed
     async def _unload(self):
         if self.core.is_running:
@@ -96,7 +99,7 @@ class Plugin:
 
     async def get_core_status(self) -> bool:
         is_running = self.core.is_running
-        logger.info(f"get_core_status: {is_running}")
+        logger.debug(f"get_core_status: {is_running}")
         return is_running
 
     async def set_core_status(self, status: bool) -> Tuple[bool, Optional[str]]:
@@ -112,7 +115,7 @@ class Plugin:
         return True, None
 
     async def restart_core(self) -> bool:
-        logger.info("soft restarting core ...")
+        logger.debug("soft restarting core ...")
         await self.generate_config()
         port = self._get("controller_port")
         payload = json.dumps({"payload": ""})
@@ -177,12 +180,12 @@ class Plugin:
 
     async def get_version(self) -> str:
         version = upgrade.get_version()
-        logger.info(f"current package version: {version}")
+        logger.debug(f"current package version: {version}")
         return version
 
     async def get_latest_version(self) -> str:
-        version = await upgrade.get_latest_version(PACKAGE_REPO, self._get("timeout"))
-        logger.info(f"latest package version: {version}")
+        version = await upgrade.get_latest_version(PACKAGE_REPO, self._get("timeout"), self._get("debounce_time"))
+        logger.debug(f"latest package version: {version}")
         return version
 
     async def upgrade_to_latest_yq(self) -> Tuple[bool, Optional[str]]:
@@ -195,12 +198,12 @@ class Plugin:
 
     async def get_version_yq(self) -> str:
         version = config.get_yq_version()
-        logger.info(f"current yq version: {version}")
+        logger.debug(f"current yq version: {version}")
         return version
 
     async def get_latest_version_yq(self) -> str:
-        version = await upgrade.get_latest_version(CORE_REPO, self._get("timeout"))
-        logger.info(f"latest core version: {version}")
+        version = await upgrade.get_latest_version(YQ_REPO, self._get("timeout"), self._get("debounce_time"))
+        logger.debug(f"latest core version: {version}")
         return version
 
     async def upgrade_to_latest_core(self) -> Tuple[bool, Optional[str]]:
@@ -219,12 +222,12 @@ class Plugin:
 
     async def get_version_core(self) -> str:
         version = CoreController.get_version()
-        logger.info(f"current core version: {version}")
+        logger.debug(f"current core version: {version}")
         return version
 
     async def get_latest_version_core(self) -> str:
-        version = await upgrade.get_latest_version(CORE_REPO, self._get("timeout"))
-        logger.info(f"latest core version: {version}")
+        version = await upgrade.get_latest_version(CORE_REPO, self._get("timeout"), self._get("debounce_time"))
+        logger.debug(f"latest core version: {version}")
         return version
 
     async def get_dashboard_list(self) -> List[str]:
@@ -265,7 +268,7 @@ class Plugin:
     async def edit_subscription(self, name: str, new_name: str, new_url: str) -> None:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
         new_name = utils.sanitize_filename(new_name)
-        logger.info(f"edit_subscription: {name} -> {new_name}, {new_url}")
+        logger.info(f"edit_subscription: {name} => {new_name}, {new_url}")
         if name in subs:
             if new_name == name:
                 subs[name] = new_url
@@ -312,7 +315,7 @@ class Plugin:
             self.settings.setSetting("subscriptions", subs)
 
     async def set_current(self, name: str) -> bool:
-        logger.info(f"setting current to: {name}")
+        logger.debug(f"setting current to: {name}")
         if name in self.settings.getSetting("subscriptions"):
             self.settings.setSetting("current", name)
             return True
@@ -342,6 +345,25 @@ class Plugin:
             await self.external.run(self._get("external_port"))
         else:
             await self.external.stop()
+
+    async def check_upgrade(self) -> None:
+        current = await self.get_version()
+        latest = await self.get_latest_version()
+        if current != latest:
+            logger.info(f"check_upgrade {PACKAGE_NAME}: {current} => {latest}")
+            await decky.emit("upgrade_notice", f"{PACKAGE_NAME}: {current} => {latest}")
+
+        current = await self.get_version_core()
+        latest = await self.get_latest_version_core()
+        if current != latest:
+            logger.info(f"check_upgrade Mihomo: {current} => {latest}")
+            await decky.emit("upgrade_notice", f"Mihomo: {current} => {latest}")
+
+        current = await self.get_version_yq()
+        latest = await self.get_latest_version_yq()
+        if current != latest:
+            logger.info(f"check_upgrade yq: {current} => {latest}")
+            await decky.emit("upgrade_notice", f"yq: {current} => {latest}")
 
     def _get(self, key: str, allow_none: bool = False) -> Any:
         if allow_none:

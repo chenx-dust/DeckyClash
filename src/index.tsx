@@ -83,6 +83,7 @@ const Content: FC<{}> = ({ }) => {
   const [currentSub, setCurrentSub] = useState<string | null>(localConfig.current);
   const [overrideDNS, setOverrideDNS] = useState(localConfig.override_dns);
   const [enhancedMode, setEnhancedMode] = useState<EnhancedMode>(localConfig.enhanced_mode);
+  const [autostart, setAutostart] = useState(localConfig.autostart);
   const [currentDashboard, setCurrentDashboard] = useState<string | null>(localConfig.dashboard);
   const [dashboardOptions, setDashboardOption] = useState<DropdownOption[]>(parseDashboardOptions(localDashboards));
   const [allowRemoteAccess, setAllowRemoteAccess] = useState(localConfig.allow_remote_access);
@@ -148,6 +149,7 @@ const Content: FC<{}> = ({ }) => {
     setOverrideDNS(config.override_dns);
     setEnhancedMode(config.enhanced_mode);
     setAllowRemoteAccess(config.allow_remote_access);
+    setAutostart(config.autostart);
     setCurrentDashboard(config.dashboard);
     setControllerPort(config.controller_port);
   }
@@ -193,6 +195,7 @@ const Content: FC<{}> = ({ }) => {
       allow_remote_access: allowRemoteAccess,
       dashboard: currentDashboard,
       controller_port: controllerPort,
+      autostart: autostart,
     };
   }
 
@@ -453,6 +456,18 @@ const Content: FC<{}> = ({ }) => {
             />
           </PanelSectionRow>
         )}
+        <PanelSectionRow>
+          <ToggleField
+            label={t(L.AUTOSTART)}
+            description={t(L.AUTOSTART_DESC)}
+            checked={autostart}
+            onChange={(value: boolean) => {
+              setAutostart(value);
+              backend.setConfigValue("autostart", value).then(() =>
+                backend.getConfigValue("autostart").then(setAutostart));
+            }}
+          ></ToggleField>
+        </PanelSectionRow>
       </PanelSection>
       <PanelSection title={t(L.TOOLS)}>
         <PanelSectionRow>

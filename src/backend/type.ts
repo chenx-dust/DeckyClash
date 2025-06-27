@@ -12,4 +12,5 @@ export interface Config {
   allow_remote_access: boolean,
   dashboard: string | null,
   controller_port: number,
+  autostart: boolean,
 }

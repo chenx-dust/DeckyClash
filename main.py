@@ -36,6 +36,7 @@ class Plugin:
         self._set_default("controller_port", 9090)
         self._set_default("external_port", 50581)
         self._set_default("allow_remote_access", False)
+        self._set_default("autostart", False)
         self._set_default("timeout", 15.0)
         self._set_default("download_timeout", 120.0)
         self._set_default("debounce_time", 10.0)
@@ -54,6 +55,8 @@ class Plugin:
 
         self.core = CoreController()
         self.core.set_exit_callback(lambda x: decky.emit("core_exit", x))
+        if self._get("autostart"):
+            await self.core.start()
 
         self.external = ExternalServer()
         from aiohttp import web
@@ -147,6 +150,7 @@ class Plugin:
             "override_dns": self._get("override_dns"),
             "enhanced_mode": self._get("enhanced_mode"),
             "allow_remote_access": self._get("allow_remote_access"),
+            "autostart": self._get("autostart"),
             "dashboard": self._get("dashboard", True),
             "controller_port": self._get("controller_port"),
         }
@@ -161,6 +165,7 @@ class Plugin:
             "override_dns",
             "enhanced_mode",
             "allow_remote_access",
+            "autostart",
             "dashboard",
             "external_run_bg",
         ]
@@ -349,19 +354,19 @@ class Plugin:
     async def check_upgrade(self) -> None:
         current = await self.get_version()
         latest = await self.get_latest_version()
-        if current != latest:
+        if current != latest and current != "" and latest != "":
             logger.info(f"check_upgrade {PACKAGE_NAME}: {current} => {latest}")
             await decky.emit("upgrade_notice", f"{PACKAGE_NAME}: {current} => {latest}")
 
         current = await self.get_version_core()
         latest = await self.get_latest_version_core()
-        if current != latest:
+        if current != latest and current != "" and latest != "":
             logger.info(f"check_upgrade Mihomo: {current} => {latest}")
             await decky.emit("upgrade_notice", f"Mihomo: {current} => {latest}")
 
         current = await self.get_version_yq()
         latest = await self.get_latest_version_yq()
-        if current != latest:
+        if current != latest and current != "" and latest != "":
             logger.info(f"check_upgrade yq: {current} => {latest}")
             await decky.emit("upgrade_notice", f"yq: {current} => {latest}")
 

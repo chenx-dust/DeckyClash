@@ -5,7 +5,7 @@ import { ActionButtonItem } from "./ActionButtonItem";
 import { L } from "../i18n";
 import { BsExclamationCircleFill, BsCheckCircleFill } from "react-icons/bs";
 import { toaster } from "@decky/api";
-import i18n from "i18next";
+import { t } from 'i18next';
 
 export const VersionComponent: FC = () => {
   const [pluginCurrent, setPluginCurrent] = useState<string>();
@@ -21,20 +21,20 @@ export const VersionComponent: FC = () => {
   }
   useLayoutEffect(getVersions, []);
 
-  let uptButtonText = i18n.t(L.REINSTALL_PLUGIN);
+  let uptButtonText = t(L.REINSTALL_PLUGIN);
   if (pluginCurrent !== pluginLatest && Boolean(pluginLatest)) {
     uptButtonText =
-      i18n.t(L.UPDATE_TO) + ` ${pluginLatest}`;
+      t(L.UPDATE_TO) + ` ${pluginLatest}`;
   }
 
-  let uptButtonTextCore = i18n.t(L.REINSTALL_CORE);
+  let uptButtonTextCore = t(L.REINSTALL_CORE);
   if (coreCurrent !== coreLatest && Boolean(coreLatest)) {
     uptButtonTextCore =
-      i18n.t(L.UPDATE_TO_CORE) + ` ${coreLatest}`;
+      t(L.UPDATE_TO_CORE) + ` ${coreLatest}`;
   }
 
   return (
-    <PanelSection title={i18n.t(L.VERSION)}>
+    <PanelSection title={t(L.VERSION)}>
       <PanelSectionRow>
         <ActionButtonItem
           layout="below"
@@ -42,13 +42,13 @@ export const VersionComponent: FC = () => {
             const [success, reason] = await backend.upgradeToLatest();
             if (success) {
               toaster.toast({
-                title: i18n.t(L.PLUGIN_INSTALLED),
+                title: t(L.PLUGIN_INSTALLED),
                 body: pluginLatest,
                 icon: <BsCheckCircleFill />,
               });
             } else {
               toaster.toast({
-                title: i18n.t(L.PLUGIN_INSTALL_FAILED),
+                title: t(L.PLUGIN_INSTALL_FAILED),
                 body: reason,
                 icon: <BsExclamationCircleFill />,
               });
@@ -61,7 +61,7 @@ export const VersionComponent: FC = () => {
       <PanelSectionRow>
         <Field
           focusable
-          label={i18n.t(L.INSTALLED_VERSION)}
+          label={t(L.INSTALLED_VERSION)}
         >
           {pluginCurrent}
         </Field>
@@ -70,7 +70,7 @@ export const VersionComponent: FC = () => {
         <PanelSectionRow>
           <Field
             focusable
-            label={i18n.t(L.LATEST_VERSION)}
+            label={t(L.LATEST_VERSION)}
           >
             {pluginLatest}
           </Field>
@@ -83,14 +83,14 @@ export const VersionComponent: FC = () => {
             const [success, reason] = await backend.upgradeToLatestCore();
             if (success) {
               toaster.toast({
-                title: i18n.t(L.CORE_INSTALLED),
+                title: t(L.CORE_INSTALLED),
                 body: coreLatest,
                 icon: <BsCheckCircleFill />,
               });
               getVersions();
             } else {
               toaster.toast({
-                title: i18n.t(L.CORE_INSTALL_FAILED),
+                title: t(L.CORE_INSTALL_FAILED),
                 body: reason,
                 icon: <BsExclamationCircleFill />,
               });
@@ -103,7 +103,7 @@ export const VersionComponent: FC = () => {
       <PanelSectionRow>
         <Field
           focusable
-          label={i18n.t(L.INSTALLED_CORE_VERSION)}
+          label={t(L.INSTALLED_CORE_VERSION)}
         >
           {coreCurrent}
         </Field>
@@ -112,7 +112,7 @@ export const VersionComponent: FC = () => {
         <PanelSectionRow>
           <Field
             focusable
-            label={i18n.t(L.LATEST_CORE_VERSION)}
+            label={t(L.LATEST_CORE_VERSION)}
           >
             {coreLatest}
           </Field>

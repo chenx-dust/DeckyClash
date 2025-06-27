@@ -45,6 +45,9 @@ class Plugin:
         level = self._get("log_level")
         logger.setLevel(logging.getLevelNamesMapping()[level])
         logger.info(f"log level set to {level}")
+        logger.debug(f"os: {os.uname()}")
+        logger.debug(f"environments: {os.environ}")
+        logger.debug(f"settings: {self.settings.settings}")
 
         utils.init_ssl_context(self._get("disable_verify"))
 
@@ -180,6 +183,24 @@ class Plugin:
     async def get_latest_version(self) -> str:
         version = await upgrade.get_latest_version(PACKAGE_REPO, self._get("timeout"))
         logger.info(f"latest package version: {version}")
+        return version
+
+    async def upgrade_to_latest_yq(self) -> Tuple[bool, Optional[str]]:
+        try:
+            await upgrade.upgrade_to_latest_core(self._get("timeout"), self._get("download_timeout"))
+        except Exception as e:
+            logger.error(f"upgrade_to_latest_yq: failed with {e}")
+            return False, str(e)
+        return True, None
+
+    async def get_version_yq(self) -> str:
+        version = config.get_yq_version()
+        logger.info(f"current yq version: {version}")
+        return version
+
+    async def get_latest_version_yq(self) -> str:
+        version = await upgrade.get_latest_version(CORE_REPO, self._get("timeout"))
+        logger.info(f"latest core version: {version}")
         return version
 
     async def upgrade_to_latest_core(self) -> Tuple[bool, Optional[str]]:

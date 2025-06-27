@@ -1,5 +1,5 @@
 import { ConfirmModal, TextField } from '@decky/ui';
-import i18n from 'i18next';
+import { t } from 'i18next';
 import { FC, useState } from 'react';
 import { L } from '../i18n';
 
@@ -24,10 +24,10 @@ export const EditSubscriptionModal: FC<EditSubscriptionModalProps> = (props) => 
       onOK={async () => {
         await props.onOk(name, url);
       }}
-      strTitle={i18n.t(L.EDIT_SUBSCRIPTION)}
+      strTitle={t(L.EDIT_SUBSCRIPTION)}
     >
       <TextField
-        label={i18n.t(L.NAME)}
+        label={t(L.NAME)}
         value={name}
         onChange={(e) => {
           setName(e?.target.value);
@@ -40,7 +40,7 @@ export const EditSubscriptionModal: FC<EditSubscriptionModalProps> = (props) => 
         </div>}
       />
       <TextField
-        label={i18n.t(L.LINK)}
+        label={t(L.LINK)}
         value={url}
         mustBeURL={true}
         onChange={(e) => setUrl(e?.target.value)}

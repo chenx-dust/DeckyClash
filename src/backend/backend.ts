@@ -15,6 +15,11 @@ export const getLatestVersion = callable<[], string>("get_latest_version");
 export const upgradeToLatestCore = callable<[], [boolean, string]>("upgrade_to_latest_core");
 export const getVersionCore = callable<[], string>("get_version_core");
 export const getLatestVersionCore = callable<[], string>("get_latest_version_core");
+export const upgradeToLatestYq = callable<[], [boolean, string]>("upgrade_to_latest_yq");
+export const getVersionYq = callable<[], string>("get_version_yq");
+export const getLatestVersionYq = callable<[], string>("get_latest_version_yq");
+export const installGeos = callable<[], [boolean, string]>("install_geos");
+export const installDashboards = callable<[], [boolean, string]>("install_dashboards");
 
 export const getSubscriptionList = callable<[], Record<string, string>>("get_subscription_list");
 export const updateSubscription = callable<[string], [boolean, string]>("update_subscription");

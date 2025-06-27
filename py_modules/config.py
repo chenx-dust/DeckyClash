@@ -2,9 +2,11 @@ import asyncio
 from enum import Enum
 import os
 import shutil
+import subprocess
 from typing import List, Optional
 
 import decky
+from decky import logger
 
 YQ_PATH = os.path.join(decky.DECKY_PLUGIN_DIR, 'bin', 'yq')
 OVERRIDE_YAML = os.path.join(decky.DECKY_PLUGIN_DIR, 'override.yaml')
@@ -55,8 +57,8 @@ async def _exec_yq(cmd: List[str]) -> Optional[str]:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
-    return_code = await process.wait()
     stdout, stderr = await process.communicate()
+    return_code = await process.wait()
     if return_code != 0:
         raise Exception(f'yq error: {stderr.decode()}')
     if stderr is not None and len(stderr) > 0:
@@ -82,3 +84,18 @@ async def _edit_in_place_with_ref(path: str, ref_path: str, cmd: str) -> None:
             path,
             ref_path,
         ])
+
+def get_yq_version() -> str:
+    try:
+        cmd = [ YQ_PATH, "-V" ]
+        logger.debug(f"get_yq_version: cmd: {' '.join(cmd)}")
+        output = subprocess.check_output(cmd)
+    except Exception as e:
+        logger.error(f"get_yq_version: failed to exec: {str(e)}")
+        return ""
+
+    logger.debug(f"get_yq_version: output: {output}")
+    for s in output.decode().split(" "):
+        if s.startswith("v") and not s.startswith("version"):
+            return s[1:].strip()
+    return ""

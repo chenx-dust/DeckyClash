@@ -67,5 +67,13 @@
     "NAME": "Name",
     "LINK": "Link",
     "NAME_INVALID_CHARACTER": "Invalid characters \"/\"",
-    "NAME_DUPLICATED": "Duplicated name"
+    "NAME_DUPLICATED": "Duplicated name",
+    "INSTALLATION_FAILED": "Installation failed",
+    "INSTALLATION_GUIDE": "Installation Guide",
+    "INSTALLATION_MSG": "It seems that you are new to here. Follow the steps below to install dependencies:",
+    "INSTALLATION_GEO": "Geo-files (Optional)",
+    "INSTALLATION_DASHBOARD": "Dashboards (Optional)",
+    "INSTALLATION_ALL": "Install All",
+    "INSTALLATION_SKIP": "Skip Installation",
+    "INSTALLATION_FINISH": "Finish Installation"
 }

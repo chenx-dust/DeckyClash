@@ -21,14 +21,14 @@ import {
 } from "@decky/api"
 import { FC, useEffect, useLayoutEffect, useState } from "react";
 import { GiCat } from "react-icons/gi";
-import i18n from "i18next";
+import { t } from 'i18next';
 
 import { Import, About } from "./pages";
 
 import { backend } from "./backend";
 
 import { Config, EnhancedMode } from "./backend";
-import { ActionButtonItem, VersionComponent } from "./components";
+import { ActionButtonItem, InstallationGuide, VersionComponent } from "./components";
 import { localizationManager, L } from "./i18n";
 import { QRCodeCanvas } from "qrcode.react";
 import { Manage } from "./pages/Manage";
@@ -70,13 +70,16 @@ const Content: FC<{}> = ({ }) => {
     return items;
   };
 
+  const [installGuide, setInstallGuide] = useState(false);
+  const [coreVersion, setCoreVersion] = useState("");
+  const [yqVersion, setYqVersion] = useState("");
   const [clashState, setClashState] = useState(localConfig.status);
   const [clashStateChanging, setClashStateChanging] = useState(false);
   const [subOptions, setSubOptions] = useState<DropdownOption[]>(parseSubOptions(localSubscriptions));
   const [clashStateTips, setClashStateTips] = useState(
     localConfig.status ?
-      i18n.t(L.ENABLE_CLASH_IS_RUNNING) :
-      i18n.t(L.ENABLE_CLASH_DESC)
+      t(L.ENABLE_CLASH_IS_RUNNING) :
+      t(L.ENABLE_CLASH_DESC)
   );
   const [currentSub, setCurrentSub] = useState<string | null>(localConfig.current);
   const [overrideDNS, setOverrideDNS] = useState(localConfig.override_dns);
@@ -89,6 +92,21 @@ const Content: FC<{}> = ({ }) => {
   const [initialized, setInitialized] = useState(false);
   const [qrPageUrl, setQRPageUrl] = useState<string>();
   const [currentIP, setCurrentIP] = useState<string>(localIP);
+
+  const refreshVersions = async () => {
+    const _coreVersion = await backend.getVersionCore();
+    const _yqVersion = await backend.getVersionYq();
+    setCoreVersion(_coreVersion);
+    setYqVersion(_yqVersion);
+    return [_coreVersion, _yqVersion];
+  };
+
+  useEffect(() => {
+    refreshVersions().then(([_coreVersion, _yqVersion]) => {
+      if (_coreVersion === "" || _yqVersion === "")
+        setInstallGuide(true);
+    });
+  }, []);
 
   const applySubscriptions = (subs: Record<string, string>, save: boolean = true) => {
     subscriptions = subs;
@@ -120,8 +138,8 @@ const Content: FC<{}> = ({ }) => {
     }
     setClashStateTips(
       config.status ?
-        i18n.t(L.ENABLE_CLASH_IS_RUNNING) :
-        i18n.t(L.ENABLE_CLASH_DESC)
+        t(L.ENABLE_CLASH_IS_RUNNING) :
+        t(L.ENABLE_CLASH_DESC)
     );
     setClashState(config.status);
     setCurrentSub(config.current);
@@ -190,10 +208,10 @@ const Content: FC<{}> = ({ }) => {
       setClashState(false);
       if (code != 0)
         setClashStateTips(
-          i18n.t(L.ENABLE_CLASH_CRASH) + " Code " + code
+          t(L.ENABLE_CLASH_CRASH) + " Code " + code
         );
       else
-        setClashStateTips(i18n.t(L.ENABLE_CLASH_DESC));
+        setClashStateTips(t(L.ENABLE_CLASH_DESC));
     }
     addEventListener("core_exit", callback);
     return () => {
@@ -202,9 +220,9 @@ const Content: FC<{}> = ({ }) => {
   }, []);
 
   useEffect(() => {
-    if (!clashState && clashStateTips != i18n.t(L.ENABLE_CLASH_DESC)) {
+    if (!clashState && clashStateTips != t(L.ENABLE_CLASH_DESC)) {
       const timer = setTimeout(() => {
-        setClashStateTips(i18n.t(L.ENABLE_CLASH_DESC));
+        setClashStateTips(t(L.ENABLE_CLASH_DESC));
       }, TIPS_TIMEOUT);
       return () => clearTimeout(timer);
     }
@@ -242,10 +260,10 @@ const Content: FC<{}> = ({ }) => {
     setClashStateChanging(false);
     if (!success) {
       toaster.toast({
-        title: i18n.t(L.RESTART_CORE),
-        body: i18n.t(L.ENABLE_CLASH_FAILED),
+        title: t(L.RESTART_CORE),
+        body: t(L.ENABLE_CLASH_FAILED),
         icon: <GiCat />,
-      })
+      });
     }
   }
 
@@ -267,12 +285,19 @@ const Content: FC<{}> = ({ }) => {
     return () => clearTimeout(timer);
   }, [overrideDNS, enhancedMode, allowRemoteAccess])
 
-  return (
-    <div>
-      <PanelSection title={i18n.t(L.SERVICE)}>
+  return (installGuide ?
+    <InstallationGuide
+      coreVersion={coreVersion}
+      yqVersion={yqVersion}
+      refreshCallback={refreshVersions}
+      quitCallback={() => setInstallGuide(false)}
+    />
+    :
+    <>
+      <PanelSection title={t(L.SERVICE)}>
         <PanelSectionRow>
           <ToggleField
-            label={i18n.t(L.ENABLE_CLASH)}
+            label={t(L.ENABLE_CLASH)}
             description={clashStateTips}
             checked={clashState}
             disabled={clashStateChanging}
@@ -281,26 +306,26 @@ const Content: FC<{}> = ({ }) => {
               setClashStateChanging(true);
               setClashStateTips(
                 value ?
-                  i18n.t(L.ENABLE_CLASH_LOADING) :
-                  i18n.t(L.ENABLE_CLASH_DESC)
+                  t(L.ENABLE_CLASH_LOADING) :
+                  t(L.ENABLE_CLASH_DESC)
               );
               const [success, reason] = await backend.setCoreStatus(value);
               setClashStateChanging(false);
               if (!success) {
                 setClashState(false);
                 toaster.toast({
-                  title: i18n.t(L.ENABLE_CLASH_FAILED),
+                  title: t(L.ENABLE_CLASH_FAILED),
                   body: reason,
                   icon: <GiCat />,
                 });
                 setClashStateTips(
-                  i18n.t(L.ENABLE_CLASH_FAILED) + " Err: " + reason
+                  t(L.ENABLE_CLASH_FAILED) + " Err: " + reason
                 );
               } else {
                 setClashStateTips(
                   value ?
-                    i18n.t(L.ENABLE_CLASH_IS_RUNNING) :
-                    i18n.t(L.ENABLE_CLASH_DESC)
+                    t(L.ENABLE_CLASH_IS_RUNNING) :
+                    t(L.ENABLE_CLASH_DESC)
                 );
               }
               backend.getCoreStatus().then(setClashState);
@@ -309,8 +334,8 @@ const Content: FC<{}> = ({ }) => {
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
-            label={i18n.t(L.SELECT_SUBSCRIPTION)}
-            strDefaultLabel={i18n.t(
+            label={t(L.SELECT_SUBSCRIPTION)}
+            strDefaultLabel={t(
               L.SELECT_SUBSCRIPTION
             )}
             rgOptions={subOptions}
@@ -336,7 +361,7 @@ const Content: FC<{}> = ({ }) => {
               Router.Navigate("/decky-clash");
             }}
           >
-            {i18n.t(L.MANAGE_SUBSCRIPTIONS)}
+            {t(L.MANAGE_SUBSCRIPTIONS)}
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
@@ -350,13 +375,13 @@ const Content: FC<{}> = ({ }) => {
             }}
             disabled={clashStateChanging || !clashState || !currentDashboard}
           >
-            {i18n.t(L.OPEN_DASHBOARD)}
+            {t(L.OPEN_DASHBOARD)}
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
-            label={i18n.t(L.SELECT_DASHBOARD)}
-            strDefaultLabel={i18n.t(L.SELECT_DASHBOARD)}
+            label={t(L.SELECT_DASHBOARD)}
+            strDefaultLabel={t(L.SELECT_DASHBOARD)}
             rgOptions={dashboardOptions}
             selectedOption={currentDashboard}
             onMenuWillOpen={fetchDashboards}
@@ -370,7 +395,7 @@ const Content: FC<{}> = ({ }) => {
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField
-            label={i18n.t(L.ALLOW_REMOTE_ACCESS)}
+            label={t(L.ALLOW_REMOTE_ACCESS)}
             description=
             {(allowRemoteAccess && clashState && !clashStateChanging && qrPageUrl) ? (
               <div style={{ overflowWrap: "break-word" }}>
@@ -380,7 +405,7 @@ const Content: FC<{}> = ({ }) => {
                 }} value={qrPageUrl} size={128} />
                 {qrPageUrl}
               </div>
-            ) : i18n.t(L.ALLOW_REMOTE_ACCESS_DESC) }
+            ) : t(L.ALLOW_REMOTE_ACCESS_DESC) }
             checked={allowRemoteAccess}
             disabled={clashStateChanging}
             onChange={(value: boolean) => {
@@ -393,8 +418,8 @@ const Content: FC<{}> = ({ }) => {
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField
-            label={i18n.t(L.OVERRIDE_DNS)}
-            description={i18n.t(L.OVERRIDE_DNS_DESC)}
+            label={t(L.OVERRIDE_DNS)}
+            description={t(L.OVERRIDE_DNS_DESC)}
             checked={overrideDNS}
             disabled={clashStateChanging}
             onChange={(value: boolean) => {
@@ -407,7 +432,7 @@ const Content: FC<{}> = ({ }) => {
         {overrideDNS && (
           <PanelSectionRow>
             <SliderField
-              label={i18n.t(L.ENHANCED_MODE)}
+              label={t(L.ENHANCED_MODE)}
               value={convertEnhancedModeValue(enhancedMode)}
               min={0}
               max={enhancedModeNotchLabels.length - 1}
@@ -426,13 +451,13 @@ const Content: FC<{}> = ({ }) => {
           </PanelSectionRow>
         )}
       </PanelSection>
-      <PanelSection title={i18n.t(L.TOOLS)}>
+      <PanelSection title={t(L.TOOLS)}>
         <PanelSectionRow>
           <ActionButtonItem
             layout="below"
             onClick={fetchAllConfig}
           >
-            {i18n.t(L.RELOAD_CONFIG)}
+            {t(L.RELOAD_CONFIG)}
           </ActionButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
@@ -441,34 +466,41 @@ const Content: FC<{}> = ({ }) => {
             layout="below"
             onClick={restartClash}
           >
-            {i18n.t(L.RESTART_CORE)}
+            {t(L.RESTART_CORE)}
+          </ActionButtonItem>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ActionButtonItem
+            layout="below"
+            onClick={() => setInstallGuide(true)}
+          >
+            {t(L.INSTALLATION_GUIDE)}
           </ActionButtonItem>
         </PanelSectionRow>
       </PanelSection>
-
       <VersionComponent />
-    </div>
+    </>
   );
 };
 
 const DeckyPluginRouter: FC = () => {
   return (
     <SidebarNavigation
-      title={i18n.t(L.SUBSCRIPTIONS)}
+      title={t(L.SUBSCRIPTIONS)}
       showTitle
       pages={[
         {
-          title: i18n.t(L.MANAGE),
+          title: t(L.MANAGE),
           content: <Manage Subscriptions={subscriptions} />,
           route: "/decky-clash/import",
         },
         {
-          title: i18n.t(L.IMPORT),
+          title: t(L.IMPORT),
           content: <Import />,
           route: "/decky-clash/manage",
         },
         {
-          title: i18n.t(L.ABOUT),
+          title: t(L.ABOUT),
           content: <About />,
           route: "/decky-clash/about",
         },
@@ -485,7 +517,7 @@ export default definePlugin(() => {
   addEventListener("core_exit", (code: number) => {
     if (code != 0) {
       toaster.toast({
-        title: i18n.t(L.CLASH_EXIT_TITLE),
+        title: t(L.CLASH_EXIT_TITLE),
         body: "Code: " + code,
         icon: <GiCat />,
       });
@@ -493,7 +525,7 @@ export default definePlugin(() => {
   });
   addEventListener("sub_update", (name: string) => {
     toaster.toast({
-      title: i18n.t(L.DOWNLOAD_SUCCESS),
+      title: t(L.DOWNLOAD_SUCCESS),
       body: name,
       icon: <GiCat />,
     });

@@ -43,7 +43,8 @@ async def restart_plugin_loader() -> None:
         "systemctl restart plugin_loader.service",
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
-        env={"LD_LIBRARY_PATH": ""})
+        env=utils.env_fix()
+    )
 
     stdout, stderr = await proc.communicate()
     returncode = await proc.wait()

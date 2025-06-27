@@ -6,6 +6,7 @@ from typing import Awaitable, Callable, Optional, List
 
 import decky
 from decky import logger
+import utils
 
 
 ExitCallback = Callable[[Optional[int]], Awaitable[None]]
@@ -58,6 +59,7 @@ class CoreController:
                 *command,
                 stdout=self._logfile,
                 stderr=self._logfile,
+                env=utils.env_fix(),
             )
             logger.debug(f"core pid: {self._process.pid}")
             self._monitor_task = asyncio.create_task(self._monitor_exit())

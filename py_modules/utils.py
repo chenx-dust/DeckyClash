@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import json
+import os
 import random
 import re
 import ssl
@@ -94,3 +95,8 @@ def get_ip() -> str:
 
 def sanitize_filename(name: str) -> str:
     return re.sub('[/]', '-', name)
+
+def env_fix() -> dict[str, str]:
+    current_env = os.environ.copy()
+    current_env.pop('LD_LIBRARY_PATH', None)
+    return current_env

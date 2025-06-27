@@ -28,9 +28,10 @@ import { QRCodeCanvas } from "qrcode.react";
 
 import { About, Import, Manage, Upgrade } from "./pages";
 import { backend, Config, EnhancedMode } from "./backend";
-import { ActionButtonItem, InstallationGuide } from "./components";
+import { ActionButtonItem, DoubleButton, InstallationGuide } from "./components";
 import { localizationManager, L } from "./i18n";
 import { TIPS_TIMEOUT } from "./global";
+import { FaPlus } from "react-icons/fa";
 
 let subscriptions: Record<string, string> = {};
 
@@ -360,29 +361,22 @@ const Content: FC<{}> = ({ }) => {
           />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ButtonItem
-            layout="below"
-            onClick={() => {
-              Router.CloseSideMenus();
-              Router.Navigate("/decky-clash/manage");
+          <DoubleButton
+            largeProps={{
+              children: t(L.MANAGE_SUBSCRIPTIONS),
+              onClick: () => {
+                Router.CloseSideMenus();
+                Router.Navigate("/decky-clash/manage");
+              }
             }}
-          >
-            {t(L.MANAGE_SUBSCRIPTIONS)}
-          </ButtonItem>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <ButtonItem
-            layout="below"
-            onClick={() => {
-              Router.CloseSideMenus();
-              Navigation.NavigateToExternalWeb(
-                `http://127.0.0.1:${controllerPort}/ui/${currentDashboard}/?hostname=127.0.0.1&port=${controllerPort}&secret=${secret}`
-              );
+            smallProps={{
+              children: <FaPlus />,
+              onClick: () => {
+                Router.CloseSideMenus();
+                Router.Navigate("/decky-clash/import");
+              }
             }}
-            disabled={clashStateChanging || !clashState || !currentDashboard}
-          >
-            {t(L.OPEN_DASHBOARD)}
-          </ButtonItem>
+          />
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
@@ -398,6 +392,20 @@ const Content: FC<{}> = ({ }) => {
               backend.setConfigValue("dashboard", value.data);
             }}
           />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ButtonItem
+            layout="below"
+            onClick={() => {
+              Router.CloseSideMenus();
+              Navigation.NavigateToExternalWeb(
+                `http://127.0.0.1:${controllerPort}/ui/${currentDashboard}/?hostname=127.0.0.1&port=${controllerPort}&secret=${secret}`
+              );
+            }}
+            disabled={clashStateChanging || !clashState || !currentDashboard}
+          >
+            {t(L.OPEN_DASHBOARD)}
+          </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField

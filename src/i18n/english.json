@@ -7,6 +7,7 @@
     "ACKNOWLEDGE": "Acknowledge",
     "IMPORT": "Import",
     "MANAGE": "Manage",
+    "DEPENDENCY": "Dependency",
     "SUBSCRIPTION_ACTIONS": "Subscription Actions",
     "EDIT": "Edit",
     "DUPLICATE": "Duplicate",

@@ -48,7 +48,7 @@ export const About: FC = () => {
       </DialogControlsSection>
       <DialogControlsSection>
         <DialogControlsSectionHeader>
-          {t(L.ACKNOWLEDGE)}
+          {t(L.DEPENDENCY)}
         </DialogControlsSectionHeader>
         <DescriptionField label="Mihomo">
           Light-weight Clash/Mihomo proxy client for Steam OS.
@@ -93,6 +93,11 @@ export const About: FC = () => {
           GitHub Repo
         </Field>
 
+      </DialogControlsSection>
+      <DialogControlsSection>
+        <DialogControlsSectionHeader>
+          {t(L.ACKNOWLEDGE)}
+        </DialogControlsSectionHeader>
         <DescriptionField label="To Moon">
           A network toolbox for SteamOS.
           <br />

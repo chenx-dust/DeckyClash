@@ -49,6 +49,10 @@
    curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- -h
    ```
 
+## 开发指南
+
+参见 [DEV_GUIDE.md](./docs/DEV_GUIDE.md)
+
 ## 致谢
 
 - [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo): DeckyClash 由 Mihomo 提供支持。

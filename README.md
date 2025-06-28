@@ -51,6 +51,10 @@ This project is licensed by **BSD 3-Clause License** .
    curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- -h
    ```
 
+## Development Guide
+
+See [DEV_GUIDE.md](./docs/DEV_GUIDE.md) for details.
+
 ## Acknowledge
 
 - [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo): DeckyClash is powered by Mihomo.

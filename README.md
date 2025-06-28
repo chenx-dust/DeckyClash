@@ -29,9 +29,9 @@
 
 This project is licensed by **BSD 3-Clause License** .
 
-## Installation
+## Install
 
-1. Install [Decky Loader](https://github.com/SteamDeckHomebrew/decky-loader)
+1. Install [Decky Loader](https://github.com/SteamDeckHomebrew/decky-loader) , skip if installed already
 
    ```sh
    curl -L https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/download/install_release.sh | sh
@@ -50,6 +50,37 @@ This project is licensed by **BSD 3-Clause License** .
    ```sh
    curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- -h
    ```
+
+## Upgrade
+
+Plugin will automatically check for updates every time you enter the Steam interface. If there is a new version, a toast will be shown.
+
+Built-in upgrade:
+
+1. Enter the Quick Access Menu and select **DeckyClash**
+2. Find the **Version** column and click the **Manage Upgrades** button
+3. The program will automatically check for updates, and the **Latest Version** row will display
+4. If **Latest Version** and **Installed Version** are different, an upgrade button will be shown, click to start
+
+Full upgrade (i.e., execute the installation step):
+
+```sh
+curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash
+```
+
+Only upgrade third-party resources:
+
+```sh
+curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --without-plugin --yes
+```
+
+## Uninstall
+
+**Note:** The script uninstalls DeckyClash, which will delete all files, including settings, subscriptions, downloaded Dashboards, etc. Please use with caution.
+
+```sh
+curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --clean-uninstall
+```
 
 ## Development Guide
 

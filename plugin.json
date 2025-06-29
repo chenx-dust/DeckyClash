@@ -6,6 +6,6 @@
   "publish": {
     "tags": ["root", "network"],
     "description": "Light-weight Clash/Mihomo proxy client for Steam OS.",
-    "image": "https://github.com/chenx-dust/DeckyClash/blob/main/assets/logo.svg"
+    "image": "https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/assets/logo.svg"
   }
 }

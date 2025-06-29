@@ -8,11 +8,11 @@
    </div>
    <p>
       <i>Light-weight Clash/Mihomo proxy client for Steam OS</i>
-      <br />
+      <br>
       <i>为 Steam OS 设计的轻量的 Clash/Mihomo 代理客户端</i>
    </p>
    <p>
-      <b>EN<b> | <a href="./README_CN.md">中文</a></b>
+      <b>EN</b> | <b><a href="./README_CN.md">中文</a></b>
    <p>
 </div>
 

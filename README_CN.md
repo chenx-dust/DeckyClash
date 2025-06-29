@@ -1,13 +1,20 @@
 <div align="center">
-   <h1>
-      <img src="./assets/gicat.svg" width="32" height="32">
-      DeckyClash
-   </h1>
+   <img src="./assets/logo.svg" width="400" height="200" alt="DeckyClash">
+   <div>
+      <img src="https://img.shields.io/github/check-runs/chenx-dust/DeckyClash/main" alt="Actions">
+      <img src="https://img.shields.io/github/v/release/chenx-dust/DeckyClash" alt="Release">
+      <img src="https://img.shields.io/github/downloads/chenx-dust/DeckyClash/total" alt="Downloads">
+      <img src="https://img.shields.io/badge/license-BSD 3--Clause-blue" alt="License">
+   </div>
+   <p>
+      <i>Light-weight Clash/Mihomo proxy client for Steam OS</i>
+      <br />
+      <i>为 Steam OS 设计的轻量的 Clash/Mihomo 代理客户端</i>
+   </p>
+   <p>
+      <b>中文<b> | <a href="./README.md">EN</a></b>
+   <p>
 </div>
-
-*为 Steam OS 设计的轻量的 Clash/Mihomo 代理客户端*
-
-**中文** | [EN](./README.md)
 
 ## 功能
 

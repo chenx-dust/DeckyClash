@@ -1,16 +1,12 @@
 import asyncio
 import gzip
-import json
 import os
 from pathlib import Path
 import shutil
-import ssl
 import stat
-import subprocess
 import tempfile
 import time
 from typing import Dict, Optional, Tuple
-import urllib.request
 
 import core
 import dashboard
@@ -37,6 +33,16 @@ def recursive_chmod(path: str, perms: int) -> None:
         os.chmod(dirpath, current_perms | perms)
         for filename in filenames:
             os.chmod(os.path.join(dirpath, filename), current_perms | perms)
+
+def ensure_bin_dir() -> None:
+    bin_dir = os.path.join(decky.DECKY_PLUGIN_DIR, "bin")
+    if not os.path.exists(bin_dir):
+        os.mkdir(bin_dir)
+
+def ensure_dashboard_dir() -> None:
+    dashboard_dir = dashboard.DASHBOARD_DIR
+    if not os.path.exists(dashboard_dir):
+        os.mkdir(dashboard_dir)
 
 async def restart_plugin_loader() -> None:
     proc = await asyncio.create_subprocess_shell(
@@ -68,12 +74,14 @@ async def upgrade_to_latest(timeout: float, download_timeout: float) -> None:
         await asyncio.to_thread(recursive_chmod, plugin_dir, stat.S_IWUSR)
 
         # backup binaries
-        backup_bindaries_dir = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "bin_backup")
-        logger.debug(f"backing up to {backup_bindaries_dir}")
-        await asyncio.to_thread(shutil.copytree,
-                                os.path.join(plugin_dir, "bin"),
-                                backup_bindaries_dir,
-                                dirs_exist_ok=True)
+        binaries_dir = os.path.join(plugin_dir, "bin")
+        backup_binaries_dir = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "bin_backup")
+        if os.path.exists(binaries_dir):
+            logger.debug(f"backing up to {backup_binaries_dir}")
+            await asyncio.to_thread(shutil.copytree,
+                                    binaries_dir,
+                                    backup_binaries_dir,
+                                    dirs_exist_ok=True)
 
         # remove old plugin
         await asyncio.to_thread(shutil.rmtree, plugin_dir)
@@ -87,11 +95,12 @@ async def upgrade_to_latest(timeout: float, download_timeout: float) -> None:
         )
 
         # recover old binaries
-        logger.debug(f"recovering old binaries")
-        await asyncio.to_thread(shutil.copytree,
-                                backup_bindaries_dir,
-                                os.path.join(plugin_dir, "bin"),
-                                dirs_exist_ok=True)
+        if os.path.exists(backup_binaries_dir):
+            logger.debug(f"recovering old binaries")
+            await asyncio.to_thread(shutil.copytree,
+                                    backup_binaries_dir,
+                                    binaries_dir,
+                                    dirs_exist_ok=True)
         
         os.chmod(core.CoreController.CORE_PATH, 0o755)
         os.chmod(config.YQ_PATH, 0o755)
@@ -99,9 +108,9 @@ async def upgrade_to_latest(timeout: float, download_timeout: float) -> None:
         # cleanup downloaded files
         logger.debug(f"cleaning up")
         remove_no_fail(downloaded_filepath)
-        await asyncio.to_thread(shutil.rmtree, backup_bindaries_dir)
+        await asyncio.to_thread(shutil.rmtree, backup_binaries_dir)
 
-        logger.info("upgrade complete")
+        logger.info("upgrade_to_latest: complete")
         await restart_plugin_loader()
 
 async def upgrade_to_latest_core(timeout: float, download_timeout) -> None:
@@ -110,6 +119,7 @@ async def upgrade_to_latest_core(timeout: float, download_timeout) -> None:
     core_path = core.CoreController.CORE_PATH
 
     if os.path.exists(downloaded_filepath):
+        ensure_bin_dir()
         logger.debug(f"removing old plugin from {core_path}")
         # remove old plugin
         remove_no_fail(core_path)
@@ -123,14 +133,15 @@ async def upgrade_to_latest_core(timeout: float, download_timeout) -> None:
         # cleanup downloaded files
         remove_no_fail(downloaded_filepath)
 
-        logger.info("upgrade complete")
+        logger.info("upgrade_to_latest_core: complete")
 
 async def upgrade_to_latest_yq(timeout: float, download_timeout) -> None:
-    logger.info("upgrading to latest version of core")
+    logger.info("upgrading to latest version of yq")
     downloaded_filepath = await download_latest_yq(timeout, download_timeout)
     yq_path = config.YQ_PATH
 
     if os.path.exists(downloaded_filepath):
+        ensure_bin_dir()
         logger.debug(f"removing old plugin from {yq_path}")
         # remove old plugin
         remove_no_fail(yq_path)
@@ -140,7 +151,7 @@ async def upgrade_to_latest_yq(timeout: float, download_timeout) -> None:
         shutil.move(downloaded_filepath, yq_path)
         os.chmod(yq_path, 0o755)
 
-        logger.info("upgrade complete")
+        logger.info("upgrade_to_latest_yq: complete")
 
 
 async def download_latest_build(timeout: float, download_timeout: float) -> str:

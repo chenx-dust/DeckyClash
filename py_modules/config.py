@@ -25,7 +25,7 @@ async def generate_config(
         controller_port: int,
         allow_remote_access: bool,
         dashboard_dir: str,
-        dashboard: str,
+        dashboard: Optional[str],
         ) -> None:
     shutil.copyfile(ori_config, new_config)
     if override_dns:
@@ -38,8 +38,9 @@ async def generate_config(
         f'"{"0.0.0.0" if allow_remote_access else "127.0.0.1"}' \
         f':{controller_port}" | ' \
         f'.secret = "{secret}" | ' \
-        f'.external-ui = "{dashboard_dir}" | ' \
-        f'.external-ui-name = "{dashboard}"'
+        f'.external-ui = "{dashboard_dir}"'
+    if dashboard is not None:
+        cmd += f' | .external-ui-name = "{dashboard}"'
     await _edit_in_place(new_config, cmd)
 
     cmd = 'select(fi==0).tun = select(fi==1).tun-override | ' \

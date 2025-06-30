@@ -97,7 +97,7 @@ class Plugin:
             self._get("controller_port"),
             self._get("allow_remote_access"),
             str(dashboard.DASHBOARD_DIR),
-            self._get("dashboard")
+            self._get("dashboard", True)
         )
 
     async def get_core_status(self) -> bool:
@@ -195,7 +195,7 @@ class Plugin:
 
     async def upgrade_to_latest_yq(self) -> Tuple[bool, Optional[str]]:
         try:
-            await upgrade.upgrade_to_latest_core(self._get("timeout"), self._get("download_timeout"))
+            await upgrade.upgrade_to_latest_yq(self._get("timeout"), self._get("download_timeout"))
         except Exception as e:
             logger.error(f"upgrade_to_latest_yq: failed with {e}")
             return False, str(e)
@@ -374,7 +374,10 @@ class Plugin:
         if allow_none:
             return self.settings.getSetting(key)
         else:
-            return utils.not_none(self.settings.getSetting(key))
+            value = self.settings.getSetting(key)
+            if value is None:
+                raise ValueError(f'Value of "{key}" is None')
+            return value
 
     def _set_default(self, key: str, value: Any):
         if not self.settings.getSetting(key):

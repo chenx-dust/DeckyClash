@@ -43,11 +43,6 @@ async def get_url_to_file(url: str | urllib.request.Request, dest: str, timeout:
 def rand_thing() -> str:
     return base64.urlsafe_b64encode(random.randbytes(8)).decode()[:-1]
 
-def not_none(x: Optional[Any]) -> Any:
-    if x is None:
-        raise ValueError('None is not allowed')
-    return x
-
 def get_ip_by_iface(iface: str) -> Optional[str]:
     ifreq = struct.pack('16sH14s', iface.encode(), socket.AF_INET, b'\x00'*14)
     try:

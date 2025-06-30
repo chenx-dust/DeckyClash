@@ -77,5 +77,8 @@
     "INSTALL_FAILURE": "安装失败",
     "UPGRADE_MANAGE": "管理更新",
     "UPGRADE_AVAILABLE": "存在更新",
-    "ABOUT_PLUGIN": "关于 DeckyClash"
+    "ABOUT_PLUGIN": "关于 DeckyClash",
+    "REORDER": "排序",
+    "SAVE": "保存",
+    "CANCEL": "取消"
 }

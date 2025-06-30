@@ -327,6 +327,14 @@ class Plugin:
         else:
             return False
 
+    async def reorder_subscriptions(self, names: List[str]) -> None:
+        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        logger.debug(f"reorder_subscriptions: current: {subs.keys()} target: {names}")
+        if set(names) != set(subs.keys()):
+            logger.error(f"reorder_subscriptions: unmatched target")
+            return
+        self.settings.setSetting("subscriptions", {k: subs[k] for k in names})
+
     async def get_ip(self) -> str:
         return utils.get_ip()
 

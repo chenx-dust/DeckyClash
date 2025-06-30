@@ -76,5 +76,8 @@
     "INSTALL_FAILURE": "Failed to Install",
     "UPGRADE_MANAGE": "Manage Upgrades",
     "UPGRADE_AVAILABLE": "Upgrade Available",
-    "ABOUT_PLUGIN": "About DeckyClash"
+    "ABOUT_PLUGIN": "About DeckyClash",
+    "REORDER": "Reorder",
+    "SAVE": "Save",
+    "CANCEL": "Cancel"
 }

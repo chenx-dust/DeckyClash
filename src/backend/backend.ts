@@ -29,6 +29,7 @@ export const removeSubscription = callable<[string], []>("remove_subscription");
 export const duplicateSubscription = callable<[string], []>("duplicate_subscription");
 export const editSubscription = callable<[string, string, string], []>("edit_subscription");
 export const setCurrent = callable<[string], boolean>("set_current");
+export const reorderSubscriptions = callable<[string[]], []>("reorder_subscriptions");
 
 export const getDashboardList = callable<[], string[]>("get_dashboard_list");
 

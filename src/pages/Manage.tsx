@@ -17,6 +17,7 @@ export interface ManageProp {
 export const Manage: FC<ManageProp> = (props) => {
   const [subscriptions, setSubscriptions] = useState(props.Subscriptions);
   const [editMode, setEditMode] = useState(false);
+  const [reorderEnabled, setReorderEnabled] = useState(false);
   const refs: RefObject<Record<string, CallbackRef>> = useRef({});
 
   const updateSubs = () => 
@@ -89,6 +90,26 @@ export const Manage: FC<ManageProp> = (props) => {
     };
   };
 
+  const swapEntries = (indexA: number, indexB: number) => {
+    const size = Object.keys(subscriptions).length;
+    if (indexA < 0 || indexA >= size ||
+      indexB < 0 || indexB >= size) {
+      console.error('reorder: Invalid index');
+      return;
+    }
+    let new_subs = Object.entries(subscriptions);
+    new_subs[indexA] = [new_subs[indexB], new_subs[indexB] = new_subs[indexA]][0];
+    setSubscriptions(Object.fromEntries(new_subs));
+  };
+
+  const finishReorder = (save: boolean) => {
+    setReorderEnabled(false);
+    if (save)
+      backend.reorderSubscriptions(Object.keys(subscriptions)).then(refreshSubs);
+    else
+      refreshSubs();
+  };
+
   return (
     <DialogBody>
       <Field label={t(L.SUBSCRIPTION_LIST)}>
@@ -137,32 +158,40 @@ export const Manage: FC<ManageProp> = (props) => {
 }
         `}
       </style>
-      {Object.keys(subscriptions).length > 0 ? Object.entries(subscriptions).map(([name, url]) => {
-        return (
-          <SubscriptionField
-            ref={(el) => refs.current[name] = el}
-            label={name}
-            description={url}
-            editMode={editMode}
-            updateCallback={async () => {
-              const [success, error] = await backend.updateSubscription(name);
-              if (!success) {
-                toaster.toast({
-                  title: t(L.UPDATE_FAILURE),
-                  body: error,
-                  icon: <BsExclamationCircleFill />,
-                  duration: TIPS_TIMEOUT,
-                });
-              }
-              return success;
-            }}
-            onOtherClick={showCtxMenu(name, url)}
-            onEditClick={() => showEditModal(name, url)}
-            onCopyClick={() => backend.duplicateSubscription(name).then(refreshSubs)}
-            onDelClick={() => backend.removeSubscription(name).then(refreshSubs)}
-          />
-        );
-      }) : <p style={{ textAlign: 'center' }}>{t(L.NO_SUBSCRIPTIONS)}</p>}
+      {Object.keys(subscriptions).length > 0 ?
+        (<Focusable
+          onSecondaryButton={!reorderEnabled && (() => setReorderEnabled(true)) || undefined}
+          onSecondaryActionDescription={!reorderEnabled && t(L.REORDER) || undefined}
+          children={Object.entries(subscriptions).map(([name, url], index) => {
+            return (
+              <SubscriptionField
+                ref={(el) => refs.current[name] = el}
+                label={name}
+                description={url}
+                editMode={editMode}
+                updateCallback={async () => {
+                  const [success, error] = await backend.updateSubscription(name);
+                  if (!success) {
+                    toaster.toast({
+                      title: t(L.UPDATE_FAILURE),
+                      body: error,
+                      icon: <BsExclamationCircleFill />,
+                      duration: TIPS_TIMEOUT,
+                    });
+                  }
+                  return success;
+                }}
+                onOtherClick={showCtxMenu(name, url)}
+                onEditClick={() => showEditModal(name, url)}
+                onCopyClick={() => backend.duplicateSubscription(name).then(refreshSubs)}
+                onDelClick={() => backend.removeSubscription(name).then(refreshSubs)}
+                reorderEnabled={reorderEnabled}
+                reorderCallback={(diff) => swapEntries(index, index + diff)}
+                reorderFinishCallback={finishReorder}
+              />
+            );
+          })}
+        />) : <p style={{ textAlign: 'center' }}>{t(L.NO_SUBSCRIPTIONS)}</p>}
     </DialogBody>
   );
 };

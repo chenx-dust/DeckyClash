@@ -60,7 +60,8 @@ curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh 
 
 ### Offline Installer
 
-> [!NOTE] This offline installer includes all necessary third-party resources. However, it may not be up-to-date as the online installer.
+> [!NOTE]
+> This offline installer includes all necessary third-party resources. However, it may not be up-to-date as the online installer.
 
 1. Go to [Latest Release](https://github.com/chenx-dust/DeckyClash/releases/latest) and download `Installer-DeckyClash.sh`
 

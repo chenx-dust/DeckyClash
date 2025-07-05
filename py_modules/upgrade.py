@@ -28,11 +28,17 @@ def get_github_api_url(repo: str) -> str:
     return f"https://api.github.com/repos/{repo}/releases/latest"
 
 def recursive_chmod(path: str, perms: int) -> None:
-    for dirpath, dirnames, filenames in os.walk(path):
+    for dirpath, _, filenames in os.walk(path):
         current_perms = os.stat(dirpath).st_mode
         os.chmod(dirpath, current_perms | perms)
         for filename in filenames:
             os.chmod(os.path.join(dirpath, filename), current_perms | perms)
+
+def recursive_chown(path: str, user: str | int, group: str | int) -> None:
+    for dirpath, _, filenames in os.walk(path):
+        shutil.chown(dirpath, user, group)
+        for filename in filenames:
+            shutil.chown(os.path.join(dirpath, filename), user, group)
 
 def ensure_bin_dir() -> None:
     bin_dir = os.path.join(decky.DECKY_PLUGIN_DIR, "bin")
@@ -87,12 +93,10 @@ async def upgrade_to_latest(timeout: float, download_timeout: float) -> None:
         await asyncio.to_thread(shutil.rmtree, plugin_dir)
 
         logger.debug(f"extracting ota file to {plugin_dir}")
-        await asyncio.to_thread(
-            shutil.unpack_archive,
-            downloaded_filepath,
-            str(Path(plugin_dir).parent),
-            format="zip",
-        )
+        await asyncio.to_thread(shutil.unpack_archive,
+                                downloaded_filepath,
+                                str(Path(plugin_dir).parent),
+                                format="zip")
 
         # recover old binaries
         if os.path.exists(backup_binaries_dir):
@@ -101,9 +105,10 @@ async def upgrade_to_latest(timeout: float, download_timeout: float) -> None:
                                     backup_binaries_dir,
                                     binaries_dir,
                                     dirs_exist_ok=True)
+            await asyncio.to_thread(shutil.rmtree, backup_binaries_dir)
         
-        os.chmod(core.CoreController.CORE_PATH, 0o755)
-        os.chmod(config.YQ_PATH, 0o755)
+        await asyncio.to_thread(recursive_chmod, binaries_dir, stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        await asyncio.to_thread(recursive_chown, decky.DECKY_PLUGIN_DIR, decky.DECKY_USER, decky.DECKY_USER)
 
         # cleanup downloaded files
         logger.debug(f"cleaning up")
@@ -130,6 +135,7 @@ async def upgrade_to_latest_core(timeout: float, download_timeout) -> None:
                     d.write(f.read())
         await asyncio.to_thread(_impl)
         os.chmod(core_path, 0o755)
+        shutil.chown(core_path, decky.DECKY_USER, decky.DECKY_USER)
         # cleanup downloaded files
         remove_no_fail(downloaded_filepath)
 
@@ -150,6 +156,7 @@ async def upgrade_to_latest_yq(timeout: float, download_timeout) -> None:
 
         shutil.move(downloaded_filepath, yq_path)
         os.chmod(yq_path, 0o755)
+        shutil.chown(yq_path, decky.DECKY_USER, decky.DECKY_USER)
 
         logger.info("upgrade_to_latest_yq: complete")
 
@@ -244,12 +251,13 @@ GEO_FILES = {
 
 async def download_geos(timeout: float):
     promises = []
+    async def _impl(filename, url):
+        path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, filename)
+        await utils.get_url_to_file(url, path, timeout)
+        shutil.chown(path, decky.DECKY_USER, decky.DECKY_USER)
+
     for filename, url in GEO_FILES.items():
-        promises.append(
-            utils.get_url_to_file(
-                url, 
-                os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, filename),
-                timeout=timeout))
+        promises.append(_impl(filename, url))
     await asyncio.gather(*promises)
 
 DASHBOARDS: Dict[str, Tuple[str, str]] = {
@@ -287,6 +295,11 @@ async def download_dashboards(timeout: float):
             os.path.join(tmpdir, subdir),
             dashboard_dir,
             dirs_exist_ok=True)
+        
+        await asyncio.to_thread(recursive_chown,
+                                dashboard_dir,
+                                decky.DECKY_USER,
+                                decky.DECKY_USER)
 
     for filename, (subdir, url) in DASHBOARDS.items():
         promises.append(_impl(filename, subdir, url))

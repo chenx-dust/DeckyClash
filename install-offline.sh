@@ -67,7 +67,11 @@ fi
 
 if [ -d "${PLUGIN_DIR}" ]; then
   echo "Removing existing plugin ..."
-  rm -rf "${PLUGIN_DIR}" || sudo rm -rf "${PLUGIN_DIR}"
+  rm -rf "${PLUGIN_DIR}" 2>/dev/null || sudo rm -rf "${PLUGIN_DIR}"
+fi
+if [ -d "${DATA_DIR}" ]; then
+  echo "Removing existing data ..."
+  rm -rf "${DATA_DIR}" 2>/dev/null || sudo rm -rf "${PLUGIN_DIR}"
 fi
 cp -a "${TEMP_DIR}/homebrew/." "${BASE_DIR}"
 

@@ -47,7 +47,7 @@ function usage() {
   echo "  Basic install:   curl -L ${SCRIPT_URL} | bash"
   echo "  Clean install:   curl -L ${SCRIPT_URL} | bash -s -- --clean"
   echo "  Clean uninstall: curl -L ${SCRIPT_URL} | bash -s -- --clean-uninstall"
-  echo "  Update blobs:    curl -L ${SCRIPT_URL} | bash -s -- --without-plugin"
+  echo "  Update blobs:    curl -L ${SCRIPT_URL} | bash -s -- --without-plugin --without-restart"
   echo "  Nightly version: curl -L ${SCRIPT_URL} | bash -s -- --version nightly"
 }
 
@@ -198,7 +198,7 @@ if prompt_continue $WITHOUT_PLUGIN; then
 
   DL_DEST="${TEMP_DIR}/${PACKAGE}.zip"
   wget -O "${DL_DEST}" "${RELEASE_URL}"
-  unzip "${DL_DEST}" -d "${TEMP_DIR}"
+  unzip -oq "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${PLUGIN_DIR}"
   $SUDO mv "${TEMP_DIR}/${PACKAGE}" "${PLUGIN_DIR}"
   $SUDO chmod +w "${PLUGIN_DIR}"
@@ -290,7 +290,7 @@ if prompt_continue $WITHOUT_DASHBOARD; then
   DL_DEST="${TEMP_DIR}/yacd-meta.zip"
   INSTALL_DEST="${DASHBOARD_DIR}/yacd-meta"
 	wget -O "${DL_DEST}" ${GITHUB_BASE_URL}/MetaCubeX/yacd/archive/gh-pages.zip
-	unzip -q "${DL_DEST}" -d "${TEMP_DIR}"
+	unzip -oq "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${INSTALL_DEST}"
 	mv "${TEMP_DIR}/Yacd-meta-gh-pages" "${INSTALL_DEST}"
 
@@ -298,7 +298,7 @@ if prompt_continue $WITHOUT_DASHBOARD; then
   DL_DEST="${TEMP_DIR}/metacubexd.zip"
   INSTALL_DEST="${DASHBOARD_DIR}/metacubexd"
 	wget -O "${DL_DEST}" ${GITHUB_BASE_URL}/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip
-	unzip -q "${DL_DEST}" -d "${TEMP_DIR}"
+	unzip -oq "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${INSTALL_DEST}"
 	mv "${TEMP_DIR}/metacubexd-gh-pages" "${INSTALL_DEST}"
 
@@ -306,7 +306,7 @@ if prompt_continue $WITHOUT_DASHBOARD; then
   DL_DEST="${TEMP_DIR}/zashboard.zip"
   INSTALL_DEST="${DASHBOARD_DIR}/zashboard"
 	wget -O "${DL_DEST}" ${GITHUB_BASE_URL}/Zephyruso/zashboard/releases/latest/download/dist.zip
-	unzip -q "${DL_DEST}" -d "${TEMP_DIR}"
+	unzip -oq "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${INSTALL_DEST}"
 	mv "${TEMP_DIR}/dist" "${INSTALL_DEST}"
 fi

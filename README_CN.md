@@ -36,53 +36,58 @@
 
 ## 安装
 
+### 前置条件
+
 > [!WARNING]
-> 安装 DeckyClash 需要在能流畅访问 Github 的网络条件下进行
+> 使用此方法安装 Decky Loader 需要在能流畅访问 Github 的网络条件下进行。如果不具备此条件，请利用搜索引擎寻找镜像或其它替代方案。
 
-1. 安装 [Decky Loader](https://github.com/SteamDeckHomebrew/decky-loader) ，若已安装可以跳过
+安装 [Decky Loader](https://github.com/SteamDeckHomebrew/decky-loader)
 
-   ```sh
-   curl -L https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/download/install_release.sh | sh
-   ```
+```sh
+curl -L https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/download/install_release.sh | sh
+```
 
-2. 安装 DeckyClash
+### 在线安装脚本
 
-   ```sh
-   curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash
-   ```
+> [!WARNING]
+> 使用在线安装脚本安装 DeckyClash 需要在能流畅访问 Github 的网络条件下进行。
 
-   安装脚本会从 Github 下载最新的发行版本，以及必要的第三方资源，如：最新的 Mihomo 核心、最新的 yq 处理器、推荐使用的 Dashboards 以及核心需要的 Geo 文件等。
+```sh
+curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash
+```
 
-   脚本包含下载 nightly 版本、更新第三方资源等功能，可以通过 `-h/--help` 参数查看用法：
+安装脚本会从 Github 下载最新的发行版本，以及必要的第三方资源，如：最新的 Mihomo 核心、最新的 yq 处理器、推荐使用的 Dashboards 以及核心需要的 Geo 文件等。
 
-   ```sh
-   curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --help
-   ```
+脚本包含下载每夜版本、更新第三方资源等功能，可以通过 `-h/--help` 参数查看用法：
+
+```sh
+curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --help
+```
 
 ## 更新
 
-> [!WARNING]
-> 更新 DeckyClash 需要在能流畅访问 Github 的网络条件下进行
-
 每次进入 Steam 界面后，插件会自动检查更新。如有新版本会通过通知提醒。
 
-插件内更新：
+### 插件内更新
+
+> [!WARNING]
+> 插件内更新 DeckyClash 需要在能流畅访问 Github 的网络条件下进行，可以通过合理使用 DeckyClash 功能来实现。
 
 1. 进入快捷指令菜单，选择 **DeckyClash**
 2. 找到 **版本** 栏目，点击 **管理更新** 按钮
 3. 程序会自动检查更新，并在 **最新版本** 栏目中显示
 4. 若 **最新版本** 和 **已安装版本** 不同时，操作按钮会提示更新，点击即可开始
 
-完整更新（即执行安装步骤）：
+### 完整更新
+
+（与安装步骤相同）
+
+### 更新第三方资源
+
+执行以下下命令：
 
 ```sh
-curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash
-```
-
-仅更新第三方资源：
-
-```sh
-curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --without-plugin --yes
+curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --without-plugin --without-restart --yes
 ```
 
 ## 卸载

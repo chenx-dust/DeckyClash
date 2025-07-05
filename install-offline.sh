@@ -51,7 +51,7 @@ echo "Unarchiving ..."
 ZIPFILE="${TEMP_DIR}/archive.zip"
 PAYLOAD_LINE=$(awk '/^__ZIPFILE_BELOW__/ { print NR + 1; exit 0; }' "$0")
 tail -n +${PAYLOAD_LINE} "$0" > "${ZIPFILE}"
-unzip -q -o "${ZIPFILE}" -d "${TEMP_DIR}"
+unzip -oq "${ZIPFILE}" -d "${TEMP_DIR}"
 
 AUTHOR=$(cat "${TEMP_DIR}/homebrew/plugins/${PACKAGE}/plugin.json" | grep "author" | cut -d '"' -f 4)
 VERSION=$(cat "${TEMP_DIR}/homebrew/plugins/${PACKAGE}/package.json" | grep "version" | cut -d '"' -f 4)

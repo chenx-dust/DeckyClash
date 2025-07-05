@@ -36,47 +36,69 @@ This project is licensed by **BSD 3-Clause License** .
 
 ## Install
 
-1. Install [Decky Loader](https://github.com/SteamDeckHomebrew/decky-loader) , skip if installed already
+### Prerequisite
+
+Install [Decky Loader](https://github.com/SteamDeckHomebrew/decky-loader)
+
+```sh
+curl -L https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/download/install_release.sh | sh
+```
+
+### Online Install Script (Recommended)
+
+```sh
+curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash
+```
+
+The installation script will download the latest release from Github, as well as necessary third-party resources such as the latest Mihomo core, the latest yq processor, recommended Dashboards, and the Geo files required by the core.
+
+The script includes functions to download nightly versions and update third-party resources, which can be viewed through the `-h` parameter:
+
+```sh
+curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- -h
+```
+
+### Offline Installer
+
+> [!NOTE] This offline installer includes all necessary third-party resources. However, it may not be up-to-date as the online installer.
+
+1. Go to [Latest Release](https://github.com/chenx-dust/DeckyClash/releases/latest) and download `Installer-DeckyClash.sh`
+
+2. Use any method to send the installer to your target device, e.g. USB, SCP, etc.
+
+3. Grant executable permission to the installer
 
    ```sh
-   curl -L https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/download/install_release.sh | sh
+   chmod +x Installer-DeckyClash.sh
    ```
 
-2. Install DeckyClash
+4. Run the installer and follow the instructions
 
    ```sh
-   curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash
-   ```
-
-   The installation script will download the latest release from Github, as well as necessary third-party resources such as the latest Mihomo core, the latest yq processor, recommended Dashboards, and the Geo files required by the core.
-
-   The script includes functions to download nightly versions and update third-party resources, which can be viewed through the `-h` parameter:
-
-   ```sh
-   curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- -h
+   ./Installer-DeckyClash.sh
    ```
 
 ## Upgrade
 
 Plugin will automatically check for updates every time you enter the Steam interface. If there is a new version, a toast will be shown.
 
-Built-in upgrade:
+### Built-in upgrade
 
 1. Enter the Quick Access Menu and select **DeckyClash**
 2. Find the **Version** column and click the **Manage Upgrades** button
 3. The program will automatically check for updates, and the **Latest Version** row will display
 4. If **Latest Version** and **Installed Version** are different, an upgrade button will be shown, click to start
 
-Full upgrade (i.e., execute the installation step):
+### Full upgrade
+
+(Same as the installation step)
+
+### Upgrade Third-Party Resources
+
+Execute the following command:
 
 ```sh
-curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash
-```
-
-Only upgrade third-party resources:
-
-```sh
-curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --without-plugin --yes
+curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --without-plugin --without-restart --yes
 ```
 
 ## Uninstall

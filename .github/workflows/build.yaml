@@ -48,8 +48,10 @@ jobs:
           mkdir -p release/homebrew/plugins
           cp -R release/DeckyClash release/homebrew/plugins/
           OVERRIDE_BASE_DIR="release/homebrew" ./install.sh --yes --no-privilege --without-plugin --without-restart
-          cd release 
+          cp install-offline.sh release/Installer-DeckyClash.sh
+          cd release
           zip -r DeckyClash-full.zip homebrew
+          cat DeckyClash-full.zip >> Installer-DeckyClash.sh
           cd ..
 
       - name: Publish artifacts
@@ -59,6 +61,7 @@ jobs:
           path: |
             ./release/DeckyClash.zip
             ./release/DeckyClash-full.zip
+            ./release/Installer-DeckyClash.sh
           if-no-files-found: error
 
   publish:

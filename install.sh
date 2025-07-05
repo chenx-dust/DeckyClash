@@ -147,6 +147,15 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [ "$UID" -eq 0 ]; then
+  echo "WARNING: Running as root."
+  echo "This may cause permission issues."
+  echo
+  if ! prompt_continue; then
+    exit 1
+  fi
+fi
+
 TEMP_DIR=$(mktemp -d)
 
 function finish() {
@@ -162,6 +171,9 @@ for req in "${REQUIREMENTS[@]}"; do
   fi
 done
 
+echo "LEGAL NOTICE:"
+echo "By confirming installation, you agree to the terms of the software and service license."
+echo
 echo "Installing $REPO_NAME ..."
 if prompt_continue $WITHOUT_PLUGIN; then
   if [ -z "${SPECIFIED_VERSION}"]; then

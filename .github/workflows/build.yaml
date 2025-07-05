@@ -18,11 +18,6 @@ jobs:
         with:
           submodules: true
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip
-
       - uses: pnpm/action-setup@v4
         with:
           version: latest
@@ -41,22 +36,29 @@ jobs:
       - name: Collect files
         run: |
           mkdir -p release/DeckyClash
-          cp -R defaults/* ./release/DeckyClash/
+          cp -R defaults/* dist py_modules release/DeckyClash/
           rm -rf release/DeckyClash/defaults/external/.git
-          cp -R dist ./release/DeckyClash/
-          cp -R py_modules ./release/DeckyClash/
-          cp main.py ./release/DeckyClash/main.py
-          cp plugin.json ./release/DeckyClash/plugin.json
-          cp package.json ./release/DeckyClash/package.json
-          cd ./release 
+          cp main.py plugin.json package.json LICENSE release/DeckyClash/
+          cd release 
           zip -r DeckyClash.zip DeckyClash
+          cd ..
+
+      - name: Packing offine installer
+        run: |
+          mkdir -p release/homebrew/plugins
+          cp -R release/DeckyClash release/homebrew/plugins/
+          OVERRIDE_BASE_DIR="release/homebrew" ./install.sh --yes --no-privilege --without-plugin --without-restart
+          cd release 
+          zip -r DeckyClash-full.zip homebrew
           cd ..
 
       - name: Publish artifacts
         uses: actions/upload-artifact@v4
         with:
           name: deckyclash-artifacts
-          path: ./release/DeckyClash.zip
+          path: |
+            ./release/DeckyClash.zip
+            ./release/DeckyClash-full.zip
           if-no-files-found: error
 
   publish:

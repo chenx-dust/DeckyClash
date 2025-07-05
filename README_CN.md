@@ -87,7 +87,8 @@ curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh 
 
 ## 卸载
 
-**注意：** 脚本卸载会清除 DeckyClash 的所有文件，包含设置、订阅、已下载的 Dashboard 等数据，请谨慎使用。
+> [!CAUTION]
+> 脚本卸载会清除 DeckyClash 的所有文件，包含设置、订阅、已下载的 Dashboard 等数据，请谨慎使用。
 
 在终端执行：
 

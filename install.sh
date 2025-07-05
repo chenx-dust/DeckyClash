@@ -5,7 +5,9 @@ set -e
 AUTHOR="chenx-dust"
 REPO_NAME="DeckyClash"
 PACKAGE="DeckyClash"
-SCRIPT_URL="https://github.com/${AUTHOR}/${REPO_NAME}/raw/refs/heads/main/install.sh"
+GITHUB_BASE_URL=${OVERRIDE_GITHUB_BASE_URL:-"https://github.com"}
+API_BASE_URL=${OVERRIDE_API_BASE_URL:-"https://api.github.com"}
+SCRIPT_URL="${GITHUB_BASE_URL}/${AUTHOR}/${REPO_NAME}/raw/refs/heads/main/install.sh"
 BASE_DIR=${OVERRIDE_BASE_DIR:-"${HOME}/homebrew"}
 PLUGIN_DIR=${OVERRIDE_PLUGIN_DIR:-"${BASE_DIR}/plugins/${PACKAGE}"}
 DATA_DIR=${OVERRIDE_DATA_DIR:-"${BASE_DIR}/data/${PACKAGE}"}
@@ -33,6 +35,13 @@ function usage() {
   echo "      --without-restart       Skip restarting Decky Loader"
   echo "      --clean                 Remove all plugin files (includes config) before installing"
   echo "      --clean-uninstall       Uninstall and remove all plugin files (includes config)"
+  echo
+  echo "Environment Variables:"
+  echo '  OVERRIDE_GITHUB_BASE_URL    Override default: "https://github.com"'
+  echo '  OVERRIDE_API_BASE_URL       Override default: "https://api.github.com"'
+  echo '  OVERRIDE_BASE_DIR           Override default: "${HOME}/homebrew"'
+  echo '  OVERRIDE_PLUGIN_DIR         Override default: "${BASE_DIR}/plugins/${PACKAGE}"'
+  echo '  OVERRIDE_DATA_DIR           Override default: "${BASE_DIR}/data/${PACKAGE}"'
   echo
   echo "Examples:"
   echo "  Basic install:   curl -L ${SCRIPT_URL} | bash"
@@ -93,7 +102,7 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
-    --no-privileges)
+    --no-privilege)
       SUDO=""
       shift
       ;;
@@ -156,7 +165,7 @@ done
 echo "Installing $REPO_NAME ..."
 if prompt_continue $WITHOUT_PLUGIN; then
   if [ -z "${SPECIFIED_VERSION}"]; then
-    API_URL="https://api.github.com/repos/${AUTHOR}/${REPO_NAME}/releases/latest"
+    API_URL="${API_BASE_URL}/repos/${AUTHOR}/${REPO_NAME}/releases/latest"
     RELEASE=$(curl -s "$API_URL")
     MESSAGE=$(echo "${RELEASE}" | grep "message" | cut -d '"' -f 4)
     RELEASE_VERSION=$(echo "${RELEASE}" | grep "tag_name" | cut -d '"' -f 4)
@@ -168,7 +177,7 @@ if prompt_continue $WITHOUT_PLUGIN; then
     fi
     echo "Version: ${RELEASE_VERSION}"
   else
-    RELEASE_URL="https://github.com/${AUTHOR}/${REPO_NAME}/releases/download/${SPECIFIED_VERSION}/${PACKAGE}.zip"
+    RELEASE_URL="${GITHUB_BASE_URL}/${AUTHOR}/${REPO_NAME}/releases/download/${SPECIFIED_VERSION}/${PACKAGE}.zip"
   fi
   if [ -z "${RELEASE_URL}" ]; then
     echo "Failed to get latest release" >&2
@@ -190,7 +199,7 @@ if prompt_continue $WITHOUT_BINARY; then
   $SUDO chmod +w "${BIN_DIR}"
 	echo "Installing Mihomo ..."
 
-  RELEASE=$(curl -s "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest")
+  RELEASE=$(curl -s "${API_BASE_URL}/repos/MetaCubeX/mihomo/releases/latest")
   MESSAGE=$(echo "${RELEASE}" | grep "message" | cut -d '"' -f 4)
   RELEASE_VERSION=$(echo "${RELEASE}" | grep "tag_name" | cut -d '"' -f 4)
 	RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url.*linux-amd64-v.*gz\"" | cut -d '"' -f 4);
@@ -214,7 +223,7 @@ if prompt_continue $WITHOUT_BINARY; then
 	chmod +x "${INSTALL_DEST}"
 
 	echo "Installing yq ..."
-  RELEASE=$(curl -s "https://api.github.com/repos/mikefarah/yq/releases/latest")
+  RELEASE=$(curl -s "${API_BASE_URL}/repos/mikefarah/yq/releases/latest")
   MESSAGE=$(echo "${RELEASE}" | grep "message" | cut -d '"' -f 4)
   RELEASE_VERSION=$(echo "${RELEASE}" | grep "tag_name" | cut -d '"' -f 4)
 	RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url.*yq_linux_amd64\"" | cut -d '"' -f 4);
@@ -241,19 +250,19 @@ if prompt_continue $WITHOUT_GEO; then
   $SUDO chmod +w "${DATA_DIR}"
 
   echo "Downloading country.mmdb ..."
-  RELEASE_URL="https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb"
+  RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb"
   DEST="${DATA_DIR}/country.mmdb"
   $SUDO rm -f "${DEST}"
 	wget -O "${DEST}" "${RELEASE_URL}"
 
   echo "Downloading geosite.dat ..."
-  RELEASE_URL="https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
+  RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
   DEST="${DATA_DIR}/geosite.dat"
   $SUDO rm -f "${DEST}"
 	wget -O "${DEST}" "${RELEASE_URL}"
 
   echo "Downloading asn.mmdb ..."
-  RELEASE_URL="https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb"
+  RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb"
   DEST="${DATA_DIR}/asn.mmdb"
   $SUDO rm -f "${DEST}"
 	wget -O "${DEST}" "${RELEASE_URL}"
@@ -268,7 +277,7 @@ if prompt_continue $WITHOUT_DASHBOARD; then
 	echo "Installing yacd-meta..."
   DL_DEST="${TEMP_DIR}/yacd-meta.zip"
   INSTALL_DEST="${DASHBOARD_DIR}/yacd-meta"
-	wget -O "${DL_DEST}" https://github.com/MetaCubeX/yacd/archive/gh-pages.zip
+	wget -O "${DL_DEST}" ${GITHUB_BASE_URL}/MetaCubeX/yacd/archive/gh-pages.zip
 	unzip -q "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${INSTALL_DEST}"
 	mv "${TEMP_DIR}/Yacd-meta-gh-pages" "${INSTALL_DEST}"
@@ -276,7 +285,7 @@ if prompt_continue $WITHOUT_DASHBOARD; then
 	echo "Installing metacubexd..."
   DL_DEST="${TEMP_DIR}/metacubexd.zip"
   INSTALL_DEST="${DASHBOARD_DIR}/metacubexd"
-	wget -O "${DL_DEST}" https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip
+	wget -O "${DL_DEST}" ${GITHUB_BASE_URL}/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip
 	unzip -q "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${INSTALL_DEST}"
 	mv "${TEMP_DIR}/metacubexd-gh-pages" "${INSTALL_DEST}"
@@ -284,7 +293,7 @@ if prompt_continue $WITHOUT_DASHBOARD; then
 	echo "Installing zashboard..."
   DL_DEST="${TEMP_DIR}/zashboard.zip"
   INSTALL_DEST="${DASHBOARD_DIR}/zashboard"
-	wget -O "${DL_DEST}" https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip
+	wget -O "${DL_DEST}" ${GITHUB_BASE_URL}/Zephyruso/zashboard/releases/latest/download/dist.zip
 	unzip -q "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${INSTALL_DEST}"
 	mv "${TEMP_DIR}/dist" "${INSTALL_DEST}"

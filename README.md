@@ -81,7 +81,8 @@ curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh 
 
 ## Uninstall
 
-**Note:** The script uninstalls DeckyClash, which will delete all files, including settings, subscriptions, downloaded Dashboards, etc. Please use with caution.
+> [!CAUTION]
+> The script uninstalls DeckyClash, which will delete all files, including settings, subscriptions, downloaded Dashboards, etc. Please use with caution.
 
 ```sh
 curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --clean-uninstall

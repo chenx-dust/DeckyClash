@@ -3,8 +3,24 @@
 set -e
 
 PACKAGE="DeckyClash"
-BASE_DIR="${HOME}/homebrew"
-PLUGIN_DIR="${BASE_DIR}/plugins/${PACKAGE}"
+BASE_DIR=${OVERRIDE_BASE_DIR:-"${HOME}/homebrew"}
+PLUGIN_SUFFIX="plugins/${PACKAGE}"
+PLUGIN_DIR="${BASE_DIR}/${PLUGIN_SUFFIX}"
+DATA_SUFFIX="data/${PACKAGE}"
+DATA_DIR="${BASE_DIR}/${DATA_SUFFIX}"
+
+if [ "$UID" -eq 0 ]; then
+  echo "WARNING: Running as root."
+  echo "This may cause permission issues."
+  echo "If you insist to continue, please confirm homebrew path below is correct:"
+  echo "${BASE_DIR}"
+  echo "In most circumstances, this should NOT be: /root/homebrew"
+  echo "You SHOULD run sudo with -E flag to preserve environment variables, or use OVERRIDE_BASE_DIR to override it."
+  echo
+  if ! prompt_continue; then
+    exit 1
+  fi
+fi
 
 if [ ! -d "$BASE_DIR" ]; then
   echo "Directory ${BASE_DIR} does not exist."
@@ -30,6 +46,18 @@ function prompt_continue() {
   else
     echo "Invalid response. Not continuing."
     false
+  fi
+}
+
+function copy_impl() {
+  local src=$1
+  local dest=$2
+  if [ -d "$dest" ]; then
+    rm -rf "$dest" 2>/dev/null || sudo rm -rf "$dest"
+  fi
+  if ! cp -R "$src" "$dest" 2>/dev/null; then
+    sudo cp -R "$src" "$dest"
+    sudo chown -R "$(id -u):$(id -g)" "$dest"
   fi
 }
 
@@ -65,15 +93,8 @@ if ! prompt_continue; then
   exit 0
 fi
 
-if [ -d "${PLUGIN_DIR}" ]; then
-  echo "Removing existing plugin ..."
-  rm -rf "${PLUGIN_DIR}" 2>/dev/null || sudo rm -rf "${PLUGIN_DIR}"
-fi
-if [ -d "${DATA_DIR}" ]; then
-  echo "Removing existing data ..."
-  rm -rf "${DATA_DIR}" 2>/dev/null || sudo rm -rf "${DATA_DIR}"
-fi
-cp -a "${TEMP_DIR}/homebrew/." "${BASE_DIR}"
+copy_impl "${TEMP_DIR}/homebrew/${PLUGIN_SUFFIX}" "${PLUGIN_DIR}" 2>/dev/null
+copy_impl "${TEMP_DIR}/homebrew/${DATA_SUFFIX}" "${DATA_DIR}" 2>/dev/null
 
 echo
 echo "Installation complete!"

@@ -150,6 +150,10 @@ done
 if [ "$UID" -eq 0 ]; then
   echo "WARNING: Running as root."
   echo "This may cause permission issues."
+  echo "If you insist to continue, please confirm homebrew path below is correct:"
+  echo "${BASE_DIR}"
+  echo "In most circumstances, this should NOT be: /root/homebrew"
+  echo "You SHOULD run sudo with -E flag to preserve environment variables."
   echo
   if ! prompt_continue; then
     exit 1

@@ -26,7 +26,7 @@ export const Upgrade: FC = () => {
   useLayoutEffect(getVersions, []);
 
   const upgradePlugin = async () => {
-    const [success, error] = await backend.upgradeToLatestCore();
+    const [success, error] = await backend.upgradeToLatest();
     if (success) {
       toaster.toast({
         title: t(L.INSTALL_SUCCESS),

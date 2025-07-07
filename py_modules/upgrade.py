@@ -87,6 +87,7 @@ async def upgrade_to_latest(timeout: float, download_timeout: float, nightly: bo
         backup_binaries_dir = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "bin_backup")
         if os.path.exists(binaries_dir):
             logger.debug(f"backing up to {backup_binaries_dir}")
+            os.makedirs(backup_binaries_dir, exist_ok=True)
             await asyncio.to_thread(shutil.copytree,
                                     binaries_dir,
                                     backup_binaries_dir,
@@ -116,7 +117,6 @@ async def upgrade_to_latest(timeout: float, download_timeout: float, nightly: bo
         # cleanup downloaded files
         logger.debug(f"cleaning up")
         remove_no_fail(downloaded_filepath)
-        await asyncio.to_thread(shutil.rmtree, backup_binaries_dir)
 
         logger.info("upgrade_to_latest: complete")
         await restart_plugin_loader()
@@ -169,12 +169,12 @@ async def download_latest_build(timeout: float, download_timeout: float, nightly
         json_data = None
         releases = await utils.get_url_to_json(get_releases_url(PACKAGE_REPO), timeout)
         for release in releases:
-            if release.get("name") == "nightly":
+            if release.get("tag_name") == "nightly":
                 json_data = release
                 break
         if not json_data:
-            logger.error("Failed to find nightly release")
-            return ""
+            logger.error("failed to find nightly release")
+            raise LookupError("Failed to find nightly release")
     else:
         json_data = await utils.get_url_to_json(get_latest_release_url(PACKAGE_REPO), timeout)
 
@@ -186,8 +186,8 @@ async def download_latest_build(timeout: float, download_timeout: float, nightly
             break
 
     if not download_url:
-        logger.error("Failed to find download url")
-        return ""
+        logger.error("failed to find download url")
+        raise LookupError("Failed to find download url")
     logger.debug(f"downloading from: {download_url}")
 
     file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "DeckyClash.zip")
@@ -208,8 +208,8 @@ async def download_latest_core(timeout: float, download_timeout: float) -> str:
             break
 
     if not download_url:
-        logger.error("Failed to find download url")
-        return ""
+        logger.error("failed to find download url")
+        raise LookupError("Failed to find download url")
     logger.debug(f"downloading from: {download_url}")
 
     file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "mihomo.gz")
@@ -230,8 +230,8 @@ async def download_latest_yq(timeout: float, download_timeout: float) -> str:
             break
 
     if not download_url:
-        logger.error("Failed to find download url")
-        return ""
+        logger.error("failed to find download url")
+        raise LookupError("Failed to find download url")
     logger.debug(f"downloading from: {download_url}")
 
     file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "yq_bin")

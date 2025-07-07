@@ -179,7 +179,7 @@ class Plugin:
         try:
             await upgrade.upgrade_to_latest(self._get("timeout"), self._get("download_timeout"), False)
         except Exception as e:
-            logger.error(f"ota error: {e}")
+            logger.error(f"upgrade_to_latest: failed with {e}")
             return False, str(e)
         return True, None
 
@@ -187,7 +187,7 @@ class Plugin:
         try:
             await upgrade.upgrade_to_latest(self._get("timeout"), self._get("download_timeout"), True)
         except Exception as e:
-            logger.error(f"ota error: {e}")
+            logger.error(f"upgrade_to_nightly: failed with {e}")
             return False, str(e)
         return True, None
 

@@ -35,7 +35,7 @@ export const Upgrade: FC = () => {
     if (success) {
       toaster.toast({
         title: t(L.INSTALL_SUCCESS),
-        body: `DeckyClash ${coreLatest}`,
+        body: `DeckyClash ${pluginLatest}`,
         icon: <BsCheckCircleFill />,
       });
       getVersions();
@@ -71,7 +71,7 @@ export const Upgrade: FC = () => {
     if (success) {
       toaster.toast({
         title: t(L.INSTALL_SUCCESS),
-        body: `yq ${coreLatest}`,
+        body: `yq ${yqLatest}`,
         icon: <BsCheckCircleFill />,
       });
       getVersions();

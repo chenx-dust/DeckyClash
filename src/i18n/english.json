@@ -79,5 +79,8 @@
     "ABOUT_PLUGIN": "About DeckyClash",
     "REORDER": "Reorder",
     "SAVE": "Save",
-    "CANCEL": "Cancel"
+    "CANCEL": "Cancel",
+    "UPGRADE_CHANNEL": "Upgrade Channel",
+    "LATEST_CHANNEL": "Latest",
+    "NIGHTLY_CHANNEL": "Nightly"
 }

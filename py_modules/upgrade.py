@@ -24,8 +24,11 @@ def remove_no_fail(path: str):
     except Exception as e:
         raise e
 
-def get_github_api_url(repo: str) -> str:
+def get_latest_release_url(repo: str) -> str:
     return f"https://api.github.com/repos/{repo}/releases/latest"
+
+def get_releases_url(repo: str) -> str:
+    return f"https://api.github.com/repos/{repo}/releases"
 
 def recursive_chmod(path: str, perms: int) -> None:
     for dirpath, _, filenames in os.walk(path):
@@ -68,9 +71,9 @@ async def restart_plugin_loader() -> None:
     if returncode != 0:
         raise Exception(f'Error restarting plugin_loader with code {returncode}: {stderr.decode()}')
 
-async def upgrade_to_latest(timeout: float, download_timeout: float) -> None:
+async def upgrade_to_latest(timeout: float, download_timeout: float, nightly: bool) -> None:
     logger.info("upgrading to latest version")
-    downloaded_filepath = await download_latest_build(timeout, download_timeout)
+    downloaded_filepath = await download_latest_build(timeout, download_timeout, nightly)
 
     if os.path.exists(downloaded_filepath):
         plugin_dir = decky.DECKY_PLUGIN_DIR
@@ -161,14 +164,33 @@ async def upgrade_to_latest_yq(timeout: float, download_timeout) -> None:
         logger.info("upgrade_to_latest_yq: complete")
 
 
-async def download_latest_build(timeout: float, download_timeout: float) -> str:
-    json_data = await utils.get_url_to_json(get_github_api_url(PACKAGE_REPO), timeout)
+async def download_latest_build(timeout: float, download_timeout: float, nightly: bool) -> str:
+    if nightly:
+        json_data = None
+        releases = await utils.get_url_to_json(get_releases_url(PACKAGE_REPO), timeout)
+        for release in releases:
+            if release.get("name") == "nightly":
+                json_data = release
+                break
+        if not json_data:
+            logger.error("Failed to find nightly release")
+            return ""
+    else:
+        json_data = await utils.get_url_to_json(get_latest_release_url(PACKAGE_REPO), timeout)
 
-    download_url = json_data.get("assets")[0].get("browser_download_url")
+    download_url: Optional[str] = None
+    for asset in json_data.get("assets"):
+        name: str = asset.get("name")
+        if name == "DeckyClash.zip":
+            download_url = asset.get("browser_download_url")
+            break
 
+    if not download_url:
+        logger.error("Failed to find download url")
+        return ""
     logger.debug(f"downloading from: {download_url}")
 
-    file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, decky.DECKY_PLUGIN_NAME + ".zip")
+    file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "DeckyClash.zip")
 
     await utils.get_url_to_file(download_url, file_path, download_timeout)
 
@@ -176,7 +198,7 @@ async def download_latest_build(timeout: float, download_timeout: float) -> str:
 
 
 async def download_latest_core(timeout: float, download_timeout: float) -> str:
-    json_data = await utils.get_url_to_json(get_github_api_url(CORE_REPO), timeout)
+    json_data = await utils.get_url_to_json(get_latest_release_url(CORE_REPO), timeout)
 
     download_url: Optional[str] = None
     for asset in json_data.get("assets"):
@@ -198,7 +220,7 @@ async def download_latest_core(timeout: float, download_timeout: float) -> str:
 
 
 async def download_latest_yq(timeout: float, download_timeout: float) -> str:
-    json_data = await utils.get_url_to_json(get_github_api_url(YQ_REPO), timeout)
+    json_data = await utils.get_url_to_json(get_latest_release_url(YQ_REPO), timeout)
 
     download_url: Optional[str] = None
     for asset in json_data.get("assets"):
@@ -231,7 +253,7 @@ async def get_latest_version(repo: str, timeout: float, debounce_time: float) ->
             return last_query
 
     try:
-        json_data = await utils.get_url_to_json(get_github_api_url(repo), timeout=timeout)
+        json_data = await utils.get_url_to_json(get_latest_release_url(repo), timeout=timeout)
     except Exception as e:
         logger.error(f"get_latest_version: failed with {e}")
         return ""

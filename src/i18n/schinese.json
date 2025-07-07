@@ -80,5 +80,8 @@
     "ABOUT_PLUGIN": "关于 DeckyClash",
     "REORDER": "排序",
     "SAVE": "保存",
-    "CANCEL": "取消"
+    "CANCEL": "取消",
+    "UPGRADE_CHANNEL": "更新通道",
+    "LATEST_CHANNEL": "最新版本",
+    "NIGHTLY_CHANNEL": "每夜构建"
 }

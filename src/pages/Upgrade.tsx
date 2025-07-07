@@ -1,5 +1,5 @@
 import { FC, useLayoutEffect, useState } from "react";
-import { DialogBody } from "@decky/ui";
+import { DialogBody, DropdownItem } from "@decky/ui";
 import { t } from 'i18next';
 import { L } from "../i18n";
 import { backend } from "../backend";
@@ -14,6 +14,9 @@ export const Upgrade: FC = () => {
   const [coreLatest, setCoreLatest] = useState<string>("");
   const [yqCurrent, setYqCurrent] = useState<string>("");
   const [yqLatest, setYqLatest] = useState<string>("");
+  const [channel, setChannel] = useState<string>(
+    window.localStorage.getItem("decky-clash-upgrade-channel") || "latest"
+  );
 
   const getVersions = () => {
     backend.getVersion().then(setPluginCurrent);
@@ -26,7 +29,9 @@ export const Upgrade: FC = () => {
   useLayoutEffect(getVersions, []);
 
   const upgradePlugin = async () => {
-    const [success, error] = await backend.upgradeToLatest();
+    const [success, error] = channel === "nightly" ?
+      await backend.upgradeToNightly() :
+      await backend.upgradeToLatest();
     if (success) {
       toaster.toast({
         title: t(L.INSTALL_SUCCESS),
@@ -81,7 +86,20 @@ export const Upgrade: FC = () => {
 
   return (
     <DialogBody>
-      <UpgradeItem label={t(L.PLUGIN)} current={pluginCurrent} latest={pluginLatest} onClick={upgradePlugin} />
+      <UpgradeItem label={t(L.PLUGIN)} current={pluginCurrent} latest={pluginLatest} onClick={upgradePlugin}>
+        <DropdownItem
+          label={t(L.UPGRADE_CHANNEL)}
+          rgOptions={[
+            { label: t(L.LATEST_CHANNEL), data: "latest" },
+            { label: t(L.NIGHTLY_CHANNEL), data: "nightly" },
+          ]}
+          selectedOption={channel}
+          onChange={(value) => {
+            setChannel(value.data);
+            window.localStorage.setItem("decky-clash-upgrade-channel", value.data);
+          }}
+        />
+      </UpgradeItem>
       <UpgradeItem label="Mihomo" current={coreCurrent} latest={coreLatest} onClick={upgradeCore} />
       <UpgradeItem label="YQ" current={yqCurrent} latest={yqLatest} onClick={upgradeYq} />
     </DialogBody>

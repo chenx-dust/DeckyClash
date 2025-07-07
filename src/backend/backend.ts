@@ -11,6 +11,7 @@ export const setConfigValue = callable<[string, any], []>("set_config_value");
 
 export const checkUpgrade = callable<[], []>("check_upgrade");
 export const upgradeToLatest = callable<[], [boolean, string]>("upgrade_to_latest");
+export const upgradeToNightly = callable<[], [boolean, string]>("upgrade_to_nightly");
 export const getVersion = callable<[], string>("get_version");
 export const getLatestVersion = callable<[], string>("get_latest_version");
 export const upgradeToLatestCore = callable<[], [boolean, string]>("upgrade_to_latest_core");

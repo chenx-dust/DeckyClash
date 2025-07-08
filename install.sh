@@ -185,7 +185,7 @@ if prompt_continue $WITHOUT_PLUGIN; then
     RELEASE=$(curl -s "$API_URL")
     MESSAGE=$(echo "${RELEASE}" | grep "message" | cut -d '"' -f 4)
     RELEASE_VERSION=$(echo "${RELEASE}" | grep "tag_name" | cut -d '"' -f 4)
-    RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url" | cut -d '"' -f 4)
+    RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url.*DeckyClash.zip\"" | cut -d '"' -f 4)
 
     if [[ "${MESSAGE}" != "" ]]; then
       echo "Github Error: ${MESSAGE}" >&2

@@ -26,9 +26,9 @@ import { GiCat } from "react-icons/gi";
 import { t } from 'i18next';
 import { QRCodeCanvas } from "qrcode.react";
 
-import { About, Import, Manage, Upgrade } from "./pages";
+import { About, Import, Manage } from "./pages";
 import { backend, Config, EnhancedMode } from "./backend";
-import { ActionButtonItem, DoubleButton, InstallationGuide } from "./components";
+import { ActionButtonItem, DoubleButton } from "./components";
 import { localizationManager, L } from "./i18n";
 import { TIPS_TIMEOUT } from "./global";
 import { FaPlus } from "react-icons/fa";
@@ -69,7 +69,6 @@ const Content: FC<{}> = ({ }) => {
     return items;
   };
 
-  const [installGuide, setInstallGuide] = useState(false);
   const [pluginVersion, setPluginVersion] = useState("");
   const [coreVersion, setCoreVersion] = useState("");
   const [yqVersion, setYqVersion] = useState("");
@@ -105,10 +104,7 @@ const Content: FC<{}> = ({ }) => {
   };
 
   useEffect(() => {
-    refreshVersions().then(([_coreVersion, _yqVersion]) => {
-      if (_coreVersion === "" || _yqVersion === "")
-        setInstallGuide(true);
-    });
+    refreshVersions();
   }, []);
 
   const applySubscriptions = (subs: Record<string, string>, save: boolean = true) => {
@@ -292,14 +288,7 @@ const Content: FC<{}> = ({ }) => {
     return () => clearTimeout(timer);
   }, [overrideDNS, enhancedMode, allowRemoteAccess])
 
-  return (installGuide ?
-    <InstallationGuide
-      coreVersion={coreVersion}
-      yqVersion={yqVersion}
-      refreshCallback={refreshVersions}
-      quitCallback={() => setInstallGuide(false)}
-    />
-    :
+  return (
     <>
       <PanelSection title={t(L.SERVICE)}>
         <PanelSectionRow>
@@ -495,14 +484,6 @@ const Content: FC<{}> = ({ }) => {
             {t(L.RESTART_CORE)}
           </ActionButtonItem>
         </PanelSectionRow>
-        <PanelSectionRow>
-          <ButtonItem
-            layout="below"
-            onClick={() => setInstallGuide(true)}
-          >
-            {t(L.INSTALLATION_GUIDE)}
-          </ButtonItem>
-        </PanelSectionRow>
       </PanelSection>
       <PanelSection title={t(L.VERSION)}>
         <PanelSectionRow>
@@ -573,11 +554,6 @@ const DeckyPluginRouter: FC = () => {
           route: "/decky-clash/import",
         },
         {
-          title: t(L.UPGRADE),
-          content: <Upgrade />,
-          route: "/decky-clash/upgrade",
-        },
-        {
           title: t(L.ABOUT),
           content: <About />,
           route: "/decky-clash/about",
@@ -608,19 +584,6 @@ export default definePlugin(() => {
       icon: <GiCat />,
     });
   });
-  addEventListener("upgrade_notice", (msg: string) => {
-    toaster.toast({
-      title: t(L.UPGRADE_AVAILABLE),
-      body: msg,
-      icon: <GiCat />,
-      onClick: () => {
-        Router.CloseSideMenus();
-        Router.Navigate("/decky-clash/upgrade");
-      },
-    });
-  });
-
-  setTimeout(backend.checkUpgrade, 5000);
 
   return {
     // The name shown in various decky menus

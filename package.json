@@ -48,5 +48,48 @@
         "react-dom"
       ]
     }
-  }
+  },
+  "remote_binary_bundling": true,
+  "remote_binary": [
+    {
+      "name": "mihomo.gz",
+      "url": "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.11/mihomo-linux-amd64-v1.19.11.gz",
+      "sha256hash": "e153fc1547ec4665b3b7071d1ba9a944fbfe263bce10e2611b27640142a54801"
+    },
+    {
+      "name": "yq_bin",
+      "url": "https://github.com/mikefarah/yq/releases/download/v4.46.1/yq_linux_amd64",
+      "sha256hash": "c0eb42f6fbf928f0413422967983dcdf9806cc4dedc9394edc60c0dfb4a98529"
+    },
+    {
+      "name": "country.mmdb",
+      "url": "https://github.com/Loyalsoldier/geoip/releases/download/202507100022/Country.mmdb",
+      "sha256hash": "eba3f8e7599672adc2f401b4869bbd207e417689716e20efbf5bdfe0bbe9e822"
+    },
+    {
+      "name": "geosite.dat",
+      "url": "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/202507152215/geosite.dat",
+      "sha256hash": "bb0a5817862d34dd01d0e37e671737cd4ed7f8b57a72d90fc697f234b773884d"
+    },
+    {
+      "name": "asn.mmdb",
+      "url": "https://github.com/Loyalsoldier/geoip/releases/download/202507100022/Country-asn.mmdb",
+      "sha256hash": "a87e2cc3c8e331327fd1fa9fa7ad3c28e73a89ecd80bb6a69f5aa0049ee69827"
+    },
+    {
+      "name": "yacd-meta.zip",
+      "url": "https://github.com/MetaCubeX/Yacd-meta/archive/9746ca746061e803b89c8102c43e5d11ad001e69.zip",
+      "sha256hash": "d6c49a3d7a5cd4c2a7c338fe0ea1ec28bfd9670d82e11bb2208e37304f8ac6fa"
+    },
+    {
+      "name": "metacubexd.zip",
+      "url": "https://github.com/MetaCubeX/metacubexd/archive/70a44a54454eadd6f48282a82fc3d07dd25400a5.zip",
+      "sha256hash": "b291820b6c9fc07b26ba895530ed3a86e7aba553d4f86c112c443677e7157092"
+    },
+    {
+      "name": "zashboard.zip",
+      "url": "https://github.com/Zephyruso/zashboard/releases/download/v1.99.0/dist-cdn-fonts.zip",
+      "sha256hash": "f6a1d663699b43649222e98029f041fa5c2720c3e675f0f4de794e9de811d7e4"
+    }
+  ]
 }

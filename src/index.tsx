@@ -515,17 +515,6 @@ const Content: FC<{}> = ({ }) => {
             layout="below"
             onClick={() => {
               Router.CloseSideMenus();
-              Router.Navigate("/decky-clash/upgrade");
-            }}
-          >
-            {t(L.UPGRADE_MANAGE)}
-          </ButtonItem>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <ButtonItem
-            layout="below"
-            onClick={() => {
-              Router.CloseSideMenus();
               Router.Navigate("/decky-clash/about");
             }}
           >

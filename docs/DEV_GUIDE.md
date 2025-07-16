@@ -4,6 +4,7 @@
 
 - `main`: The main branch for stable releases.
 - `dev`: The development branch for ongoing work.
+- `store`: Special branch for Plugin Store release.
 - `external`: Branch for external importer source code.
 - `gh-pages`: Branch for external importer release.
 

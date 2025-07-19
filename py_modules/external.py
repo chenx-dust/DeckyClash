@@ -5,7 +5,7 @@ from typing import Awaitable, Callable, Dict
 from decky import logger
 import decky
 
-EXTERNAL_DIR = os.path.join(decky.DECKY_PLUGIN_DIR, "external")
+EXTERNAL_DIR = os.path.join(decky.DECKY_PLUGIN_DIR, "bin", "external")
 
 HandlerCallback = Callable[[web.Request], Awaitable[web.Response]]
 

@@ -18,93 +18,23 @@ jobs:
         with:
           submodules: true
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: latest
-
-      - name: Setup Nodejs
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: pnpm
-
-      - name: Install package and build
+      - name: Download Decky CLI
         run: |
-          pnpm install --no-frozen-lockfile
-          pnpm build
+          mkdir /tmp/decky-cli
+          curl -L -o /tmp/decky-cli/decky "https://github.com/SteamDeckHomebrew/cli/releases/download/0.0.7/decky-linux-x86_64"
+          chmod +x /tmp/decky-cli/decky
 
-      - name: Collect files
+          echo "/tmp/decky-cli" >> $GITHUB_PATH
+
+      - name: Build plugins
         run: |
-          mkdir -p release/DeckyClash
-          cp -R defaults/* dist py_modules release/DeckyClash/
-          rm -rf release/DeckyClash/defaults/external/.git
-          cp main.py plugin.json package.json LICENSE release/DeckyClash/
-          cd release 
-          zip -r DeckyClash.zip DeckyClash
-          cd ..
+          # Run the CLI as root to get around Docker's weird permissions
+          sudo $(which decky) plugin build -b -o /tmp/output
+          sudo chown -R $(whoami) .
 
-      - name: Packing offine installer
-        run: |
-          mkdir -p release/homebrew/plugins
-          cp -R release/DeckyClash release/homebrew/plugins/
-          OVERRIDE_BASE_DIR="release/homebrew" ./install.sh --yes --no-privilege --without-plugin --without-restart
-          cp install-offline.sh release/Installer-DeckyClash.sh
-          cd release
-          zip -r DeckyClash-full.zip homebrew
-          cat DeckyClash-full.zip >> Installer-DeckyClash.sh
-          cd ..
-
-      - name: Publish artifacts
+      - name: Upload Artifacts to Github
         uses: actions/upload-artifact@v4
         with:
           name: deckyclash-artifacts
-          path: |
-            ./release/DeckyClash.zip
-            ./release/DeckyClash-full.zip
-            ./release/Installer-DeckyClash.sh
-          if-no-files-found: error
+          path: /tmp/output/*.zip
 
-  publish:
-    name: Publish release
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    needs: build_plugin
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          path: ./artifacts
-
-      - name: Publish to Github release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ./artifacts/deckyclash-artifacts/*
-          name: Release ${{ github.ref_name }}
-          draft: false
-          generate_release_notes: true
-          prerelease: ${{ contains(github.ref, 'pre') }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  nightly:
-    name: Publish nightly
-    if: ${{ github.ref == 'refs/heads/dev' }}
-    runs-on: ubuntu-latest
-    needs: build_plugin
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          path: ./artifacts
-
-      - name: Publish to Github release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ./artifacts/deckyclash-artifacts/*
-          name: Release Nightly
-          draft: false
-          generate_release_notes: true
-          prerelease: true
-          tag_name: nightly
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

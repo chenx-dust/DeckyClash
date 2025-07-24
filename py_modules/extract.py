@@ -114,51 +114,51 @@ DASHBOARDS = [
 async def extract_dashboards():
     promises = []
     ensure_dashboard_dir()
-    tmpdir = tempfile.mkdtemp()
 
     async def _impl(filename):
-        dest_file = os.path.join(decky.DECKY_PLUGIN_DIR, "bin", f"{filename}.zip")
-        if not os.path.exists(dest_file):
-            return
-        logger.info(f"extracting dashboard file to {tmpdir}")
-        await asyncio.to_thread(
-            shutil.unpack_archive,
-            dest_file,
-            tmpdir,
-            format="zip")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            dest_file = os.path.join(decky.DECKY_PLUGIN_DIR, "bin", f"{filename}.zip")
+            if not os.path.exists(dest_file):
+                return
+            logger.info(f"extracting dashboard file to {tmpdir}")
+            await asyncio.to_thread(
+                shutil.unpack_archive,
+                dest_file,
+                tmpdir,
+                format="zip")
 
-        dashboard_dir = os.path.join(dashboard.DASHBOARD_DIR, filename)
-        logger.debug(f"removing old dashboard {dashboard_dir}")
-        await asyncio.to_thread(shutil.rmtree, dashboard_dir, ignore_errors=True)
+            dashboard_dir = os.path.join(dashboard.DASHBOARD_DIR, filename)
+            logger.debug(f"removing old dashboard {dashboard_dir}")
+            await asyncio.to_thread(shutil.rmtree, dashboard_dir, ignore_errors=True)
 
-        subdir = None
-        for name in os.listdir(tmpdir):
-            if os.path.isdir(os.path.join(tmpdir, name)):
-                subdir = name
-                break
-        if not subdir:
-            raise Exception(f"{filename} dashboard subdir not found")
+            subdir = None
+            for name in os.listdir(tmpdir):
+                if os.path.isdir(os.path.join(tmpdir, name)):
+                    subdir = name
+                    break
+            if not subdir:
+                raise Exception(f"{filename} dashboard subdir not found")
 
-        logger.debug(f"copying {filename} dashboard files")
-        await asyncio.to_thread(
-            shutil.copytree,
-            os.path.join(tmpdir, subdir),
-            dashboard_dir,
-            dirs_exist_ok=True)
-        
-        await asyncio.to_thread(recursive_chown,
-                                dashboard_dir,
-                                decky.DECKY_USER,
-                                decky.DECKY_USER)
-        remove_no_fail(dest_file)
+            logger.debug(f"copying {filename} dashboard files")
+            await asyncio.to_thread(
+                shutil.copytree,
+                os.path.join(tmpdir, subdir),
+                dashboard_dir,
+                dirs_exist_ok=True)
+            
+            await asyncio.to_thread(recursive_chown,
+                                    dashboard_dir,
+                                    decky.DECKY_USER,
+                                    decky.DECKY_USER)
+            remove_no_fail(dest_file)
 
     for filename in DASHBOARDS:
         promises.append(_impl(filename))
 
     try:
         await asyncio.gather(*promises)
-    finally:
-        shutil.rmtree(tmpdir)
+    except Exception as e:
+        logger.error(f"extract_dashboards: error {e}")
 
 async def extract_all() -> None:
     await extract_core()

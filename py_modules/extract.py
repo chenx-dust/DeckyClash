@@ -105,21 +105,16 @@ async def extract_geos():
         shutil.move(src, dest)
         shutil.chown(dest, decky.DECKY_USER, decky.DECKY_USER)
 
-DASHBOARDS = [
-    "yacd-meta",
-    "metacubexd",
-    "zashboard",
-]
-
 async def extract_dashboards():
     promises = []
     ensure_dashboard_dir()
 
     async def _impl(filename):
+        dest_file = os.path.join(decky.DECKY_PLUGIN_DIR, "bin", f"{filename}.zip")
+        if not os.path.exists(dest_file):
+            return
+
         with tempfile.TemporaryDirectory() as tmpdir:
-            dest_file = os.path.join(decky.DECKY_PLUGIN_DIR, "bin", f"{filename}.zip")
-            if not os.path.exists(dest_file):
-                return
             logger.info(f"extracting dashboard file to {tmpdir}")
             await asyncio.to_thread(
                 shutil.unpack_archive,
@@ -145,14 +140,14 @@ async def extract_dashboards():
                 os.path.join(tmpdir, subdir),
                 dashboard_dir,
                 dirs_exist_ok=True)
-            
-            await asyncio.to_thread(recursive_chown,
-                                    dashboard_dir,
-                                    decky.DECKY_USER,
-                                    decky.DECKY_USER)
-            remove_no_fail(dest_file)
 
-    for filename in DASHBOARDS:
+        await asyncio.to_thread(recursive_chown,
+                                dashboard_dir,
+                                decky.DECKY_USER,
+                                decky.DECKY_USER)
+        remove_no_fail(dest_file)
+
+    for filename in dashboard.BUILTIN_DASHBOARDS:
         promises.append(_impl(filename))
 
     try:

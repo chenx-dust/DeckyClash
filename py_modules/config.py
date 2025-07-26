@@ -5,6 +5,7 @@ import shutil
 import subprocess
 from typing import List, Optional
 
+from dashboard import BUILTIN_DASHBOARDS
 import decky
 from decky import logger
 
@@ -41,6 +42,8 @@ async def generate_config(
         f'.external-ui = "{dashboard_dir}"'
     if dashboard is not None:
         cmd += f' | .external-ui-name = "{dashboard}"'
+        if dashboard in BUILTIN_DASHBOARDS:
+            cmd += f' | .external-ui-url = "{BUILTIN_DASHBOARDS[dashboard]}"'
     await _edit_in_place(new_config, cmd)
 
     cmd = 'select(fi==0).tun = select(fi==1).tun-override | ' \

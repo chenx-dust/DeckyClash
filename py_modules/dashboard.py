@@ -1,12 +1,18 @@
 import os
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Optional, Tuple
 
 import decky
 from decky import logger
 
 
 DASHBOARD_DIR = Path(decky.DECKY_PLUGIN_RUNTIME_DIR) / "dashboard"
+
+BUILTIN_DASHBOARDS: Dict[str, str] = {
+    "yacd-meta": "https://github.com/MetaCubeX/yacd/archive/gh-pages.zip",
+    "metacubexd": "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip",
+    "zashboard": "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip",
+}
 
 def get_dashboard_list() -> List[str]:
     dashboard_list = []

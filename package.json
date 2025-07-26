@@ -58,23 +58,23 @@
     },
     {
       "name": "yq_bin",
-      "url": "https://github.com/mikefarah/yq/releases/download/v4.46.1/yq_linux_amd64",
-      "sha256hash": "c0eb42f6fbf928f0413422967983dcdf9806cc4dedc9394edc60c0dfb4a98529"
+      "url": "https://github.com/mikefarah/yq/releases/download/v4.47.1/yq_linux_amd64",
+      "sha256hash": "0fb28c6680193c41b364193d0c0fc4a03177aecde51cfc04d506b1517158c2fb"
     },
     {
       "name": "country.mmdb",
-      "url": "https://github.com/Loyalsoldier/geoip/releases/download/202507100022/Country.mmdb",
-      "sha256hash": "eba3f8e7599672adc2f401b4869bbd207e417689716e20efbf5bdfe0bbe9e822"
+      "url": "https://github.com/P3TERX/GeoLite.mmdb/releases/download/2025.07.07/GeoLite2-Country.mmdb",
+      "sha256hash": "95a34b528d5161617bece4a3c0c61ab069f7dd664ac3a7dfb7a026610843e5c8"
     },
     {
       "name": "geosite.dat",
-      "url": "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/202507152215/geosite.dat",
-      "sha256hash": "bb0a5817862d34dd01d0e37e671737cd4ed7f8b57a72d90fc697f234b773884d"
+      "url": "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/202507252214/geosite.dat",
+      "sha256hash": "5c48186c7da4fd2f715a795815efa84d0f7342a218e101cbd0484d1abd93e9ac"
     },
     {
       "name": "asn.mmdb",
-      "url": "https://github.com/Loyalsoldier/geoip/releases/download/202507100022/Country-asn.mmdb",
-      "sha256hash": "a87e2cc3c8e331327fd1fa9fa7ad3c28e73a89ecd80bb6a69f5aa0049ee69827"
+      "url": "https://github.com/P3TERX/GeoLite.mmdb/releases/download/2025.07.07/GeoLite2-ASN.mmdb",
+      "sha256hash": "8700717a1d22b164329d7d1b8e724baedb942ed6a7747e0d1fddbf0f97c2dd1d"
     },
     {
       "name": "yacd-meta.zip",
@@ -83,8 +83,8 @@
     },
     {
       "name": "metacubexd.zip",
-      "url": "https://github.com/MetaCubeX/metacubexd/archive/70a44a54454eadd6f48282a82fc3d07dd25400a5.zip",
-      "sha256hash": "b291820b6c9fc07b26ba895530ed3a86e7aba553d4f86c112c443677e7157092"
+      "url": "https://github.com/MetaCubeX/metacubexd/archive/7c92b83908504de2ec97be567b200e5b0145aa33.zip",
+      "sha256hash": "c2cb012b361426d670bbbbe22d47507a042dd4b5eb7cb30b8abaec916445f761"
     },
     {
       "name": "zashboard.zip",

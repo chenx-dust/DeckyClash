@@ -390,6 +390,7 @@ const Content: FC<{}> = ({ }) => {
               setCurrentDashboard(value.data);
               patchLocalConfig("dashboard", value.data);
               backend.setConfigValue("dashboard", value.data);
+              backend.restartCore();
             }}
           />
         </PanelSectionRow>

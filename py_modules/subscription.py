@@ -23,7 +23,6 @@ def get_path(filename: str) -> str:
     return os.path.join(SUBSCRIPTIONS_DIR, filename + ".yaml")
 
 def _deduplicate_name(now_subs: SubscriptionDict, filename: str) -> Optional[str]:
-    
     def check_exist(name) -> bool:
         is_exist = False
         for sub_name in now_subs:
@@ -99,7 +98,10 @@ def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] 
     logger.info(f'saving to {path}')
 
     try:
-        with open(get_path(filename), 'xb') as out_file:
+        if os.path.exists(path):
+            logger.warning(f'download_sub: file exists, removing ...')
+            os.remove(path)
+        with open(path, 'xb') as out_file:
             out_file.write(resp.read())
     except Exception as e:
         logger.error(f"download_sub: io error: {e}")

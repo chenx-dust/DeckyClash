@@ -51,7 +51,7 @@ export const About: FC = () => {
           {t(L.DEPENDENCY)}
         </DialogControlsSectionHeader>
         <DescriptionField label="Mihomo">
-          Light-weight Clash/Mihomo proxy client for Steam OS.
+          Another Mihomo Kernel.
           <br />
           <i>DeckyClash is powered by Mihomo.</i>
         </DescriptionField>
@@ -66,7 +66,7 @@ export const About: FC = () => {
           label="MetaCubeX/mihomo"
           onClick={() => {
             Navigation.NavigateToExternalWeb(
-              "https://github.com/MetaCubeX/mihomo"
+              "https://github.com/MetaCubeX/mihomo/tree/Meta"
             );
           }}
         >

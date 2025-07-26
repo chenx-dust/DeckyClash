@@ -282,12 +282,6 @@ async def download_geos(timeout: float):
         promises.append(_impl(filename, url))
     await asyncio.gather(*promises)
 
-DASHBOARDS: Dict[str, Tuple[str, str]] = {
-    "yacd-meta": ("Yacd-meta-gh-pages", "https://github.com/MetaCubeX/yacd/archive/gh-pages.zip"),
-    "metacubexd": ("metacubexd-gh-pages", "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"),
-    "zashboard": ("dist", "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip"),
-}
-
 async def download_dashboards(timeout: float):
     promises = []
     if not os.path.exists(dashboard.DASHBOARD_DIR):
@@ -323,7 +317,7 @@ async def download_dashboards(timeout: float):
                                 decky.DECKY_USER,
                                 decky.DECKY_USER)
 
-    for filename, (subdir, url) in DASHBOARDS.items():
+    for filename, (subdir, url) in dashboard.BUILTIN_DASHBOARDS.items():
         promises.append(_impl(filename, subdir, url))
 
     try:

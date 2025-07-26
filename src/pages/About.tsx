@@ -27,9 +27,9 @@ export const About: FC = () => {
     <DialogBody>
       <DialogControlsSection>
         <DescriptionField label="DeckyClash">
-          <b>{t(L.STORE_VERSION_TIPS)}</b>
-          <br/>
           Light-weight Clash/Mihomo proxy client for Steam OS.
+          <br />
+          <b>{t(L.STORE_VERSION_TIPS)}</b>
         </DescriptionField>
         <Field
           label={t(L.INSTALLED_VERSION)} focusable >
@@ -53,7 +53,7 @@ export const About: FC = () => {
           {t(L.DEPENDENCY)}
         </DialogControlsSectionHeader>
         <DescriptionField label="Mihomo">
-          Light-weight Clash/Mihomo proxy client for Steam OS.
+          Another Clash Kernel.
           <br />
           <i>DeckyClash is powered by Mihomo.</i>
         </DescriptionField>

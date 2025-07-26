@@ -27,7 +27,8 @@ export const About: FC = () => {
     <DialogBody>
       <DialogControlsSection>
         <DescriptionField label="DeckyClash">
-          <b>This version is distributed through Plugin Store. Some features are limited.</b>
+          <b>{t(L.STORE_VERSION_TIPS)}</b>
+          <br/>
           Light-weight Clash/Mihomo proxy client for Steam OS.
         </DescriptionField>
         <Field

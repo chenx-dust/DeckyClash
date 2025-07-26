@@ -36,6 +36,8 @@ async def get_url_to_json(url: str | urllib.request.Request, timeout: Optional[f
 
 async def get_url_to_file(url: str | urllib.request.Request, dest: str, timeout: Optional[float] = None) -> None:
     def _impl():
+        if os.path.exists(dest):
+            os.remove(dest)
         with urllib.request.urlopen(url, timeout=timeout, context=_ssl_context) as response, open(dest, 'wb') as out_file:
             out_file.write(response.read())
     await asyncio.to_thread(_impl)

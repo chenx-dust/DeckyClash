@@ -8,10 +8,10 @@ from decky import logger
 
 DASHBOARD_DIR = Path(decky.DECKY_PLUGIN_RUNTIME_DIR) / "dashboard"
 
-BUILTIN_DASHBOARDS: Dict[str, Tuple[str, str]] = {
-    "yacd-meta": ("Yacd-meta-gh-pages", "https://github.com/MetaCubeX/yacd/archive/gh-pages.zip"),
-    "metacubexd": ("metacubexd-gh-pages", "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"),
-    "zashboard": ("dist", "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip"),
+BUILTIN_DASHBOARDS: Dict[str, str] = {
+    "yacd-meta": "https://github.com/MetaCubeX/yacd/archive/gh-pages.zip",
+    "metacubexd": "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip",
+    "zashboard": "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip",
 }
 
 def get_dashboard_list() -> List[str]:
@@ -29,10 +29,3 @@ def get_dashboard_list() -> List[str]:
     except Exception as e:
         logger.error(f"error during get_dashboard_list: {e}")
         return []
-
-def get_dashboard_url(name: str) -> Optional[str]:
-    if name in BUILTIN_DASHBOARDS:
-        _, url = BUILTIN_DASHBOARDS[name]
-        return url
-    else:
-        return None

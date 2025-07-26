@@ -128,11 +128,11 @@ async def upgrade_to_latest_core(timeout: float, download_timeout) -> None:
 
     if os.path.exists(downloaded_filepath):
         ensure_bin_dir()
-        logger.debug(f"removing old plugin from {core_path}")
-        # remove old plugin
+        logger.debug(f"removing old core from {core_path}")
+        # remove core plugin
         remove_no_fail(core_path)
 
-        logger.debug(f"extracting ota file to {core_path}")
+        logger.debug(f"extracting core to {core_path}")
         def _impl():
             with gzip.open(downloaded_filepath, "rb") as f, open(core_path, "wb") as d:
                     d.write(f.read())
@@ -151,11 +151,11 @@ async def upgrade_to_latest_yq(timeout: float, download_timeout) -> None:
 
     if os.path.exists(downloaded_filepath):
         ensure_bin_dir()
-        logger.debug(f"removing old plugin from {yq_path}")
-        # remove old plugin
+        logger.debug(f"removing old yq from {yq_path}")
+        # remove old yq
         remove_no_fail(yq_path)
 
-        logger.debug(f"extracting ota file to {yq_path}")
+        logger.debug(f"extracting yq to {yq_path}")
 
         shutil.move(downloaded_filepath, yq_path)
         os.chmod(yq_path, 0o755)
@@ -287,40 +287,52 @@ async def download_dashboards(timeout: float):
     if not os.path.exists(dashboard.DASHBOARD_DIR):
         logger.debug("dashboard dir not exists, creating")
         os.mkdir(dashboard.DASHBOARD_DIR)
-    tmpdir = tempfile.mkdtemp()
 
-    async def _impl(filename, subdir, url):
-        dest_file = os.path.join(tmpdir, f"{filename}.zip")
+    async def _impl(filename, url):
+        dest_file = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, f"{filename}.zip")
         logger.info(f"downloading dashboard to: {dest_file}")
         await utils.get_url_to_file(url, dest_file, timeout=timeout)
 
-        logger.debug(f"extracting dashboard file to {tmpdir}")
-        await asyncio.to_thread(
-            shutil.unpack_archive,
-            dest_file,
-            tmpdir,
-            format="zip")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            logger.debug(f"extracting dashboard file to {tmpdir}")
+            await asyncio.to_thread(
+                shutil.unpack_archive,
+                dest_file,
+                tmpdir,
+                format="zip")
 
-        dashboard_dir = os.path.join(dashboard.DASHBOARD_DIR, filename)
-        logger.debug(f"removing old dashboard {dashboard_dir}")
-        await asyncio.to_thread(shutil.rmtree, dashboard_dir, ignore_errors=True)
+            dashboard_dir = os.path.join(dashboard.DASHBOARD_DIR, filename)
+            logger.debug(f"removing old dashboard {dashboard_dir}")
+            await asyncio.to_thread(shutil.rmtree, dashboard_dir, ignore_errors=True)
 
-        logger.debug(f"copying {filename} dashboard files")
-        await asyncio.to_thread(
-            shutil.copytree,
-            os.path.join(tmpdir, subdir),
-            dashboard_dir,
-            dirs_exist_ok=True)
-        
+            subdir = None
+            for name in os.listdir(tmpdir):
+                if os.path.isdir(os.path.join(tmpdir, name)):
+                    subdir = name
+                    break
+            if not subdir:
+                logger.warning(f"{filename} dashboard subdir not found, using root")
+                fullpath = tmpdir
+            else:
+                fullpath = os.path.join(tmpdir, subdir)
+
+            logger.debug(f"copying {filename} dashboard files")
+            await asyncio.to_thread(
+                shutil.copytree,
+                fullpath,
+                dashboard_dir,
+                dirs_exist_ok=True)
+
         await asyncio.to_thread(recursive_chown,
                                 dashboard_dir,
                                 decky.DECKY_USER,
                                 decky.DECKY_USER)
+        remove_no_fail(dest_file)
 
-    for filename, (subdir, url) in dashboard.BUILTIN_DASHBOARDS.items():
-        promises.append(_impl(filename, subdir, url))
+    for filename, url in dashboard.BUILTIN_DASHBOARDS.items():
+        promises.append(_impl(filename, url))
 
     try:
         await asyncio.gather(*promises)
-    finally:
-        shutil.rmtree(tmpdir)
+    except Exception as e:
+        logger.error(f"download_dashboards: error {e}")

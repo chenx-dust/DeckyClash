@@ -180,7 +180,7 @@ echo "By confirming installation, you agree to the terms of the software and ser
 echo
 echo "Installing $REPO_NAME ..."
 if prompt_continue $WITHOUT_PLUGIN; then
-  if [ -z "${SPECIFIED_VERSION}"]; then
+  if [ -z "${SPECIFIED_VERSION}" ]; then
     API_URL="${API_BASE_URL}/repos/${AUTHOR}/${REPO_NAME}/releases/latest"
     RELEASE=$(curl -s "$API_URL")
     MESSAGE=$(echo "${RELEASE}" | grep "message" | cut -d '"' -f 4)

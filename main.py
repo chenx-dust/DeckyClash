@@ -236,7 +236,10 @@ class Plugin:
                 return
             else:
                 try:
-                    shutil.move(subscription.get_path(name), subscription.get_path(new_name))
+                    new_path = subscription.get_path(new_name)
+                    if os.path.exists(new_path):
+                        os.remove(new_path)
+                    shutil.move(subscription.get_path(name), new_path)
                 except Exception as e:
                     logger.error(f"edit_subscription: move error {e}")
                     return

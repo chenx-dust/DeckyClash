@@ -174,85 +174,64 @@ class Plugin:
         self.settings.setSetting(key, value)
         logger.debug(f"save config: {key} : {value}")
 
-    async def upgrade_to_latest(self) -> Tuple[bool, Optional[str]]:
+    async def upgrade(self, res: str, version: str) -> Tuple[bool, Optional[str]]:
+        if res not in upgrade.RESOURCE_TYPE_VALUES:
+            logger.error(f"upgrade: invalid resource {res}")
+            return False, "invalid resource"
+        res_type = upgrade.ResourceType(res)
         try:
-            await upgrade.upgrade_to_latest_plugin(self._get("timeout"), False)
+            await upgrade.upgrade(res_type, version)
         except Exception as e:
-            logger.error(f"upgrade_to_latest: failed with {e}")
-            return False, str(e)
-        return True, None
-
-    async def upgrade_to_nightly(self) -> Tuple[bool, Optional[str]]:
-        try:
-            await upgrade.upgrade_to_latest_plugin(self._get("timeout"), True)
-        except Exception as e:
-            logger.error(f"upgrade_to_nightly: failed with {e}")
+            logger.error(f"upgrade: failed with {e}")
             return False, str(e)
         return True, None
     
-    async def cancel_upgrade(self) -> None:
-        logger.info("cancel_upgrade: cancelling")
-        upgrade.cancel_plugin_download()
+    async def cancel_upgrade(self, res: str) -> None:
+        if res not in upgrade.RESOURCE_TYPE_VALUES:
+            logger.error(f"cancel_upgrade: invalid resource {res}")
+            return
+        res_type = upgrade.ResourceType(res)
+        upgrade.cancel_upgrade(res_type)
 
-    async def get_version(self) -> str:
-        version = decky.DECKY_PLUGIN_VERSION
-        logger.debug(f"current package version: {version}")
+    async def get_version(self, res: str) -> str:
+        if res not in upgrade.RESOURCE_TYPE_VALUES:
+            logger.error(f"get_version: invalid resource {res}")
+            return ""
+        res_type = upgrade.ResourceType(res)
+        try:
+            match res_type:
+                case upgrade.ResourceType.PLUGIN:
+                    version = decky.DECKY_PLUGIN_VERSION
+                case upgrade.ResourceType.CORE:
+                    version = CoreController.get_version()
+                case upgrade.ResourceType.YQ:
+                    version = config.get_yq_version()
+        except Exception as e:
+            logger.error(f"get_version: {res} failed with {type(e)} {e}")
+            return ""
+        logger.debug(f"get_version: {res} {version}")
         return version
 
-    async def get_latest_version(self) -> str:
-        version = await upgrade.get_latest_version(PACKAGE_REPO, self._get("timeout"), self._get("debounce_time"))
-        logger.debug(f"latest package version: {version}")
+    async def get_latest_version(self, res: str) -> str:
+        if res not in upgrade.RESOURCE_TYPE_VALUES:
+            logger.error(f"get_latest_version: invalid resource {res}")
+            return ""
+        res_type = upgrade.ResourceType(res)
+        try:
+            version = await upgrade.get_latest_version(res_type, self._get("timeout"), self._get("debounce_time"))
+        except Exception as e:
+            logger.error(f"get_latest_version: failed with {e}")
+            return ""
+        logger.debug(f"get_latest_version: {res} {version}")
         return version
-
-    async def upgrade_to_latest_core(self) -> Tuple[bool, Optional[str]]:
-        try:
-            if self.core.is_running:
-                await self.core.stop()
-        except Exception as e:
-            logger.error(f"upgrade_to_latest_core: failed with {e}")
-            return False, str(e)
-        try:
-            await upgrade.upgrade_to_latest_core(self._get("timeout"))
-        except Exception as e:
-            logger.error(f"upgrade_to_latest_core: failed with {e}")
-            return False, str(e)
-        return True, None
     
-    async def cancel_upgrade_core(self) -> None:
-        logger.info("cancel_upgrade_core: cancelling")
-        upgrade.cancel_core_download()
+    async def is_upgrading(self, res: str) -> bool:
+        if res not in upgrade.RESOURCE_TYPE_ENUMS:
+            logger.error(f"is_upgrading: invalid resource {res}")
+            return False
+        res_type = upgrade.ResourceType(res)
+        return upgrade.is_upgrading(res_type)
 
-    async def get_version_core(self) -> str:
-        version = CoreController.get_version()
-        logger.debug(f"current core version: {version}")
-        return version
-
-    async def get_latest_version_core(self) -> str:
-        version = await upgrade.get_latest_version(CORE_REPO, self._get("timeout"), self._get("debounce_time"))
-        logger.debug(f"latest core version: {version}")
-        return version
-
-    async def upgrade_to_latest_yq(self) -> Tuple[bool, Optional[str]]:
-        try:
-            await upgrade.upgrade_to_latest_yq(self._get("timeout"))
-        except Exception as e:
-            logger.error(f"upgrade_to_latest_yq: failed with {e}")
-            return False, str(e)
-        return True, None
-
-    async def cancel_upgrade_yq(self) -> None:
-        logger.info("cancel_upgrade_yq: cancelling")
-        upgrade.cancel_yq_download()
-
-    async def get_version_yq(self) -> str:
-        version = config.get_yq_version()
-        logger.debug(f"current yq version: {version}")
-        return version
-
-    async def get_latest_version_yq(self) -> str:
-        version = await upgrade.get_latest_version(YQ_REPO, self._get("timeout"), self._get("debounce_time"))
-        logger.debug(f"latest core version: {version}")
-        return version
 
     async def get_dashboard_list(self) -> List[str]:
         dashboard_list = dashboard.get_dashboard_list()
@@ -382,23 +361,17 @@ class Plugin:
             await self.external.stop()
 
     async def check_upgrade(self) -> None:
-        current = await self.get_version()
-        latest = await self.get_latest_version()
-        if current != latest and current != "" and latest != "":
-            logger.info(f"check_upgrade {PACKAGE_NAME}: {current} => {latest}")
-            await decky.emit("upgrade_notice", f"{PACKAGE_NAME}: {current} => {latest}")
-
-        current = await self.get_version_core()
-        latest = await self.get_latest_version_core()
-        if current != latest and current != "" and latest != "":
-            logger.info(f"check_upgrade Mihomo: {current} => {latest}")
-            await decky.emit("upgrade_notice", f"Mihomo: {current} => {latest}")
-
-        current = await self.get_version_yq()
-        latest = await self.get_latest_version_yq()
-        if current != latest and current != "" and latest != "":
-            logger.info(f"check_upgrade yq: {current} => {latest}")
-            await decky.emit("upgrade_notice", f"yq: {current} => {latest}")
+        name_map = {
+            upgrade.ResourceType.PLUGIN: "DeckyClash",
+            upgrade.ResourceType.CORE: "Mihomo",
+            upgrade.ResourceType.YQ: "yq",
+        }
+        for res in upgrade.RESOURCE_TYPE_ENUMS:
+            current = await self.get_version(res.value)
+            latest = await self.get_latest_version(res.value)
+            if current != latest and current != "" and latest != "":
+                logger.info(f"check_upgrade: {res} {current} => {latest}")
+                await decky.emit("upgrade_notice", f"{name_map[res]}: {current} => {latest}")
 
     def _get(self, key: str, allow_none: bool = False) -> Any:
         if allow_none:

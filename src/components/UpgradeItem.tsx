@@ -11,6 +11,7 @@ export interface UpgradeItemProps {
   latest: string | undefined;
   children?: React.ReactNode;
   progressEvent: string;
+  checkUpgrading: () => Promise<boolean>;
   cancelCallback: () => void;
   onCurrentClick?: (e: MouseEvent | CustomEvent) => void;
   onLatestClick?: (e: MouseEvent | CustomEvent) => void;
@@ -19,20 +20,15 @@ export interface UpgradeItemProps {
 
 export const UpgradeItem: FC<UpgradeItemProps> = (props) => {
   const [upgrading, setUpgrading] = useState(false);
-  const [installing, setInstalling] = useState(false);
-  const [disabled, setDisabled] = useState(false);
   const [progress, setProgress] = useState(-1);
   const [upgradeLabel, setUpgradeLabel] = useState(t(L.UPGRADE_LABEL));
 
   useLayoutEffect(() => {
     const callback = (percent: number) => {
-      if (percent >= 0) {
-        setProgress(percent);
-      } else {
-        setInstalling(true);
-      }
+      setProgress(percent);
     };
     addEventListener(props.progressEvent, callback);
+    props.checkUpgrading().then(setUpgrading);
     return () => {
       removeEventListener(props.progressEvent, callback);
     };
@@ -40,21 +36,16 @@ export const UpgradeItem: FC<UpgradeItemProps> = (props) => {
 
   useEffect(() => {
     if (upgrading) {
-      if (installing) {
-        setDisabled(true);
+      if (progress === -1) {
         setUpgradeLabel(t(L.UPGRADE_INSTALLING));
-      } else if (progress >= 0) {
-        setDisabled(false); // cancelable
-        setUpgradeLabel(`${t(L.UPGRADE_PROGRESS)} ${progress}%`);
       } else {
-        setDisabled(true);
+        setUpgradeLabel(`${t(L.UPGRADE_PROGRESS)} ${progress}%`);
       }
     } else {
-      setDisabled(false);
       setProgress(-1);
       setUpgradeLabel(t(L.UPGRADE_LABEL));
     }
-  }, [upgrading, installing, progress]);
+  }, [upgrading, progress]);
 
   return (
     <DialogControlsSection>
@@ -74,15 +65,13 @@ export const UpgradeItem: FC<UpgradeItemProps> = (props) => {
           {upgradeLabel}
           {upgrading && <Spinner style={{ margin: '0px 8px', width: '1.1em' }} />}
         </span>}
-        disabled={disabled}
+        disabled={!props.latest}
         onClick={async (e) => {
           if (upgrading) {
             props.cancelCallback();
             setUpgrading(false);
-            setInstalling(false);
           } else {
             setUpgrading(true);
-            setInstalling(false);
             await props.onUpgradeClick(e);
             setUpgrading(false);
           }

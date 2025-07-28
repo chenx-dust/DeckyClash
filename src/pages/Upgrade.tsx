@@ -2,7 +2,7 @@ import { FC, useLayoutEffect, useState } from "react";
 import { DialogBody, DropdownItem, Router } from "@decky/ui";
 import { t } from 'i18next';
 import { L } from "../i18n";
-import { backend } from "../backend";
+import { backend, ResourceType } from "../backend";
 import { UpgradeItem } from "../components/UpgradeItem";
 import { toaster } from "@decky/api";
 import { BsCheckCircleFill, BsExclamationCircleFill } from "react-icons/bs";
@@ -19,22 +19,26 @@ export const Upgrade: FC = () => {
   );
 
   const getVersions = () => {
-    backend.getVersion().then(setPluginCurrent);
-    backend.getLatestVersion().then(setPluginLatest);
-    backend.getVersionCore().then(setCoreCurrent);
-    backend.getLatestVersionCore().then(setCoreLatest);
-    backend.getVersionYq().then(setYqCurrent);
-    backend.getLatestVersionYq().then(setYqLatest);
+    backend.getVersion(ResourceType.PLUGIN).then(setPluginCurrent);
+    backend.getLatestVersion(ResourceType.PLUGIN).then(setPluginLatest);
+    backend.getVersion(ResourceType.CORE).then(setCoreCurrent);
+    backend.getLatestVersion(ResourceType.CORE).then(setCoreLatest);
+    backend.getVersion(ResourceType.YQ).then(setYqCurrent);
+    backend.getLatestVersion(ResourceType.YQ).then(setYqLatest);
   }
   useLayoutEffect(getVersions, []);
 
-  const upgradeCallback = (func: () => Promise<[boolean, string]>, name: string) => {
+  const upgradeCallback = (
+    func: () => Promise<[boolean, string]>,
+    name: string,
+    target: string | undefined
+  ) => {
     return async () => {
       const [success, error] = await func();
       if (success) {
         toaster.toast({
           title: t(L.INSTALL_SUCCESS),
-          body: `${name} ${pluginLatest}`,
+          body: `${name} ${target}`,
           icon: <BsCheckCircleFill />,
           onClick: () => {
             Router.CloseSideMenus();
@@ -54,27 +58,28 @@ export const Upgrade: FC = () => {
         });
       }
     };
-  }
+  };
 
   const upgradePlugin = upgradeCallback(
-    channel === "nightly" ? backend.upgradeToNightly : backend.upgradeToLatest,
-    "DeckyClash"
+    () => backend.upgrade(ResourceType.PLUGIN, channel === "nightly" ? "nightly" : pluginLatest),
+    "DeckyClash", pluginLatest
   );
-  const upgradeCore = upgradeCallback(backend.upgradeToLatestCore, "Mihomo");
-  const upgradeYq = upgradeCallback(backend.upgradeToLatestYq, "yq");
+  const upgradeCore = upgradeCallback(() => backend.upgrade(ResourceType.CORE, coreLatest), "Mihomo", coreLatest);
+  const upgradeYq = upgradeCallback(() => backend.upgrade(ResourceType.YQ, yqLatest), "yq", yqLatest);
 
   return (
     <DialogBody>
       <UpgradeItem label={t(L.PLUGIN)} current={pluginCurrent} latest={pluginLatest}
         progressEvent="dl_plugin_progress"
-        cancelCallback={backend.cancelUpgrade}
+        checkUpgrading={() => backend.isUpgrading(ResourceType.PLUGIN)}
+        cancelCallback={() => backend.cancelUpgrade(ResourceType.PLUGIN)}
         onCurrentClick={() => {
           setPluginCurrent(undefined);
-          backend.getVersion().then(setPluginCurrent);
+          backend.getVersion(ResourceType.PLUGIN).then(setPluginCurrent);
         }}
         onLatestClick={() => {
           setPluginLatest(undefined);
-          backend.getLatestVersion().then(setPluginLatest);
+          backend.getLatestVersion(ResourceType.PLUGIN).then(setPluginLatest);
         }}
         onUpgradeClick={upgradePlugin}>
         <DropdownItem
@@ -92,26 +97,28 @@ export const Upgrade: FC = () => {
       </UpgradeItem>
       <UpgradeItem label="Mihomo" current={coreCurrent} latest={coreLatest}
         progressEvent="dl_core_progress"
-        cancelCallback={backend.cancelUpgradeCore}
+        checkUpgrading={() => backend.isUpgrading(ResourceType.CORE)}
+        cancelCallback={() => backend.cancelUpgrade(ResourceType.CORE)}
         onCurrentClick={() => {
           setCoreCurrent(undefined);
-          backend.getVersionCore().then(setCoreCurrent);
+          backend.getVersion(ResourceType.CORE).then(setCoreCurrent);
         }}
         onLatestClick={() => {
           setCoreLatest(undefined);
-          backend.getLatestVersionCore().then(setCoreLatest);
+          backend.getLatestVersion(ResourceType.CORE).then(setCoreLatest);
         }}
         onUpgradeClick={upgradeCore} />
       <UpgradeItem label="YQ" current={yqCurrent} latest={yqLatest}
         progressEvent="dl_yq_progress"
-        cancelCallback={backend.cancelUpgradeYq}
+        checkUpgrading={() => backend.isUpgrading(ResourceType.YQ)}
+        cancelCallback={() => backend.cancelUpgrade(ResourceType.YQ)}
         onCurrentClick={() => {
           setYqCurrent(undefined);
-          backend.getVersionYq().then(setYqCurrent);
+          backend.getVersion(ResourceType.YQ).then(setYqCurrent);
         }}
         onLatestClick={() => {
           setYqLatest(undefined);
-          backend.getLatestVersionYq().then(setYqLatest);
+          backend.getLatestVersion(ResourceType.YQ).then(setYqLatest);
         }}
         onUpgradeClick={upgradeYq} />
     </DialogBody>

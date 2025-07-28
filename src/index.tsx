@@ -27,7 +27,7 @@ import { t } from 'i18next';
 import { QRCodeCanvas } from "qrcode.react";
 
 import { About, Import, Manage, Upgrade } from "./pages";
-import { backend, Config, EnhancedMode } from "./backend";
+import { backend, Config, EnhancedMode, ResourceType } from "./backend";
 import { ActionButtonItem, DoubleButton, InstallationGuide } from "./components";
 import { localizationManager, L } from "./i18n";
 import { TIPS_TIMEOUT } from "./global";
@@ -95,9 +95,9 @@ const Content: FC<{}> = ({ }) => {
   const [currentIP, setCurrentIP] = useState<string>(localIP);
 
   const refreshVersions = async () => {
-    const _coreVersion = await backend.getVersionCore();
-    const _yqVersion = await backend.getVersionYq();
-    const _pluginVersion = await backend.getVersion();
+    const _coreVersion = await backend.getVersion(ResourceType.CORE);
+    const _yqVersion = await backend.getVersion(ResourceType.YQ);
+    const _pluginVersion = await backend.getVersion(ResourceType.PLUGIN);
     setCoreVersion(_coreVersion);
     setYqVersion(_yqVersion);
     setPluginVersion(_pluginVersion);

@@ -1,4 +1,5 @@
 import asyncio
+from enum import Enum
 import gzip
 import os
 from pathlib import Path
@@ -6,15 +7,15 @@ import shutil
 import stat
 import tempfile
 import time
-from typing import Awaitable, Dict, Optional, Tuple
+from typing import Any, Awaitable, Callable, Coroutine, Dict, Tuple
 
 import core
 import dashboard
 import decky
 from decky import logger
-from download import DownloadController, ProgressCallback
 from metadata import CORE_REPO, PACKAGE_REPO, YQ_REPO
 import utils
+from utils import ProgressCallback
 import config
 
 def remove_no_fail(path: str):
@@ -72,9 +73,17 @@ async def restart_plugin_loader() -> None:
     if returncode != 0:
         raise Exception(f'Error restarting plugin_loader with code {returncode}: {stderr.decode()}')
 
-async def upgrade_to_latest_plugin(timeout: float, nightly: bool) -> None:
+class ResourceType(Enum):
+    PLUGIN = "plugin"
+    CORE = "core"
+    YQ = "yq"
+
+RESOURCE_TYPE_ENUMS = [ResourceType.PLUGIN, ResourceType.CORE, ResourceType.YQ]
+RESOURCE_TYPE_VALUES = [e.value for e in RESOURCE_TYPE_ENUMS]
+
+async def upgrade_plugin(version: str) -> None:
     logger.info("upgrading to latest version")
-    downloaded_filepath = await download_latest_plugin(timeout, nightly)
+    downloaded_filepath = await download_resourse(ResourceType.PLUGIN, version)
 
     if os.path.exists(downloaded_filepath):
         plugin_dir = decky.DECKY_PLUGIN_DIR
@@ -122,9 +131,9 @@ async def upgrade_to_latest_plugin(timeout: float, nightly: bool) -> None:
         logger.info("upgrade_to_latest: complete")
         await restart_plugin_loader()
 
-async def upgrade_to_latest_core(timeout: float) -> None:
+async def upgrade_core(version: str) -> None:
     logger.info("upgrading to latest version of core")
-    downloaded_filepath = await download_latest_core(timeout)
+    downloaded_filepath = await download_resourse(ResourceType.CORE, version)
     core_path = core.CoreController.CORE_PATH
 
     if os.path.exists(downloaded_filepath):
@@ -145,9 +154,9 @@ async def upgrade_to_latest_core(timeout: float) -> None:
 
         logger.info("upgrade_to_latest_core: complete")
 
-async def upgrade_to_latest_yq(timeout: float) -> None:
+async def upgrade_yq(version: str) -> None:
     logger.info("upgrading to latest version of yq")
-    downloaded_filepath = await download_latest_yq(timeout)
+    downloaded_filepath = await download_resourse(ResourceType.YQ, version)
     yq_path = config.YQ_PATH
 
     if os.path.exists(downloaded_filepath):
@@ -162,126 +171,84 @@ async def upgrade_to_latest_yq(timeout: float) -> None:
         os.chmod(yq_path, 0o755)
         shutil.chown(yq_path, decky.DECKY_USER, decky.DECKY_USER)
 
-        logger.info("upgrade_to_latest_yq: complete")
+        logger.info("upgrade_yq: complete")
 
-def progress_emitter(event: str) -> ProgressCallback:
-    def _impl(percent: int) -> Awaitable:
+_FUNC_MAP: Dict[ResourceType, Callable[[str], Coroutine[Any, Any, None]]] = {
+    ResourceType.PLUGIN: upgrade_plugin,
+    ResourceType.CORE: upgrade_core,
+    ResourceType.YQ: upgrade_yq,
+}
+
+_URL_MAP: Dict[ResourceType, Callable[[str], str]] = {
+    ResourceType.PLUGIN: lambda ver: f"https://github.com/{PACKAGE_REPO}/releases/download/v{ver}/DeckyClash.zip",
+    ResourceType.CORE: lambda ver: f"https://github.com/{CORE_REPO}/releases/download/v{ver}/mihomo-linux-amd64-v{ver}.gz",
+    ResourceType.YQ: lambda ver: f"https://github.com/{YQ_REPO}/releases/download/v{ver}/yq_linux_amd64",
+}
+
+async def download_resourse(res: ResourceType, version: str):
+    url = _URL_MAP[res](version)
+    path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, url.split("/")[-1])
+    event = f"dl_{res.value}_progress"
+    def emitter(percent: int) -> Awaitable:
         return decky.emit(event, percent)
-    return _impl
 
-_plugin_downloader = DownloadController()
-_plugin_downloader.set_progress_callback(progress_emitter("dl_plugin_progress"))
-async def download_latest_plugin(timeout: float, nightly: bool) -> str:
-    if nightly:
-        json_data = None
-        releases = await utils.get_url_to_json(get_releases_url(PACKAGE_REPO), timeout)
-        for release in releases:
-            if release.get("tag_name") == "nightly":
-                json_data = release
-                break
-        if not json_data:
-            logger.error("failed to find nightly release")
-            raise LookupError("Failed to find nightly release")
+    await utils.download_with_progress(url, path, emitter)
+
+    return path
+
+_upgrade_tasks: Dict[ResourceType, asyncio.Task] = {}
+async def upgrade(res: ResourceType, version: str) -> None:
+    if res in _upgrade_tasks:
+        if _upgrade_tasks[res].done():
+            _upgrade_tasks.pop(res)
+        logger.warning(f"upgrade: {res.value} is already upgrading")
+    if res not in _upgrade_tasks:
+        logger.info(f"upgrade: {res.value} upgrading to {version}")
+        _upgrade_tasks[res] = asyncio.create_task(_FUNC_MAP[res](version))
+    await _upgrade_tasks[res]
+    err = _upgrade_tasks[res].exception()
+    if _upgrade_tasks[res].cancelled():
+        logger.warning(f"upgrade: {res.value} upgrade cancelled")
+    elif err is not None:
+        logger.error(f"upgrade: {res.value} upgrade failed with {type(err)} {err}")
+        raise err
     else:
-        json_data = await utils.get_url_to_json(get_latest_release_url(PACKAGE_REPO), timeout)
+        logger.info(f"upgrade: {res.value} upgrade done")
+    _upgrade_tasks.pop(res)
 
-    download_url: Optional[str] = None
-    for asset in json_data.get("assets"):
-        name: str = asset.get("name")
-        if name == "DeckyClash.zip":
-            download_url = asset.get("browser_download_url")
-            break
+def is_upgrading(res: ResourceType) -> bool:
+    return res in _upgrade_tasks and not _upgrade_tasks[res].done()
 
-    if not download_url:
-        logger.error("failed to find download url")
-        raise LookupError("Failed to find download url")
-    logger.debug(f"downloading from: {download_url}")
+def cancel_upgrade(res: ResourceType) -> None:
+    if res not in _upgrade_tasks:
+        return
+    rtn = _upgrade_tasks[res].cancel()
+    logger.info(f"cancel_upgrade: {res.value} {rtn}")
 
-    file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "DeckyClash.zip")
-
-    await _plugin_downloader.download(download_url, file_path)
-    await decky.emit("dl_plugin_progress", -1)
-
-    return file_path
-
-def cancel_plugin_download() -> None:
-    _plugin_downloader.cancel()
-
-_core_downloader = DownloadController()
-_core_downloader.set_progress_callback(progress_emitter("dl_core_progress"))
-async def download_latest_core(timeout: float) -> str:
-    json_data = await utils.get_url_to_json(get_latest_release_url(CORE_REPO), timeout)
-
-    download_url: Optional[str] = None
-    for asset in json_data.get("assets"):
-        name: str = asset.get("name")
-        if name.startswith("mihomo-linux-amd64-") and name.endswith(".gz"):
-            download_url = asset.get("browser_download_url")
-            break
-
-    if not download_url:
-        logger.error("failed to find download url")
-        raise LookupError("Failed to find download url")
-    logger.debug(f"downloading from: {download_url}")
-
-    file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "mihomo.gz")
-
-    await _core_downloader.download(download_url, file_path)
-    await decky.emit("dl_core_progress", -1)
-
-    return file_path
-
-def cancel_core_download() -> None:
-    _core_downloader.cancel()
-
-_yq_downloader = DownloadController()
-_yq_downloader.set_progress_callback(progress_emitter("dl_yq_progress"))
-async def download_latest_yq(timeout: float) -> str:
-    json_data = await utils.get_url_to_json(get_latest_release_url(YQ_REPO), timeout)
-
-    download_url: Optional[str] = None
-    for asset in json_data.get("assets"):
-        name: str = asset.get("name")
-        if name == "yq_linux_amd64":
-            download_url = asset.get("browser_download_url")
-            break
-
-    if not download_url:
-        logger.error("failed to find download url")
-        raise LookupError("Failed to find download url")
-    logger.debug(f"downloading from: {download_url}")
-
-    file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "yq_bin")
-
-    await _yq_downloader.download(download_url, file_path)
-    await decky.emit("dl_yq_progress", -1)
-
-    return file_path
-
-def cancel_yq_download() -> None:
-    _yq_downloader.cancel()
-
-QUERY_HISTORY: Dict[str, Tuple[str, float]] = {}
-async def get_latest_version(repo: str, timeout: float, debounce_time: float) -> str:
-    if repo in QUERY_HISTORY:
-        last_query, last_time = QUERY_HISTORY[repo]
+_REPO_MAP: Dict[ResourceType, str] = {
+    ResourceType.CORE: CORE_REPO,
+    ResourceType.YQ: YQ_REPO,
+    ResourceType.PLUGIN: PACKAGE_REPO,
+}
+_query_history: Dict[ResourceType, Tuple[str, float]] = {}
+async def get_latest_version(res: ResourceType, timeout: float, debounce_time: float) -> str:
+    if res in _query_history:
+        last_query, last_time = _query_history[res]
         if time.time() - last_time <= debounce_time:
             return last_query
 
-    try:
-        json_data = await utils.get_url_to_json(get_latest_release_url(repo), timeout=timeout)
-    except Exception as e:
-        logger.error(f"get_latest_version: failed with {e}")
-        return ""
+    json_data = await utils.get_url_to_json(
+        get_latest_release_url(_REPO_MAP[res]),
+        timeout=timeout)
 
     tag = json_data.get("tag_name")
     if tag.startswith("v"):
         tag = tag[1:]
 
-    QUERY_HISTORY[repo] = (tag, time.time())
+    _query_history[res] = (tag, time.time())
     return tag
 
-GEO_FILES = {
+_GEO_FILES = {
     "country.mmdb": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb",
     "geosite.dat": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat",
     "asn.mmdb": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb",
@@ -294,7 +261,7 @@ async def download_geos():
         await utils.get_url_to_file(url, path)
         shutil.chown(path, decky.DECKY_USER, decky.DECKY_USER)
 
-    for filename, url in GEO_FILES.items():
+    for filename, url in _GEO_FILES.items():
         promises.append(_impl(filename, url))
     await asyncio.gather(*promises)
 

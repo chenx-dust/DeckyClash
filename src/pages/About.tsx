@@ -3,7 +3,7 @@ import { DialogBody, DialogControlsSection, DialogControlsSectionHeader, Field, 
 import { FiGithub } from "react-icons/fi";
 import { t } from 'i18next';
 import { L } from "../i18n";
-import { backend } from "../backend";
+import { backend, ResourceType } from "../backend";
 import { DescriptionField } from "../components";
 
 export const About: FC = () => {
@@ -12,13 +12,13 @@ export const About: FC = () => {
   const [yqVersion, setYqVersion] = useState<string>();
 
   useLayoutEffect(() => {
-    backend.getVersion().then((x) => {
+    backend.getVersion(ResourceType.PLUGIN).then((x) => {
       setVersion(x);
     });
-    backend.getVersionCore().then((x) => {
+    backend.getVersion(ResourceType.CORE).then((x) => {
       setCoreVersion(x);
     });
-    backend.getVersionYq().then((x) => {
+    backend.getVersion(ResourceType.YQ).then((x) => {
       setYqVersion(x);
     });
   }, []);

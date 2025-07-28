@@ -3,7 +3,7 @@ import { FC, useState } from "react";
 import { FaCheck, FaEllipsisH, FaRedoAlt, FaTimes } from "react-icons/fa";
 import { DoubleButton } from "./DoubleButton";
 import { ActionButtonItem } from "./ActionButtonItem";
-import { backend } from "../backend";
+import { backend, ResourceType } from "../backend";
 import { t } from 'i18next';
 import { L } from "../i18n";
 import { toaster } from "@decky/api";
@@ -26,7 +26,8 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
 
   const installCore = async () => {
     setCoreInstalling(true);
-    const [success, error] = await backend.upgradeToLatestCore();
+    const [success, error] =
+      await backend.upgrade(ResourceType.CORE, await backend.getLatestVersion(ResourceType.CORE));
     setCoreInstalling(false);
     if (!success)
       toaster.toast({
@@ -38,7 +39,8 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
 
   const installYQ = async () => {
     setYqInstalling(true);
-    const [success, error] = await backend.upgradeToLatestYq();
+    const [success, error] =
+      await backend.upgrade(ResourceType.YQ, await backend.getLatestVersion(ResourceType.YQ));
     setYqInstalling(false);
     if (!success)
       toaster.toast({

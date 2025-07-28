@@ -3,6 +3,12 @@ export enum EnhancedMode {
   FakeIp = "fake-ip",
 }
 
+export enum ResourceType {
+  PLUGIN = "plugin",
+  CORE = "core",
+  YQ = "yq",
+}
+
 export interface Config {
   status: boolean,
   current: string | null,

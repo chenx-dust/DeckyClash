@@ -1,5 +1,5 @@
 import { callable } from "@decky/api";
-import { Config } from ".";
+import { Config, ResourceType } from ".";
 
 export const getCoreStatus = callable<[], boolean>("get_core_status");
 export const setCoreStatus = callable<[boolean], [boolean, string]>("set_core_status");
@@ -10,12 +10,14 @@ export const getConfigValue = callable<[string], any>("get_config_value");
 export const setConfigValue = callable<[string, any], []>("set_config_value");
 
 export const checkUpgrade = callable<[], []>("check_upgrade");
-export const getVersion = callable<[], string>("get_version");
-export const getLatestVersion = callable<[], string>("get_latest_version");
-export const getVersionCore = callable<[], string>("get_version_core");
-export const getLatestVersionCore = callable<[], string>("get_latest_version_core");
-export const getVersionYq = callable<[], string>("get_version_yq");
-export const getLatestVersionYq = callable<[], string>("get_latest_version_yq");
+export const upgrade = callable<[ResourceType, string | undefined], [boolean, string]>("upgrade");
+export const cancelUpgrade = callable<[ResourceType], []>("cancel_upgrade");
+export const getVersion = callable<[ResourceType], string>("get_version");
+export const getLatestVersion = callable<[ResourceType], string>("get_latest_version");
+export const isUpgrading = callable<[ResourceType], boolean>("is_upgrading");
+
+export const installGeos = callable<[], [boolean, string]>("install_geos");
+export const installDashboards = callable<[], [boolean, string]>("install_dashboards");
 
 export const getSubscriptionList = callable<[], Record<string, string>>("get_subscription_list");
 export const updateSubscription = callable<[string], [boolean, string]>("update_subscription");

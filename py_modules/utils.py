@@ -9,7 +9,9 @@ import urllib.request
 import fcntl
 import struct
 import socket
-from typing import Any, List, Optional
+from typing import Any, Awaitable, Callable, List, Optional
+
+import aiohttp
 
 from decky import logger
 
@@ -97,3 +99,31 @@ def env_fix() -> dict[str, str]:
     current_env = os.environ.copy()
     current_env.pop('LD_LIBRARY_PATH', None)
     return current_env
+
+ProgressCallback = Callable[[int], Awaitable]
+async def download_with_progress(url: str, path: str, progress_callback: ProgressCallback) -> None:
+    logger.debug(f"downloading: {url} to {path}")
+    downloaded_size = 0
+    last_percent = 0
+    await progress_callback(0)
+    if os.path.exists(path):
+        os.remove(path)
+    async with aiohttp.ClientSession(
+        connector=aiohttp.TCPConnector(ssl=get_ssl_context()),
+        timeout=aiohttp.ClientTimeout(0)) as session:
+        async with session.get(url) as response:
+            total_size = int(response.headers.get("Content-Length", 0))
+            logger.debug(f"downloading: {total_size} bytes")
+            with open(path, "wb") as f:
+                while True:
+                    chunk = await response.content.read(128*1024)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    downloaded_size += len(chunk)
+                    percent = int(downloaded_size / total_size * 100)
+                    if percent > last_percent:
+                        last_percent = percent
+                        logger.debug(f"downloading: {percent}%")
+                        await progress_callback(last_percent)
+    await progress_callback(-1)

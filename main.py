@@ -39,7 +39,6 @@ class Plugin:
         self._set_default("allow_remote_access", False)
         self._set_default("autostart", False)
         self._set_default("timeout", 15.0)
-        self._set_default("download_timeout", 120.0)
         self._set_default("debounce_time", 10.0)
         self._set_default("disable_verify", False)
         self._set_default("external_run_bg", False)
@@ -174,19 +173,21 @@ class Plugin:
         self.settings.setSetting(key, value)
         logger.debug(f"save config: {key} : {value}")
 
-    async def get_version(self) -> str:
-        version = decky.DECKY_PLUGIN_VERSION
-        logger.debug(f"current package version: {version}")
-        return version
-
-    async def get_version_yq(self) -> str:
-        version = config.get_yq_version()
-        logger.debug(f"current yq version: {version}")
-        return version
-
-    async def get_version_core(self) -> str:
-        version = CoreController.get_version()
-        logger.debug(f"current core version: {version}")
+    async def get_version(self, res: str) -> str:
+        try:
+            match res:
+                case "plugin":
+                    version = decky.DECKY_PLUGIN_VERSION
+                case "core":
+                    version = CoreController.get_version()
+                case "yq":
+                    version = config.get_yq_version()
+                case _:
+                    version = ""
+        except Exception as e:
+            logger.error(f"get_version: {res} failed with {type(e)} {e}")
+            return ""
+        logger.debug(f"get_version: {res} {version}")
         return version
 
     async def get_dashboard_list(self) -> List[str]:

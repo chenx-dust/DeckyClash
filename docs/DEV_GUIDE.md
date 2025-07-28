@@ -75,7 +75,6 @@ The settings json file is located at `~/homebrew/settings/DeckyClash/config.json
   "allow_remote_access": false, // Allow remote access. Default: false
   "autostart": true,            // Autostart after loaded. Default: false
   "timeout": 15.0,              // Resource query timeout (s). Default: 15.0
-  "download_timeout": 120.0,    // Resource download timeout (s). Default: 120.0
   "debounce_time": 10.0,        // Query debounce time (s). Default: 10.0
   "disable_verify": false,      // Disable verify SSL. Default: false
   "external_run_bg": false,     // Run external importer in background. Default: false

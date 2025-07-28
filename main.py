@@ -226,12 +226,13 @@ class Plugin:
         return version
     
     async def is_upgrading(self, res: str) -> bool:
-        if res not in upgrade.RESOURCE_TYPE_ENUMS:
+        if res not in upgrade.RESOURCE_TYPE_VALUES:
             logger.error(f"is_upgrading: invalid resource {res}")
             return False
         res_type = upgrade.ResourceType(res)
-        return upgrade.is_upgrading(res_type)
-
+        rtn = upgrade.is_upgrading(res_type)
+        logger.debug(f"is_upgrading: {res} {rtn}")
+        return rtn
 
     async def get_dashboard_list(self) -> List[str]:
         dashboard_list = dashboard.get_dashboard_list()

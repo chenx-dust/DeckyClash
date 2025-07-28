@@ -28,7 +28,6 @@ export const UpgradeItem: FC<UpgradeItemProps> = (props) => {
       setProgress(percent);
     };
     addEventListener(props.progressEvent, callback);
-    props.checkUpgrading().then(setUpgrading);
     return () => {
       removeEventListener(props.progressEvent, callback);
     };
@@ -46,6 +45,10 @@ export const UpgradeItem: FC<UpgradeItemProps> = (props) => {
       setUpgradeLabel(t(L.UPGRADE_LABEL));
     }
   }, [upgrading, progress]);
+
+  useEffect(() => {
+    props.checkUpgrading().then(setUpgrading);
+  }, []);
 
   return (
     <DialogControlsSection>
@@ -65,7 +68,7 @@ export const UpgradeItem: FC<UpgradeItemProps> = (props) => {
           {upgradeLabel}
           {upgrading && <Spinner style={{ margin: '0px 8px', width: '1.1em' }} />}
         </span>}
-        disabled={!props.latest}
+        disabled={!props.latest && !upgrading}
         onClick={async (e) => {
           if (upgrading) {
             props.cancelCallback();

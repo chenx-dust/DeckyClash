@@ -53,8 +53,8 @@
   "remote_binary": [
     {
       "name": "mihomo.gz",
-      "url": "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.11/mihomo-linux-amd64-v1.19.11.gz",
-      "sha256hash": "e153fc1547ec4665b3b7071d1ba9a944fbfe263bce10e2611b27640142a54801"
+      "url": "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.12/mihomo-linux-amd64-v1.19.12.gz",
+      "sha256hash": "ab666e6e7feec707836d0858bd9955343a82e119108e6c4399269c678e5c6303"
     },
     {
       "name": "yq_bin",
@@ -63,18 +63,18 @@
     },
     {
       "name": "country.mmdb",
-      "url": "https://github.com/P3TERX/GeoLite.mmdb/releases/download/2025.07.07/GeoLite2-Country.mmdb",
-      "sha256hash": "95a34b528d5161617bece4a3c0c61ab069f7dd664ac3a7dfb7a026610843e5c8"
+      "url": "https://github.com/P3TERX/GeoLite.mmdb/raw/cbc3df74555ad1ff3f1817862d5ac8adf9d8c73d/GeoLite2-Country.mmdb",
+      "sha256hash": "028c150a13a53b9e6be5ae2785c0ed9059458c6520d6345fc33d6c66c92a4496"
     },
     {
       "name": "geosite.dat",
-      "url": "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/202507252214/geosite.dat",
-      "sha256hash": "5c48186c7da4fd2f715a795815efa84d0f7342a218e101cbd0484d1abd93e9ac"
+      "url": "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/4a23aeeece3aa61eeb47c6b32ff91225582fe736/geosite.dat",
+      "sha256hash": "d178ce4749e09402defd057f22567ecc0a58b1a784211b5622fde9b1dd447fdf"
     },
     {
       "name": "asn.mmdb",
-      "url": "https://github.com/P3TERX/GeoLite.mmdb/releases/download/2025.07.07/GeoLite2-ASN.mmdb",
-      "sha256hash": "8700717a1d22b164329d7d1b8e724baedb942ed6a7747e0d1fddbf0f97c2dd1d"
+      "url": "https://github.com/P3TERX/GeoLite.mmdb/raw/cbc3df74555ad1ff3f1817862d5ac8adf9d8c73d/GeoLite2-ASN.mmdb",
+      "sha256hash": "ddcf2e6fdb076b455008d657b725bea737725bcf35a36a54fa76d569ed55973c"
     },
     {
       "name": "yacd-meta.zip",
@@ -88,8 +88,8 @@
     },
     {
       "name": "zashboard.zip",
-      "url": "https://github.com/Zephyruso/zashboard/releases/download/v1.99.0/dist-cdn-fonts.zip",
-      "sha256hash": "f6a1d663699b43649222e98029f041fa5c2720c3e675f0f4de794e9de811d7e4"
+      "url": "https://github.com/Zephyruso/zashboard/releases/download/v1.100.0/dist-cdn-fonts.zip",
+      "sha256hash": "8d9e15bd59584658c6dae003488365efd2b04ac7da7fa50a3997d02d96f3c072"
     }
   ]
 }

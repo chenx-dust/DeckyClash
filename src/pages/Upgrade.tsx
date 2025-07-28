@@ -86,7 +86,16 @@ export const Upgrade: FC = () => {
 
   return (
     <DialogBody>
-      <UpgradeItem label={t(L.PLUGIN)} current={pluginCurrent} latest={pluginLatest} onClick={upgradePlugin}>
+      <UpgradeItem label={t(L.PLUGIN)} current={pluginCurrent} latest={pluginLatest}
+        onCurrentClick={() => {
+          setPluginCurrent("");
+          backend.getVersion().then(setPluginCurrent);
+        }}
+        onLatestClick={() => {
+          setPluginLatest("");
+          backend.getLatestVersion().then(setPluginLatest);
+        }}
+        onUpgradeClick={upgradePlugin}>
         <DropdownItem
           label={t(L.UPGRADE_CHANNEL)}
           rgOptions={[
@@ -100,8 +109,26 @@ export const Upgrade: FC = () => {
           }}
         />
       </UpgradeItem>
-      <UpgradeItem label="Mihomo" current={coreCurrent} latest={coreLatest} onClick={upgradeCore} />
-      <UpgradeItem label="YQ" current={yqCurrent} latest={yqLatest} onClick={upgradeYq} />
+      <UpgradeItem label="Mihomo" current={coreCurrent} latest={coreLatest}
+        onCurrentClick={() => {
+          setCoreCurrent("");
+          backend.getVersionCore().then(setCoreCurrent);
+        }}
+        onLatestClick={() => {
+          setCoreLatest("");
+          backend.getLatestVersionCore().then(setCoreLatest);
+        }}
+        onUpgradeClick={upgradeCore} />
+      <UpgradeItem label="YQ" current={yqCurrent} latest={yqLatest}
+        onCurrentClick={() => {
+          setYqCurrent("");
+          backend.getVersionYq().then(setYqCurrent);
+        }}
+        onLatestClick={() => {
+          setYqLatest("");
+          backend.getLatestVersionYq().then(setYqLatest);
+        }}
+        onUpgradeClick={upgradeYq} />
     </DialogBody>
   );
 };

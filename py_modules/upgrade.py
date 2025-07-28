@@ -6,12 +6,13 @@ import shutil
 import stat
 import tempfile
 import time
-from typing import Dict, Optional, Tuple
+from typing import Awaitable, Dict, Optional, Tuple
 
 import core
 import dashboard
 import decky
 from decky import logger
+from download import DownloadController, ProgressCallback
 from metadata import CORE_REPO, PACKAGE_REPO, YQ_REPO
 import utils
 import config
@@ -71,9 +72,9 @@ async def restart_plugin_loader() -> None:
     if returncode != 0:
         raise Exception(f'Error restarting plugin_loader with code {returncode}: {stderr.decode()}')
 
-async def upgrade_to_latest(timeout: float, download_timeout: float, nightly: bool) -> None:
+async def upgrade_to_latest_plugin(timeout: float, nightly: bool) -> None:
     logger.info("upgrading to latest version")
-    downloaded_filepath = await download_latest_build(timeout, download_timeout, nightly)
+    downloaded_filepath = await download_latest_plugin(timeout, nightly)
 
     if os.path.exists(downloaded_filepath):
         plugin_dir = decky.DECKY_PLUGIN_DIR
@@ -121,9 +122,9 @@ async def upgrade_to_latest(timeout: float, download_timeout: float, nightly: bo
         logger.info("upgrade_to_latest: complete")
         await restart_plugin_loader()
 
-async def upgrade_to_latest_core(timeout: float, download_timeout) -> None:
+async def upgrade_to_latest_core(timeout: float) -> None:
     logger.info("upgrading to latest version of core")
-    downloaded_filepath = await download_latest_core(timeout, download_timeout)
+    downloaded_filepath = await download_latest_core(timeout)
     core_path = core.CoreController.CORE_PATH
 
     if os.path.exists(downloaded_filepath):
@@ -144,9 +145,9 @@ async def upgrade_to_latest_core(timeout: float, download_timeout) -> None:
 
         logger.info("upgrade_to_latest_core: complete")
 
-async def upgrade_to_latest_yq(timeout: float, download_timeout) -> None:
+async def upgrade_to_latest_yq(timeout: float) -> None:
     logger.info("upgrading to latest version of yq")
-    downloaded_filepath = await download_latest_yq(timeout, download_timeout)
+    downloaded_filepath = await download_latest_yq(timeout)
     yq_path = config.YQ_PATH
 
     if os.path.exists(downloaded_filepath):
@@ -163,8 +164,14 @@ async def upgrade_to_latest_yq(timeout: float, download_timeout) -> None:
 
         logger.info("upgrade_to_latest_yq: complete")
 
+def progress_emitter(event: str) -> ProgressCallback:
+    def _impl(percent: int) -> Awaitable:
+        return decky.emit(event, percent)
+    return _impl
 
-async def download_latest_build(timeout: float, download_timeout: float, nightly: bool) -> str:
+_plugin_downloader = DownloadController()
+_plugin_downloader.set_progress_callback(progress_emitter("dl_plugin_progress"))
+async def download_latest_plugin(timeout: float, nightly: bool) -> str:
     if nightly:
         json_data = None
         releases = await utils.get_url_to_json(get_releases_url(PACKAGE_REPO), timeout)
@@ -192,12 +199,17 @@ async def download_latest_build(timeout: float, download_timeout: float, nightly
 
     file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "DeckyClash.zip")
 
-    await utils.get_url_to_file(download_url, file_path, download_timeout)
+    await _plugin_downloader.download(download_url, file_path)
+    await decky.emit("dl_plugin_progress", -1)
 
     return file_path
 
+def cancel_plugin_download() -> None:
+    _plugin_downloader.cancel()
 
-async def download_latest_core(timeout: float, download_timeout: float) -> str:
+_core_downloader = DownloadController()
+_core_downloader.set_progress_callback(progress_emitter("dl_core_progress"))
+async def download_latest_core(timeout: float) -> str:
     json_data = await utils.get_url_to_json(get_latest_release_url(CORE_REPO), timeout)
 
     download_url: Optional[str] = None
@@ -214,12 +226,17 @@ async def download_latest_core(timeout: float, download_timeout: float) -> str:
 
     file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "mihomo.gz")
 
-    await utils.get_url_to_file(download_url, file_path, download_timeout)
+    await _core_downloader.download(download_url, file_path)
+    await decky.emit("dl_core_progress", -1)
 
     return file_path
 
+def cancel_core_download() -> None:
+    _core_downloader.cancel()
 
-async def download_latest_yq(timeout: float, download_timeout: float) -> str:
+_yq_downloader = DownloadController()
+_yq_downloader.set_progress_callback(progress_emitter("dl_yq_progress"))
+async def download_latest_yq(timeout: float) -> str:
     json_data = await utils.get_url_to_json(get_latest_release_url(YQ_REPO), timeout)
 
     download_url: Optional[str] = None
@@ -236,16 +253,15 @@ async def download_latest_yq(timeout: float, download_timeout: float) -> str:
 
     file_path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "yq_bin")
 
-    await utils.get_url_to_file(download_url, file_path, download_timeout)
+    await _yq_downloader.download(download_url, file_path)
+    await decky.emit("dl_yq_progress", -1)
 
     return file_path
 
-
-def get_version() -> str:
-    return f"{decky.DECKY_PLUGIN_VERSION}"
+def cancel_yq_download() -> None:
+    _yq_downloader.cancel()
 
 QUERY_HISTORY: Dict[str, Tuple[str, float]] = {}
-
 async def get_latest_version(repo: str, timeout: float, debounce_time: float) -> str:
     if repo in QUERY_HISTORY:
         last_query, last_time = QUERY_HISTORY[repo]
@@ -271,18 +287,18 @@ GEO_FILES = {
     "asn.mmdb": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb",
 }
 
-async def download_geos(timeout: float):
+async def download_geos():
     promises = []
     async def _impl(filename, url):
         path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, filename)
-        await utils.get_url_to_file(url, path, timeout)
+        await utils.get_url_to_file(url, path)
         shutil.chown(path, decky.DECKY_USER, decky.DECKY_USER)
 
     for filename, url in GEO_FILES.items():
         promises.append(_impl(filename, url))
     await asyncio.gather(*promises)
 
-async def download_dashboards(timeout: float):
+async def download_dashboards():
     promises = []
     if not os.path.exists(dashboard.DASHBOARD_DIR):
         logger.debug("dashboard dir not exists, creating")
@@ -291,7 +307,7 @@ async def download_dashboards(timeout: float):
     async def _impl(filename, url):
         dest_file = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, f"{filename}.zip")
         logger.info(f"downloading dashboard to: {dest_file}")
-        await utils.get_url_to_file(url, dest_file, timeout=timeout)
+        await utils.get_url_to_file(url, dest_file)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             logger.debug(f"extracting dashboard file to {tmpdir}")

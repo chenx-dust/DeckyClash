@@ -38,7 +38,6 @@ class Plugin:
         self._set_default("allow_remote_access", False)
         self._set_default("autostart", False)
         self._set_default("timeout", 15.0)
-        self._set_default("download_timeout", 120.0)
         self._set_default("debounce_time", 10.0)
         self._set_default("disable_verify", False)
         self._set_default("external_run_bg", False)
@@ -177,7 +176,7 @@ class Plugin:
 
     async def upgrade_to_latest(self) -> Tuple[bool, Optional[str]]:
         try:
-            await upgrade.upgrade_to_latest(self._get("timeout"), self._get("download_timeout"), False)
+            await upgrade.upgrade_to_latest_plugin(self._get("timeout"), False)
         except Exception as e:
             logger.error(f"upgrade_to_latest: failed with {e}")
             return False, str(e)
@@ -185,38 +184,24 @@ class Plugin:
 
     async def upgrade_to_nightly(self) -> Tuple[bool, Optional[str]]:
         try:
-            await upgrade.upgrade_to_latest(self._get("timeout"), self._get("download_timeout"), True)
+            await upgrade.upgrade_to_latest_plugin(self._get("timeout"), True)
         except Exception as e:
             logger.error(f"upgrade_to_nightly: failed with {e}")
             return False, str(e)
         return True, None
+    
+    async def cancel_upgrade(self) -> None:
+        logger.info("cancel_upgrade: cancelling")
+        upgrade.cancel_plugin_download()
 
     async def get_version(self) -> str:
-        version = upgrade.get_version()
+        version = decky.DECKY_PLUGIN_VERSION
         logger.debug(f"current package version: {version}")
         return version
 
     async def get_latest_version(self) -> str:
         version = await upgrade.get_latest_version(PACKAGE_REPO, self._get("timeout"), self._get("debounce_time"))
         logger.debug(f"latest package version: {version}")
-        return version
-
-    async def upgrade_to_latest_yq(self) -> Tuple[bool, Optional[str]]:
-        try:
-            await upgrade.upgrade_to_latest_yq(self._get("timeout"), self._get("download_timeout"))
-        except Exception as e:
-            logger.error(f"upgrade_to_latest_yq: failed with {e}")
-            return False, str(e)
-        return True, None
-
-    async def get_version_yq(self) -> str:
-        version = config.get_yq_version()
-        logger.debug(f"current yq version: {version}")
-        return version
-
-    async def get_latest_version_yq(self) -> str:
-        version = await upgrade.get_latest_version(YQ_REPO, self._get("timeout"), self._get("debounce_time"))
-        logger.debug(f"latest core version: {version}")
         return version
 
     async def upgrade_to_latest_core(self) -> Tuple[bool, Optional[str]]:
@@ -227,11 +212,15 @@ class Plugin:
             logger.error(f"upgrade_to_latest_core: failed with {e}")
             return False, str(e)
         try:
-            await upgrade.upgrade_to_latest_core(self._get("timeout"), self._get("download_timeout"))
+            await upgrade.upgrade_to_latest_core(self._get("timeout"))
         except Exception as e:
             logger.error(f"upgrade_to_latest_core: failed with {e}")
             return False, str(e)
         return True, None
+    
+    async def cancel_upgrade_core(self) -> None:
+        logger.info("cancel_upgrade_core: cancelling")
+        upgrade.cancel_core_download()
 
     async def get_version_core(self) -> str:
         version = CoreController.get_version()
@@ -240,6 +229,28 @@ class Plugin:
 
     async def get_latest_version_core(self) -> str:
         version = await upgrade.get_latest_version(CORE_REPO, self._get("timeout"), self._get("debounce_time"))
+        logger.debug(f"latest core version: {version}")
+        return version
+
+    async def upgrade_to_latest_yq(self) -> Tuple[bool, Optional[str]]:
+        try:
+            await upgrade.upgrade_to_latest_yq(self._get("timeout"))
+        except Exception as e:
+            logger.error(f"upgrade_to_latest_yq: failed with {e}")
+            return False, str(e)
+        return True, None
+
+    async def cancel_upgrade_yq(self) -> None:
+        logger.info("cancel_upgrade_yq: cancelling")
+        upgrade.cancel_yq_download()
+
+    async def get_version_yq(self) -> str:
+        version = config.get_yq_version()
+        logger.debug(f"current yq version: {version}")
+        return version
+
+    async def get_latest_version_yq(self) -> str:
+        version = await upgrade.get_latest_version(YQ_REPO, self._get("timeout"), self._get("debounce_time"))
         logger.debug(f"latest core version: {version}")
         return version
 
@@ -351,14 +362,14 @@ class Plugin:
 
     async def install_geos(self) -> Tuple[bool, str]:
         try:
-            await upgrade.download_geos(timeout=self._get("download_timeout"))
+            await upgrade.download_geos()
         except Exception as e:
             return False, str(e)
         return True, ""
 
     async def install_dashboards(self) -> Tuple[bool, str]:
         try:
-            await upgrade.download_dashboards(timeout=self._get("download_timeout"))
+            await upgrade.download_dashboards()
         except Exception as e:
             return False, str(e)
         return True, ""

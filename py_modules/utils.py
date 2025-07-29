@@ -40,8 +40,12 @@ async def get_url_to_file(url: str | urllib.request.Request, dest: str, timeout:
     def _impl():
         if os.path.exists(dest):
             os.remove(dest)
-        with urllib.request.urlopen(url, timeout=timeout, context=_ssl_context) as response, open(dest, 'wb') as out_file:
-            out_file.write(response.read())
+        with urllib.request.urlopen(url, timeout=timeout, context=_ssl_context) as response:
+            data = response.read()
+        if os.path.exists(dest):
+            os.remove(dest)
+        with open(dest, 'wb') as out:
+            out.write(data)
     await asyncio.to_thread(_impl)
 
 def rand_thing() -> str:

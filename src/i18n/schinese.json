@@ -85,5 +85,7 @@
     "CANCEL": "取消",
     "UPGRADE_CHANNEL": "更新通道",
     "LATEST_CHANNEL": "最新版本",
-    "NIGHTLY_CHANNEL": "每夜构建"
+    "NIGHTLY_CHANNEL": "每夜构建",
+    "GENERAL": "通用",
+    "AUTO_CHECK_UPDATE": "自动检查更新"
 }

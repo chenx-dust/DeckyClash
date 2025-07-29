@@ -1,5 +1,5 @@
 import { FC, useLayoutEffect, useState } from "react";
-import { DialogBody, DropdownItem, Router } from "@decky/ui";
+import { DialogBody, DialogControlsSection, DialogControlsSectionHeader, DropdownItem, Router, ToggleField } from "@decky/ui";
 import { t } from 'i18next';
 import { L } from "../i18n";
 import { backend, ResourceType } from "../backend";
@@ -17,6 +17,16 @@ export const Upgrade: FC = () => {
   const [channel, setChannel] = useState<string>(
     window.localStorage.getItem("decky-clash-upgrade-channel") || "latest"
   );
+  const [autoCheckUpdate, setAutoCheckUpdate] = useState(
+    (window.localStorage.getItem("decky-clash-auto-check-update") || "true") === "true"
+  );
+
+  useLayoutEffect(() => {
+    backend.getConfigValue("auto_check_update").then((value) => {
+      setAutoCheckUpdate(value);
+      window.localStorage.setItem("decky-clash-auto-check-update", value.toString());
+    });
+  }, []);
 
   const getVersions = () => {
     backend.getVersion(ResourceType.PLUGIN).then(setPluginCurrent);
@@ -69,6 +79,21 @@ export const Upgrade: FC = () => {
 
   return (
     <DialogBody>
+      <DialogControlsSection>
+        <DialogControlsSectionHeader>
+          {t(L.GENERAL)}
+        </DialogControlsSectionHeader>
+        <ToggleField
+          label={t(L.AUTO_CHECK_UPDATE)}
+          checked={autoCheckUpdate}
+          onChange={(x) => {
+            setAutoCheckUpdate(x);
+            backend.setConfigValue("auto_check_update", x).then(() =>
+              backend.getConfigValue("auto_check_update").then(setAutoCheckUpdate));
+            localStorage.setItem("decky-clash-auto-check-update", x.toString());
+          }}
+        />
+      </DialogControlsSection>
       <UpgradeItem label={t(L.PLUGIN)} current={pluginCurrent} latest={pluginLatest}
         progressEvent="dl_plugin_progress"
         checkUpgrading={() => backend.isUpgrading(ResourceType.PLUGIN)}

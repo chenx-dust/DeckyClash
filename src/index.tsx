@@ -620,7 +620,7 @@ export default definePlugin(() => {
     });
   });
 
-  setTimeout(backend.checkUpgrade, 5000);
+  setTimeout(backend.checkUpdate, 5000);
 
   return {
     // The name shown in various decky menus

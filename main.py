@@ -41,6 +41,7 @@ class Plugin:
         self._set_default("debounce_time", 10.0)
         self._set_default("disable_verify", False)
         self._set_default("external_run_bg", False)
+        self._set_default("auto_check_update", True)
         self._set_default("log_level", logging.getLevelName(logging.INFO))
 
         level = self._get("log_level")
@@ -79,7 +80,8 @@ class Plugin:
         if self._get("external_run_bg"):
             await self.set_external_status(True)
 
-        await self.check_upgrade()
+        if self._get("auto_check_update"):
+            await self.check_update()
 
     # Function called first during the unload process, utilize this to handle your plugin being removed
     async def _unload(self):
@@ -157,7 +159,9 @@ class Plugin:
         return config
 
     async def get_config_value(self, key: str):
-        return self.settings.getSetting(key)
+        value = self.settings.getSetting(key)
+        logger.debug(f"get_config_value: {key} => {value}")
+        return value
 
     async def set_config_value(self, key: str, value: Any):
         PERMITTED_KEYS = [
@@ -167,12 +171,13 @@ class Plugin:
             "autostart",
             "dashboard",
             "external_run_bg",
+            "auto_check_update",
         ]
         if key not in PERMITTED_KEYS:
-            logger.error(f"not permitted key: {key}")
+            logger.error(f"set_config_value: not permitted key {key}")
             return
         self.settings.setSetting(key, value)
-        logger.debug(f"save config: {key} : {value}")
+        logger.debug(f"set_config_value: {key} => {value}")
 
     async def upgrade(self, res: str, version: str) -> Tuple[bool, Optional[str]]:
         if res not in upgrade.RESOURCE_TYPE_VALUES:
@@ -365,7 +370,7 @@ class Plugin:
         else:
             await self.external.stop()
 
-    async def check_upgrade(self) -> None:
+    async def check_update(self) -> None:
         name_map = {
             upgrade.ResourceType.PLUGIN: "DeckyClash",
             upgrade.ResourceType.CORE: "Mihomo",
@@ -375,7 +380,7 @@ class Plugin:
             current = await self.get_version(res.value)
             latest = await self.get_latest_version(res.value)
             if current != latest and current != "" and latest != "":
-                logger.info(f"check_upgrade: {res} {current} => {latest}")
+                logger.info(f"check_update: {res} {current} => {latest}")
                 await decky.emit("upgrade_notice", f"{name_map[res]}: {current} => {latest}")
 
     def _get(self, key: str, allow_none: bool = False) -> Any:

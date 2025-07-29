@@ -42,6 +42,7 @@ class Plugin:
         self._set_default("debounce_time", 10.0)
         self._set_default("disable_verify", False)
         self._set_default("external_run_bg", False)
+        self._set_default("auto_check_update", True)
         self._set_default("log_level", logging.getLevelName(logging.INFO))
 
         level = self._get("log_level")
@@ -156,7 +157,9 @@ class Plugin:
         return config
 
     async def get_config_value(self, key: str):
-        return self.settings.getSetting(key)
+        value = self.settings.getSetting(key)
+        logger.debug(f"get_config_value: {key} => {value}")
+        return value
 
     async def set_config_value(self, key: str, value: Any):
         PERMITTED_KEYS = [
@@ -166,12 +169,13 @@ class Plugin:
             "autostart",
             "dashboard",
             "external_run_bg",
+            "auto_check_update",
         ]
         if key not in PERMITTED_KEYS:
-            logger.error(f"not permitted key: {key}")
+            logger.error(f"set_config_value: not permitted key {key}")
             return
         self.settings.setSetting(key, value)
-        logger.debug(f"save config: {key} : {value}")
+        logger.debug(f"set_config_value: {key} => {value}")
 
     async def get_version(self, res: str) -> str:
         try:
@@ -195,21 +199,25 @@ class Plugin:
         logger.debug(f"get_dashboard_list: {dashboard_list}")
         return dashboard_list
 
+    def _check_subs(self) -> None:
+        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        for name in subs:
+            if not os.path.exists(subscription.get_path(name)):
+                subs.pop(name)
+                logger.info(f"check_subs: {name} not exists")
+        self.settings.setSetting("subscriptions", subs)
+
     async def get_subscription_list(self) -> Dict[str, str]:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
-        logger.debug(f"get_subscription_list: ori {type(subs)} {subs}")
-        failed = subscription.check_subs(subs)
-        if len(failed) > 0:
-            [subs.pop(x) for x in failed]
-            self.settings.setSetting("subscriptions", subs)
+        self._check_subs()
         logger.debug(f"get_subscription_list: {subs}")
         return subs
 
     async def update_subscription(self, name: str) -> Tuple[bool, Optional[str]]:
-        logger.error(f"updating subscription: {name}")
+        logger.info(f"update_subscription: updating {name}")
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
         if name not in subs:
-            logger.error(f"subscription {name} not found")
+            logger.error(f"update_subscription: {name} not found")
             return False, "subscription not found"
         result = await subscription.update_sub(name, subs[name], self._get("timeout"))
         if result is None:

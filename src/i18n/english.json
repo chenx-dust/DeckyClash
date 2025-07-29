@@ -21,7 +21,7 @@
     "DOWNLOAD_FAILURE": "Failed to Download",
     "EXTERNAL_IMPORTER": "External Importer",
     "ENABLE": "Enable",
-    "RUN_IN_BACKGROUND": "Run in background",
+    "RUN_IN_BACKGROUND": "Run in Background",
     "SUBSCRIPTION_LIST": "Subscription List",
     "QUICK_EDIT": "Quick Edit",
     "QUICK_EDIT_EXIT": "Edit Finished",
@@ -43,7 +43,7 @@
     "OPEN_DASHBOARD": "Open Dashboard",
     "SELECT_DASHBOARD": "Select Dashboard",
     "ALLOW_REMOTE_ACCESS": "Allow Remote Access",
-    "ALLOW_REMOTE_ACCESS_DESC": "Allow Remote Access to Dashboard",
+    "ALLOW_REMOTE_ACCESS_DESC": "Allow remote to access Dashboard",
     "OVERRIDE_DNS": "Override DNS",
     "OVERRIDE_DNS_DESC": "Force Mihomo to hijack DNS query",
     "ENHANCED_MODE": "Enhanced Mode",
@@ -85,5 +85,7 @@
     "CANCEL": "Cancel",
     "UPGRADE_CHANNEL": "Upgrade Channel",
     "LATEST_CHANNEL": "Latest",
-    "NIGHTLY_CHANNEL": "Nightly"
+    "NIGHTLY_CHANNEL": "Nightly",
+    "GENERAL": "General",
+    "AUTO_CHECK_UPDATE": "Check Update Automatically"
 }

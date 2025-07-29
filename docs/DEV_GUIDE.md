@@ -78,6 +78,7 @@ The settings json file is located at `~/homebrew/settings/DeckyClash/config.json
   "debounce_time": 10.0,        // Query debounce time (s). Default: 10.0
   "disable_verify": false,      // Disable verify SSL. Default: false
   "external_run_bg": false,     // Run external importer in background. Default: false
+  "auto_check_update": true,    // Auto check update. Default: true
   "log_level": "DEBUG"          // Log level. Default: INFO
 }
 ```

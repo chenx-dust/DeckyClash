@@ -8,7 +8,6 @@ import { L } from "../i18n";
 import { addEventListener, removeEventListener, toaster } from "@decky/api";
 import { CallbackRef, SubscriptionField } from "../components";
 import { DeleteConfirmModal, EditSubscriptionModal } from "../modals";
-import { TIPS_TIMEOUT } from "../global";
 
 export interface ManageProp {
   Subscriptions: Record<string, string>;
@@ -176,7 +175,6 @@ export const Manage: FC<ManageProp> = (props) => {
                       title: t(L.UPDATE_FAILURE),
                       body: error,
                       icon: <BsExclamationCircleFill />,
-                      duration: TIPS_TIMEOUT,
                     });
                   }
                   return success;

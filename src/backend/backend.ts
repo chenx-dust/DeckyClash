@@ -9,7 +9,7 @@ export const getConfig = callable<[], Config>("get_config");
 export const getConfigValue = callable<[string], any>("get_config_value");
 export const setConfigValue = callable<[string, any], []>("set_config_value");
 
-export const checkUpgrade = callable<[], []>("check_upgrade");
+export const checkUpdate = callable<[], []>("check_update");
 export const upgrade = callable<[ResourceType, string | undefined], [boolean, string]>("upgrade");
 export const cancelUpgrade = callable<[ResourceType], []>("cancel_upgrade");
 export const getVersion = callable<[ResourceType], string>("get_version");

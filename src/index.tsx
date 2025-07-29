@@ -22,7 +22,6 @@ import {
 } from "@decky/api";
 
 import { FC, useEffect, useLayoutEffect, useState } from "react";
-import { GiCat } from "react-icons/gi";
 import { t } from 'i18next';
 import { QRCodeCanvas } from "qrcode.react";
 
@@ -30,7 +29,7 @@ import { About, Import, Manage, Upgrade } from "./pages";
 import { backend, Config, EnhancedMode, ResourceType } from "./backend";
 import { ActionButtonItem, DoubleButton, InstallationGuide } from "./components";
 import { localizationManager, L } from "./i18n";
-import { TIPS_TIMEOUT } from "./global";
+import { DeckyClashIcon, TIPS_TIMEOUT } from "./global";
 import { FaPlus } from "react-icons/fa";
 
 let subscriptions: Record<string, string> = {};
@@ -269,7 +268,7 @@ const Content: FC<{}> = ({ }) => {
       toaster.toast({
         title: t(L.RESTART_CORE),
         body: t(L.ENABLE_CLASH_FAILED),
-        icon: <GiCat />,
+        icon: <DeckyClashIcon />,
       });
     }
   }
@@ -323,7 +322,7 @@ const Content: FC<{}> = ({ }) => {
                 toaster.toast({
                   title: t(L.ENABLE_CLASH_FAILED),
                   body: error,
-                  icon: <GiCat />,
+                  icon: <DeckyClashIcon />,
                 });
                 setClashStateTips(
                   t(L.ENABLE_CLASH_FAILED) + " Err: " + error
@@ -598,7 +597,7 @@ export default definePlugin(() => {
       toaster.toast({
         title: t(L.CLASH_EXIT_TITLE),
         body: "Code: " + code,
-        icon: <GiCat />,
+        icon: <DeckyClashIcon />,
       });
     }
   });
@@ -606,14 +605,14 @@ export default definePlugin(() => {
     toaster.toast({
       title: t(L.DOWNLOAD_SUCCESS),
       body: name,
-      icon: <GiCat />,
+      icon: <DeckyClashIcon />,
     });
   });
   addEventListener("upgrade_notice", (msg: string) => {
     toaster.toast({
       title: t(L.UPGRADE_AVAILABLE),
       body: msg,
-      icon: <GiCat />,
+      icon: <DeckyClashIcon />,
       onClick: () => {
         Router.CloseSideMenus();
         Router.Navigate("/decky-clash/upgrade");
@@ -631,7 +630,7 @@ export default definePlugin(() => {
     // The content of your plugin's menu
     content: <Content />,
     // The icon displayed in the plugin list
-    icon: <GiCat />,
+    icon: <DeckyClashIcon />,
     // The function triggered when your plugin unloads
     onDismount() {
       patchLocalConfig("status", false);

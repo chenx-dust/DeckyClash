@@ -239,21 +239,25 @@ class Plugin:
         logger.debug(f"get_dashboard_list: {dashboard_list}")
         return dashboard_list
 
+    def _check_subs(self) -> None:
+        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        for name in subs:
+            if not os.path.exists(subscription.get_path(name)):
+                subs.pop(name)
+                logger.info(f"check_subs: {name} not exists")
+        self.settings.setSetting("subscriptions", subs)
+
     async def get_subscription_list(self) -> Dict[str, str]:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
-        logger.debug(f"get_subscription_list: ori {type(subs)} {subs}")
-        failed = subscription.check_subs(subs)
-        if len(failed) > 0:
-            [subs.pop(x) for x in failed]
-            self.settings.setSetting("subscriptions", subs)
+        self._check_subs()
         logger.debug(f"get_subscription_list: {subs}")
         return subs
 
     async def update_subscription(self, name: str) -> Tuple[bool, Optional[str]]:
-        logger.error(f"updating subscription: {name}")
+        logger.info(f"update_subscription: updating {name}")
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
         if name not in subs:
-            logger.error(f"subscription {name} not found")
+            logger.error(f"update_subscription: {name} not found")
             return False, "subscription not found"
         result = await subscription.update_sub(name, subs[name], self._get("timeout"))
         if result is None:

@@ -7,7 +7,7 @@ import { backend, ResourceType } from "../backend";
 import { t } from 'i18next';
 import { L } from "../i18n";
 import { toaster } from "@decky/api";
-import { GiCat } from "react-icons/gi";
+import { DeckyClashIcon } from "../global";
 
 export interface InstallationGuideProps {
   coreVersion: string;
@@ -33,7 +33,7 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
       toaster.toast({
         title: t(L.INSTALL_FAILURE),
         body: `Mihomo: ${error}`,
-        icon: <GiCat />,
+        icon: <DeckyClashIcon />,
       });
   };
 
@@ -46,7 +46,7 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
       toaster.toast({
         title: t(L.INSTALL_FAILURE),
         body: `yq: ${error}`,
-        icon: <GiCat />,
+        icon: <DeckyClashIcon />,
       });
   };
 
@@ -59,7 +59,7 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
       toaster.toast({
         title: t(L.INSTALL_FAILURE),
         body: `Geo-files: ${error}`,
-        icon: <GiCat />,
+        icon: <DeckyClashIcon />,
       });
   };
 
@@ -72,7 +72,7 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
       toaster.toast({
         title: t(L.INSTALL_FAILURE),
         body: `Dashboards: ${error}`,
-        icon: <GiCat />,
+        icon: <DeckyClashIcon />,
       });
   };
 

@@ -69,7 +69,7 @@ def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] 
     if resp.status is int and resp.status != 200:
         logger.error(f"body: {resp.read()}")
         return False, f"Invalid status code: {resp.status}"
-    
+
     # get file name
     msg = email.message.Message()
     msg.add_header('content-disposition', resp.headers.get('content-disposition')) # type: ignore
@@ -126,22 +126,6 @@ async def update_sub(name: str, url: str, timeout: float) -> Optional[str]:
         logger.error(f"update sub {name} error: {e}")
         return str(e)
     return None
-
-def check_subs(subs: SubscriptionDict) -> List[str]:
-    """
-    Check subscriptions
-    Args:
-        subs: Subscriptions list
-    Returns:
-        list[str]: List of failed subscriptions
-    """
-    failed = []
-    for name in subs:
-        if not os.path.exists(get_path(name)):
-            failed.append(name)
-            logger.info(f"check_subs: {name} not exists")
-
-    return failed
 
 def duplicate_sub(subs: SubscriptionDict, name: str) -> Optional[str]:
     if name not in subs:

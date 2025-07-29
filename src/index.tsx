@@ -620,7 +620,8 @@ export default definePlugin(() => {
     });
   });
 
-  setTimeout(backend.checkUpdate, 5000);
+  if ((window.localStorage.getItem("decky-clash-auto-check-update") || "true") === "true")
+    setTimeout(backend.checkUpdate, 5000);
 
   return {
     // The name shown in various decky menus

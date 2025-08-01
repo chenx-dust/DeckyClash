@@ -38,11 +38,10 @@ async def get_url_to_json(url: str | urllib.request.Request, timeout: Optional[f
 
 async def get_url_to_file(url: str | urllib.request.Request, dest: str, timeout: Optional[float] = None) -> None:
     def _impl():
-        if os.path.exists(dest):
-            os.remove(dest)
         with urllib.request.urlopen(url, timeout=timeout, context=_ssl_context) as response:
             data = response.read()
         if os.path.exists(dest):
+            logger.debug(f"get_url_to_file: removing {dest}")
             os.remove(dest)
         with open(dest, 'wb') as out:
             out.write(data)

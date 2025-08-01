@@ -244,17 +244,8 @@ class Plugin:
         logger.debug(f"get_dashboard_list: {dashboard_list}")
         return dashboard_list
 
-    def _check_subs(self) -> None:
-        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
-        for name in subs:
-            if not os.path.exists(subscription.get_path(name)):
-                subs.pop(name)
-                logger.info(f"check_subs: {name} not exists")
-        self.settings.setSetting("subscriptions", subs)
-
     async def get_subscription_list(self) -> Dict[str, str]:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
-        self._check_subs()
         logger.debug(f"get_subscription_list: {subs}")
         return subs
 

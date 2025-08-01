@@ -5,6 +5,7 @@ import os
 import random
 import re
 import ssl
+import tempfile
 import urllib.request
 import fcntl
 import struct
@@ -104,20 +105,18 @@ def env_fix() -> dict[str, str]:
     return current_env
 
 ProgressCallback = Callable[[int], Awaitable]
-async def download_with_progress(url: str, path: str, progress_callback: ProgressCallback) -> None:
-    logger.debug(f"downloading: {url} to {path}")
-    downloaded_size = 0
-    last_percent = 0
-    await progress_callback(0)
-    if os.path.exists(path):
-        os.remove(path)
-    async with aiohttp.ClientSession(
-        connector=aiohttp.TCPConnector(ssl=get_ssl_context()),
-        timeout=aiohttp.ClientTimeout(0)) as session:
-        async with session.get(url) as response:
-            total_size = int(response.headers.get("Content-Length", 0))
-            logger.debug(f"downloading: {total_size} bytes")
-            with open(path, "wb") as f:
+async def download_with_progress(url: str, name: str, progress_callback: ProgressCallback) -> str:
+    with tempfile.NamedTemporaryFile("wb", suffix=name, delete=False) as f:
+        logger.debug(f"downloading: {url} to {f.name}")
+        downloaded_size = 0
+        last_percent = 0
+        await progress_callback(0)
+        async with aiohttp.ClientSession(
+            connector=aiohttp.TCPConnector(ssl=get_ssl_context()),
+            timeout=aiohttp.ClientTimeout(0)) as session:
+            async with session.get(url) as response:
+                total_size = int(response.headers.get("Content-Length", 0))
+                logger.debug(f"downloading: {total_size} bytes")
                 while True:
                     chunk = await response.content.read(128*1024)
                     if not chunk:
@@ -129,4 +128,5 @@ async def download_with_progress(url: str, path: str, progress_callback: Progres
                         last_percent = percent
                         logger.debug(f"downloading: {percent}%")
                         await progress_callback(last_percent)
-    await progress_callback(-1)
+        await progress_callback(-1)
+        return f.name

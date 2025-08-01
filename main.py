@@ -370,7 +370,7 @@ class Plugin:
         for res in upgrade.RESOURCE_TYPE_ENUMS:
             current = await self.get_version(res.value)
             latest = await self.get_latest_version(res.value)
-            if current != latest and current != "" and latest != "":
+            if current != latest and current.startswith("v") and latest.startswith("v"):
                 logger.info(f"check_update: {res} {current} => {latest}")
                 await decky.emit("upgrade_notice", f"{name_map[res]}: {current} => {latest}")
 

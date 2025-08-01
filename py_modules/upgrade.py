@@ -82,13 +82,13 @@ RESOURCE_TYPE_ENUMS = [ResourceType.PLUGIN, ResourceType.CORE, ResourceType.YQ]
 RESOURCE_TYPE_VALUES = [e.value for e in RESOURCE_TYPE_ENUMS]
 
 async def upgrade_plugin(version: str) -> None:
-    logger.info("upgrading to latest version")
+    logger.info("upgrade_plugin: upgrading")
     downloaded_filepath = await download_resourse(ResourceType.PLUGIN, version)
 
     if os.path.exists(downloaded_filepath):
         plugin_dir = decky.DECKY_PLUGIN_DIR
 
-        logger.debug(f"removing old plugin from {plugin_dir}")
+        logger.debug(f"chmod +w {plugin_dir}")
         # add write perms to directory
         await asyncio.to_thread(recursive_chmod, plugin_dir, stat.S_IWUSR)
 
@@ -107,10 +107,15 @@ async def upgrade_plugin(version: str) -> None:
         await asyncio.to_thread(shutil.rmtree, plugin_dir)
 
         logger.debug(f"extracting ota file to {plugin_dir}")
-        await asyncio.to_thread(shutil.unpack_archive,
-                                downloaded_filepath,
-                                str(Path(plugin_dir).parent),
-                                format="zip")
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            await asyncio.to_thread(shutil.unpack_archive,
+                                    downloaded_filepath,
+                                    tmp_dir,
+                                    format="zip")
+            await asyncio.to_thread(shutil.copytree,
+                                    os.path.join(tmp_dir, "DeckyClash"),
+                                    plugin_dir,
+                                    dirs_exist_ok=True)
 
         # recover old binaries
         if os.path.exists(backup_binaries_dir):
@@ -128,11 +133,11 @@ async def upgrade_plugin(version: str) -> None:
         logger.debug(f"cleaning up")
         remove_no_fail(downloaded_filepath)
 
-        logger.info("upgrade_to_latest: complete")
+        logger.info("upgrade_plugin: complete")
         await restart_plugin_loader()
 
 async def upgrade_core(version: str) -> None:
-    logger.info("upgrading to latest version of core")
+    logger.info("upgrade_core: upgrading")
     downloaded_filepath = await download_resourse(ResourceType.CORE, version)
     core_path = core.CoreController.CORE_PATH
 
@@ -152,10 +157,10 @@ async def upgrade_core(version: str) -> None:
         # cleanup downloaded files
         remove_no_fail(downloaded_filepath)
 
-        logger.info("upgrade_to_latest_core: complete")
+        logger.info("upgrade_core: complete")
 
 async def upgrade_yq(version: str) -> None:
-    logger.info("upgrading to latest version of yq")
+    logger.info("upgrade_yq: upgrading")
     downloaded_filepath = await download_resourse(ResourceType.YQ, version)
     yq_path = config.YQ_PATH
 
@@ -185,16 +190,14 @@ _URL_MAP: Dict[ResourceType, Callable[[str], str]] = {
     ResourceType.YQ: lambda ver: f"https://github.com/{YQ_REPO}/releases/download/{ver}/yq_linux_amd64",
 }
 
-async def download_resourse(res: ResourceType, version: str):
+async def download_resourse(res: ResourceType, version: str) -> str:
     url = _URL_MAP[res](version)
-    path = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, url.split("/")[-1])
+    name = url.split("/")[-1]
     event = f"dl_{res.value}_progress"
     def emitter(percent: int) -> Awaitable:
         return decky.emit(event, percent)
 
-    await utils.download_with_progress(url, path, emitter)
-
-    return path
+    return await utils.download_with_progress(url, name, emitter)
 
 _upgrade_tasks: Dict[ResourceType, asyncio.Task] = {}
 async def upgrade(res: ResourceType, version: str) -> None:

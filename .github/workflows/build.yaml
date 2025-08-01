@@ -28,6 +28,18 @@ jobs:
           node-version: '20.x'
           cache: pnpm
 
+      - name: Replacing release version field
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          sed -i "s/{{DECKY_CLASH_VERSION}}/${{github.ref_name}}/g" package.json
+
+      - name: Replacing commit hex version field
+        if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          COMMIT_HEX=$(git rev-parse HEAD)
+          COMMIT_HEX=${COMMIT_HEX:0:7}
+          sed -i "s/{{DECKY_CLASH_VERSION}}/${COMMIT_HEX}/g" package.json
+
       - name: Install package and build
         run: |
           pnpm install --no-frozen-lockfile

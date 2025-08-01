@@ -180,9 +180,9 @@ _FUNC_MAP: Dict[ResourceType, Callable[[str], Coroutine[Any, Any, None]]] = {
 }
 
 _URL_MAP: Dict[ResourceType, Callable[[str], str]] = {
-    ResourceType.PLUGIN: lambda ver: f"https://github.com/{PACKAGE_REPO}/releases/download/v{ver}/DeckyClash.zip",
-    ResourceType.CORE: lambda ver: f"https://github.com/{CORE_REPO}/releases/download/v{ver}/mihomo-linux-amd64-v{ver}.gz",
-    ResourceType.YQ: lambda ver: f"https://github.com/{YQ_REPO}/releases/download/v{ver}/yq_linux_amd64",
+    ResourceType.PLUGIN: lambda ver: f"https://github.com/{PACKAGE_REPO}/releases/download/{ver}/DeckyClash.zip",
+    ResourceType.CORE: lambda ver: f"https://github.com/{CORE_REPO}/releases/download/{ver}/mihomo-linux-amd64-{ver}.gz",
+    ResourceType.YQ: lambda ver: f"https://github.com/{YQ_REPO}/releases/download/{ver}/yq_linux_amd64",
 }
 
 async def download_resourse(res: ResourceType, version: str):
@@ -242,8 +242,6 @@ async def get_latest_version(res: ResourceType, timeout: float, debounce_time: f
         timeout=timeout)
 
     tag = json_data.get("tag_name")
-    if tag.startswith("v"):
-        tag = tag[1:]
 
     _query_history[res] = (tag, time.time())
     return tag

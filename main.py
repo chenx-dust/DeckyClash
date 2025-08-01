@@ -206,7 +206,7 @@ class Plugin:
         try:
             match res_type:
                 case upgrade.ResourceType.PLUGIN:
-                    version = decky.DECKY_PLUGIN_VERSION
+                    version = f"v{decky.DECKY_PLUGIN_VERSION}"
                 case upgrade.ResourceType.CORE:
                     version = CoreController.get_version()
                 case upgrade.ResourceType.YQ:

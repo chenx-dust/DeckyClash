@@ -101,5 +101,5 @@ def get_yq_version() -> str:
     logger.debug(f"get_yq_version: output: {output}")
     for s in output.decode().split(" "):
         if s.startswith("v") and not s.startswith("version"):
-            return s[1:].strip()
+            return s.strip()
     return ""

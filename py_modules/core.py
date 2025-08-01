@@ -130,5 +130,5 @@ class CoreController:
         logger.debug(f"get_version: output: {output}")
         for s in output.decode().split(" "):
             if s.startswith("v"):
-                return s[1:]
+                return s.strip()
         return ""

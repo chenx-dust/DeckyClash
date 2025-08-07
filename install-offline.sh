@@ -91,7 +91,7 @@ if ! prompt_continue; then
   exit 0
 fi
 
-mv_impl "${TEMP_DIR}/${PACKAGE}/data" "${DATA_DIR}" 2>/dev/null
+# let plugin do those things 
 mv_impl "${TEMP_DIR}//${PACKAGE}" "${PLUGIN_DIR}" 2>/dev/null
 
 echo

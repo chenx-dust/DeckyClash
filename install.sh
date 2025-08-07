@@ -309,7 +309,7 @@ if prompt_continue $WITHOUT_DASHBOARD; then
 	echo "Installing zashboard..."
   DL_DEST="${TEMP_DIR}/zashboard.zip"
   INSTALL_DEST="${DASHBOARD_DIR}/zashboard"
-	wget -O "${DL_DEST}" ${GITHUB_BASE_URL}/Zephyruso/zashboard/releases/latest/download/dist.zip
+	wget -O "${DL_DEST}" ${GITHUB_BASE_URL}/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip
 	unzip -oq "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${INSTALL_DEST}"
 	mv "${TEMP_DIR}/dist" "${INSTALL_DEST}"

@@ -320,3 +320,11 @@ async def download_dashboards():
         await asyncio.gather(*promises)
     except Exception as e:
         logger.error(f"download_dashboards: error {e}")
+
+def initialize_plugin() -> None:
+    recursive_chmod(os.path.join(decky.DECKY_PLUGIN_DIR, "bin"), 0o755)
+    data_path = os.path.join(decky.DECKY_PLUGIN_DIR, "data")
+    if os.path.exists(data_path):
+        shutil.copytree(data_path, decky.DECKY_PLUGIN_RUNTIME_DIR)
+        shutil.rmtree(data_path)
+        recursive_chown(decky.DECKY_PLUGIN_RUNTIME_DIR, decky.DECKY_USER, decky.DECKY_USER)

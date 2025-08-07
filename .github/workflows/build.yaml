@@ -59,12 +59,10 @@ jobs:
 
       - name: Packing offine installer
         run: |
-          mkdir -p release/homebrew/plugins
-          cp -R release/DeckyClash release/homebrew/plugins/
-          OVERRIDE_BASE_DIR="release/homebrew" ./install.sh --yes --no-privilege --without-plugin --without-restart
+          OVERRIDE_PLUGIN_DIR="release/DeckyClash" OVERRIDE_DATA_DIR="release/DeckyClash/data" ./install.sh --yes --no-privilege --without-plugin --without-restart
           cp install-offline.sh release/Installer-DeckyClash.sh
           cd release
-          zip -r DeckyClash-full.zip homebrew
+          zip -r DeckyClash-full.zip DeckyClash
           cat DeckyClash-full.zip >> Installer-DeckyClash.sh
           cd ..
 

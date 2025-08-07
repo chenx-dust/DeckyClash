@@ -4,10 +4,8 @@ set -e
 
 PACKAGE="DeckyClash"
 BASE_DIR=${OVERRIDE_BASE_DIR:-"${HOME}/homebrew"}
-PLUGIN_SUFFIX="plugins/${PACKAGE}"
-PLUGIN_DIR="${BASE_DIR}/${PLUGIN_SUFFIX}"
-DATA_SUFFIX="data/${PACKAGE}"
-DATA_DIR="${BASE_DIR}/${DATA_SUFFIX}"
+PLUGIN_DIR="${BASE_DIR}/plugins/${PACKAGE}"
+DATA_DIR="${BASE_DIR}/data/${PACKAGE}"
 
 if [ "$UID" -eq 0 ]; then
   echo "WARNING: Running as root."
@@ -49,14 +47,14 @@ function prompt_continue() {
   fi
 }
 
-function copy_impl() {
+function mv_impl() {
   local src=$1
   local dest=$2
   if [ -d "$dest" ]; then
     rm -rf "$dest" 2>/dev/null || sudo rm -rf "$dest"
   fi
-  if ! cp -R "$src" "$dest" 2>/dev/null; then
-    sudo cp -R "$src" "$dest"
+  if ! mv "$src" "$dest" 2>/dev/null; then
+    sudo mv "$src" "$dest"
     sudo chown -R "$(id -u):$(id -g)" "$dest"
   fi
 }
@@ -81,9 +79,9 @@ PAYLOAD_LINE=$(awk '/^__ZIPFILE_BELOW__/ { print NR + 1; exit 0; }' "$0")
 tail -n +${PAYLOAD_LINE} "$0" > "${ZIPFILE}"
 unzip -oq "${ZIPFILE}" -d "${TEMP_DIR}"
 
-AUTHOR=$(cat "${TEMP_DIR}/homebrew/plugins/${PACKAGE}/plugin.json" | grep "author" | cut -d '"' -f 4)
-VERSION=$(cat "${TEMP_DIR}/homebrew/plugins/${PACKAGE}/package.json" | grep "version" | cut -d '"' -f 4)
-LICENSE=$(cat "${TEMP_DIR}/homebrew/plugins/${PACKAGE}/package.json" | grep "license" | cut -d '"' -f 4)
+AUTHOR=$(cat "${TEMP_DIR}/${PACKAGE}/plugin.json" | grep "author" | cut -d '"' -f 4)
+VERSION=$(cat "${TEMP_DIR}/${PACKAGE}/package.json" | grep "version" | cut -d '"' -f 4)
+LICENSE=$(cat "${TEMP_DIR}/${PACKAGE}/package.json" | grep "license" | cut -d '"' -f 4)
 
 echo "Installing ${PACKAGE} v${VERSION} by ${AUTHOR} ..."
 echo "License: ${LICENSE}"
@@ -93,8 +91,8 @@ if ! prompt_continue; then
   exit 0
 fi
 
-copy_impl "${TEMP_DIR}/homebrew/${PLUGIN_SUFFIX}" "${PLUGIN_DIR}" 2>/dev/null
-copy_impl "${TEMP_DIR}/homebrew/${DATA_SUFFIX}" "${DATA_DIR}" 2>/dev/null
+mv_impl "${TEMP_DIR}/${PACKAGE}/data" "${DATA_DIR}" 2>/dev/null
+mv_impl "${TEMP_DIR}//${PACKAGE}" "${PLUGIN_DIR}" 2>/dev/null
 
 echo
 echo "Installation complete!"

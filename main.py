@@ -28,6 +28,10 @@ class Plugin:
             name="config", settings_directory=decky.DECKY_PLUGIN_SETTINGS_DIR
         )
         logger.info(f"starting {PACKAGE_NAME} ...")
+        try:
+            upgrade.initialize_plugin()
+        except Exception as e:
+            logger.error(f"initialize_plugin: failed with {e}")
 
         self._set_default("subscriptions", {})
         self._set_default("secret", utils.rand_thing())
@@ -385,6 +389,6 @@ class Plugin:
                 raise ValueError(f'Value of "{key}" is None')
             return value
 
-    def _set_default(self, key: str, value: Any):
+    def _set_default(self, key: str, value: Any) -> None:
         if not self.settings.getSetting(key):
             self.settings.setSetting(key, value)

@@ -46,6 +46,7 @@ class Plugin:
         self._set_default("disable_verify", False)
         self._set_default("external_run_bg", False)
         self._set_default("auto_check_update", True)
+        self._set_default("skip_steam_download", False)
         self._set_default("log_level", logging.getLevelName(logging.INFO))
 
         level = self._get("log_level")
@@ -102,7 +103,8 @@ class Plugin:
             self._get("controller_port"),
             self._get("allow_remote_access"),
             str(dashboard.DASHBOARD_DIR),
-            self._get("dashboard", True)
+            self._get("dashboard", True),
+            self._get("skip_steam_download"),
         )
 
     async def get_core_status(self) -> bool:
@@ -158,6 +160,7 @@ class Plugin:
             "autostart": self._get("autostart"),
             "dashboard": self._get("dashboard", True),
             "controller_port": self._get("controller_port"),
+            "skip_steam_download": self._get("skip_steam_download"),
         }
         logger.debug(config)
         return config
@@ -176,6 +179,7 @@ class Plugin:
             "dashboard",
             "external_run_bg",
             "auto_check_update",
+            "skip_steam_download",
         ]
         if key not in PERMITTED_KEYS:
             logger.error(f"set_config_value: not permitted key {key}")

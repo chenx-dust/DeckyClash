@@ -61,8 +61,9 @@
     "NAME_DUPLICATED": "Duplicated name",
     "INSTALLATION_GUIDE": "Installation Guide",
     "INSTALLATION_MSG": "It seems that you are new to here. Follow the steps below to install dependencies:",
-    "INSTALLATION_GEO": "Geo-files (Optional)",
-    "INSTALLATION_DASHBOARD": "Dashboards (Optional)",
+    "INSTALLATION_OPTIONAL": "(Optional)",
+    "INSTALLATION_GEO": "Geo-files",
+    "INSTALLATION_DASHBOARD": "Dashboards",
     "INSTALLATION_ALL": "Install All",
     "INSTALLATION_SKIP": "Skip Installation",
     "INSTALLATION_FINISH": "Finish Installation",
@@ -86,5 +87,8 @@
     "LATEST_CHANNEL": "Latest",
     "NIGHTLY_CHANNEL": "Nightly",
     "GENERAL": "General",
-    "AUTO_CHECK_UPDATE": "Check Update Automatically"
+    "AUTO_CHECK_UPDATE": "Check Update Automatically",
+    "MISC": "Miscellaneous",
+    "SKIP_STEAM": "Skip Steam Download",
+    "SKIP_STEAM_DESC": "Skip proxy for Steam download"
 }

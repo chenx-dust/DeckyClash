@@ -84,6 +84,7 @@ const Content: FC<{}> = ({ }) => {
   const [overrideDNS, setOverrideDNS] = useState(localConfig.override_dns);
   const [enhancedMode, setEnhancedMode] = useState<EnhancedMode>(localConfig.enhanced_mode);
   const [autostart, setAutostart] = useState(localConfig.autostart);
+  const [skipSteamDownload, setSkipSteamDownload] = useState(localConfig.skip_steam_download);
   const [currentDashboard, setCurrentDashboard] = useState<string | null>(localConfig.dashboard);
   const [dashboardOptions, setDashboardOption] = useState<DropdownOption[]>(parseDashboardOptions(localDashboards));
   const [allowRemoteAccess, setAllowRemoteAccess] = useState(localConfig.allow_remote_access);
@@ -150,6 +151,7 @@ const Content: FC<{}> = ({ }) => {
     setEnhancedMode(config.enhanced_mode);
     setAllowRemoteAccess(config.allow_remote_access);
     setAutostart(config.autostart);
+    setSkipSteamDownload(config.skip_steam_download);
     setCurrentDashboard(config.dashboard);
     setControllerPort(config.controller_port);
   }
@@ -196,6 +198,7 @@ const Content: FC<{}> = ({ }) => {
       dashboard: currentDashboard,
       controller_port: controllerPort,
       autostart: autostart,
+      skip_steam_download: skipSteamDownload
     };
   }
 
@@ -473,6 +476,18 @@ const Content: FC<{}> = ({ }) => {
               setAutostart(value);
               backend.setConfigValue("autostart", value).then(() =>
                 backend.getConfigValue("autostart").then(setAutostart));
+            }}
+          ></ToggleField>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ToggleField
+            label={t(L.SKIP_STEAM)}
+            description={t(L.SKIP_STEAM_DESC)}
+            checked={skipSteamDownload}
+            onChange={(value: boolean) => {
+              setSkipSteamDownload(value);
+              backend.setConfigValue("skip_steam_download", value).then(() =>
+                backend.getConfigValue("skip_steam_download").then(setSkipSteamDownload));
             }}
           ></ToggleField>
         </PanelSectionRow>

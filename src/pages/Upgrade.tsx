@@ -6,6 +6,7 @@ import { backend, ResourceType } from "../backend";
 import { UpgradeItem } from "../components/UpgradeItem";
 import { toaster } from "@decky/api";
 import { BsCheckCircleFill, BsExclamationCircleFill } from "react-icons/bs";
+import { ActionButtonItem } from "../components";
 
 export const Upgrade: FC = () => {
   const [pluginCurrent, setPluginCurrent] = useState<string>();
@@ -76,6 +77,8 @@ export const Upgrade: FC = () => {
   );
   const upgradeCore = upgradeCallback(() => backend.upgrade(ResourceType.CORE, coreLatest), "Mihomo", coreLatest);
   const upgradeYq = upgradeCallback(() => backend.upgrade(ResourceType.YQ, yqLatest), "yq", yqLatest);
+  const upgradeGeos = upgradeCallback(() => backend.installGeos(), t(L.INSTALLATION_GEO), "");
+  const upgradeDashboard = upgradeCallback(() => backend.installDashboards(), t(L.INSTALLATION_DASHBOARD), "");
 
   return (
     <DialogBody>
@@ -146,6 +149,17 @@ export const Upgrade: FC = () => {
           backend.getLatestVersion(ResourceType.YQ).then(setYqLatest);
         }}
         onUpgradeClick={upgradeYq} />
+      <DialogControlsSection>
+        <DialogControlsSectionHeader>
+          {t(L.MISC)}
+        </DialogControlsSectionHeader>
+        <ActionButtonItem layout="inline" label={t(L.INSTALLATION_GEO)} onClick={upgradeGeos}>
+          {t(L.REINSTALL)}
+        </ActionButtonItem>
+        <ActionButtonItem layout="inline" label={t(L.INSTALLATION_DASHBOARD)} onClick={upgradeDashboard}>
+          {t(L.REINSTALL)}
+        </ActionButtonItem>
+      </DialogControlsSection>
     </DialogBody>
   );
 };

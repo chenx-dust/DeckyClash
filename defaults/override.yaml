@@ -68,3 +68,8 @@ always-override:
   profile:
     store-selected: true
     store-fake-ip: true
+
+# skip steam download
+skip-steam-rules:
+  - DOMAIN-SUFFIX,cm.steampowered.com,DIRECT
+  - DOMAIN-SUFFIX,steamserver.net,DIRECT

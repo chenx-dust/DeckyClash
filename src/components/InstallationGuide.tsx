@@ -123,7 +123,7 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
       </PanelSectionRow>
       <PanelSectionRow>
         <Field
-          label={t(L.INSTALLATION_GEO)}
+          label={t(L.INSTALLATION_GEO) + t(L.INSTALLATION_OPTIONAL)}
           onClick={installGeos}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -133,7 +133,7 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
       </PanelSectionRow>
       <PanelSectionRow>
         <Field
-          label={t(L.INSTALLATION_DASHBOARD)}
+          label={t(L.INSTALLATION_DASHBOARD) + t(L.INSTALLATION_OPTIONAL)}
           onClick={installDashboards}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

@@ -363,7 +363,6 @@ class Plugin:
         except Exception as e:
             return False, str(e)
         return True, ""
-        ...
     
     async def set_external_status(self, status: bool) -> None:
         if status:

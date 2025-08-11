@@ -91,8 +91,8 @@ if ! prompt_continue; then
   exit 0
 fi
 
-# let plugin do those things 
-mv_impl "${TEMP_DIR}//${PACKAGE}" "${PLUGIN_DIR}" 2>/dev/null
+mv_impl "${TEMP_DIR}/${PACKAGE}/data" "${DATA_DIR}" 2>/dev/null
+mv_impl "${TEMP_DIR}/${PACKAGE}" "${PLUGIN_DIR}" 2>/dev/null
 
 echo
 echo "Installation complete!"

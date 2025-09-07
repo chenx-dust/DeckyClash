@@ -267,7 +267,7 @@ class Plugin:
             return False, "subscription not found"
         result = await subscription.update_sub(name, subs[name], self._get("timeout"))
         if result is None:
-            if name == self._get("current"):
+            if self.core.is_running and name == self._get("current"):
                 await self.restart_core()
             return True, None
         else:

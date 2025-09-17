@@ -115,7 +115,7 @@ function App() {
   return (
     <div className='flex justify-center items-center min-h-screen flex-col gap-4 bg-white dark:bg-gray-900'>
       <h1 className='text-6xl text-gray-800 dark:text-gray-200 text-center'>
-        DeckyClash
+        Decky Clash
       </h1>
       <p className='px-2 text-gray-500 dark:text-gray-400 text-center'>
         {t('import-tip')}

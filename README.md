@@ -1,5 +1,5 @@
 <div align="center">
-   <img src="./assets/logo.svg" width="400" height="200" alt="DeckyClash">
+   <img src="./assets/logo.svg" width="400" height="200" alt="Decky Clash">
    <div>
       <img src="https://img.shields.io/github/check-runs/chenx-dust/DeckyClash/main" alt="Actions">
       <img src="https://img.shields.io/github/v/release/chenx-dust/DeckyClash" alt="Release">
@@ -85,7 +85,7 @@ Plugin will automatically check for updates every time you enter the Steam inter
 
 ### Built-in upgrade
 
-1. Enter the Quick Access Menu and select **DeckyClash**
+1. Enter the Quick Access Menu and select **Decky Clash**
 2. Find the **Version** column and click the **Manage Upgrades** button
 3. The program will automatically check for updates, and the **Latest Version** row will display
 4. If **Latest Version** and **Installed Version** are different, an upgrade button will be shown, click to start
@@ -105,7 +105,7 @@ curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh 
 ## Uninstall
 
 > [!CAUTION]
-> The script uninstalls DeckyClash, which will delete all files, including settings, subscriptions, downloaded Dashboards, etc. Please use with caution.
+> The script uninstalls Decky Clash, which will delete all files, including settings, subscriptions, downloaded Dashboards, etc. Please use with caution.
 
 ```sh
 curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --clean-uninstall
@@ -117,6 +117,6 @@ See [DEV_GUIDE.md](./docs/DEV_GUIDE.md) for details.
 
 ## Acknowledge
 
-- [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo): DeckyClash is powered by Mihomo.
-- [mikefarah/yq](https://github.com/mikefarah/yq) DeckyClash uses yq as its YAML processor.
-- [YukiCoco/ToMoon](https://github.com/YukiCoco/ToMoon): DeckyClash is inspired by To Moon.
+- [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo): Decky Clash is powered by Mihomo.
+- [mikefarah/yq](https://github.com/mikefarah/yq) Decky Clash uses yq as its YAML processor.
+- [YukiCoco/ToMoon](https://github.com/YukiCoco/ToMoon): Decky Clash is inspired by To Moon.

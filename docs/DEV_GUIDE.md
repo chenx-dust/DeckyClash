@@ -10,7 +10,7 @@
 
 ## Plugin Structure
 
-Based on Decky Loader architecture, DeckyClash consists of the following components:
+Based on Decky Loader architecture, Decky Clash consists of the following components:
 
 ```sh
 ~/homebrew

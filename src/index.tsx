@@ -574,7 +574,7 @@ const Content: FC<{}> = ({ }) => {
 const DeckyPluginRouter: FC = () => {
   return (
     <SidebarNavigation
-      title="DeckyClash"
+      title="Decky Clash"
       showTitle
       pages={[
         {
@@ -640,9 +640,9 @@ export default definePlugin(() => {
 
   return {
     // The name shown in various decky menus
-    name: "DeckyClash",
+    name: "Decky Clash",
     // The element displayed at the top of your plugin's menu
-    titleView: <div className={staticClasses.Title}>DeckyClash</div>,
+    titleView: <div className={staticClasses.Title}>Decky Clash</div>,
     // The content of your plugin's menu
     content: <Content />,
     // The icon displayed in the plugin list

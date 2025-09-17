@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./assets/logo.svg" width="400" height="200" alt="DeckyClash">
+  <img src="./assets/logo.svg" width="400" height="200" alt="Decky Clash">
   <div>
     <img src="https://img.shields.io/github/check-runs/chenx-dust/DeckyClash/main" alt="Actions">
     <img src="https://img.shields.io/github/v/release/chenx-dust/DeckyClash" alt="Release">
@@ -50,7 +50,7 @@ curl -L https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/dow
 ### 在线安装脚本
 
 > [!WARNING]
-> 使用在线安装脚本安装 DeckyClash 需要在能流畅访问 Github 的网络条件下进行。
+> 使用在线安装脚本安装 Decky Clash 需要在能流畅访问 Github 的网络条件下进行。
 
 ```sh
 curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash
@@ -92,9 +92,9 @@ curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh 
 ### 插件内更新
 
 > [!WARNING]
-> 插件内更新 DeckyClash 需要在能流畅访问 Github 的网络条件下进行，可以通过合理使用 DeckyClash 功能来实现。
+> 插件内更新 Decky Clash 需要在能流畅访问 Github 的网络条件下进行，可以通过合理使用 DeckyClash 功能来实现。
 
-1. 进入快捷指令菜单，选择 **DeckyClash**
+1. 进入快捷指令菜单，选择 **Decky Clash**
 2. 找到 **版本** 栏目，点击 **管理更新** 按钮
 3. 程序会自动检查更新，并在 **最新版本** 栏目中显示
 4. 若 **最新版本** 和 **已安装版本** 不同时，操作按钮会提示更新，点击即可开始
@@ -114,7 +114,7 @@ curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh 
 ## 卸载
 
 > [!CAUTION]
-> 脚本卸载会清除 DeckyClash 的所有文件，包含设置、订阅、已下载的 Dashboard 等数据，请谨慎使用。
+> 脚本卸载会清除 Decky Clash 的所有文件，包含设置、订阅、已下载的 Dashboard 等数据，请谨慎使用。
 
 在终端执行：
 
@@ -128,6 +128,6 @@ curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh 
 
 ## 致谢
 
-- [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo): DeckyClash 由 Mihomo 提供支持。
-- [mikefarah/yq](https://github.com/mikefarah/yq) DeckyClash 使用 yq 作为 YAML 处理器。
-- [YukiCoco/ToMoon](https://github.com/YukiCoco/ToMoon): DeckyClash 是受 To Moon 启发而开发的。
+- [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo): Decky Clash 由 Mihomo 提供支持。
+- [mikefarah/yq](https://github.com/mikefarah/yq) Decky Clash 使用 yq 作为 YAML 处理器。
+- [YukiCoco/ToMoon](https://github.com/YukiCoco/ToMoon): Decky Clash 是受 To Moon 启发而开发的。

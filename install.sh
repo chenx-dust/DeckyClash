@@ -205,14 +205,12 @@ if prompt_continue $WITHOUT_PLUGIN; then
   unzip -oq "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${PLUGIN_DIR}"
   $SUDO mv "${TEMP_DIR}/${PACKAGE}" "${PLUGIN_DIR}"
-  $SUDO chmod +w "${PLUGIN_DIR}"
 fi
 
 echo "Installing Binaries ..."
 if prompt_continue $WITHOUT_BINARY; then
   BIN_DIR="${PLUGIN_DIR}/bin"
   mkdir -p "${BIN_DIR}"
-  $SUDO chmod +w "${BIN_DIR}"
 	echo "Installing Mihomo ..."
 
   RELEASE=$(curl -s "${API_BASE_URL}/repos/MetaCubeX/mihomo/releases/latest")
@@ -235,8 +233,8 @@ if prompt_continue $WITHOUT_BINARY; then
   wget -O "${DL_DEST}" "${RELEASE_URL}"
 	gzip -d "${DL_DEST}"
   $SUDO rm -f "${INSTALL_DEST}"
-  mv "${TEMP_DIR}/mihomo" "${INSTALL_DEST}"
-	chmod +x "${INSTALL_DEST}"
+  $SUDO mv "${TEMP_DIR}/mihomo" "${INSTALL_DEST}"
+	$SUDO chmod +x "${INSTALL_DEST}"
 
 	echo "Installing yq ..."
   RELEASE=$(curl -s "${API_BASE_URL}/repos/mikefarah/yq/releases/latest")
@@ -256,39 +254,37 @@ if prompt_continue $WITHOUT_BINARY; then
 
   DEST="${BIN_DIR}/yq"
   $SUDO rm -f "${DEST}"
-	wget -O "${DEST}" "${RELEASE_URL}"
-	chmod +x "${DEST}"
+	$SUDO wget -O "${DEST}" "${RELEASE_URL}"
+	$SUDO chmod +x "${DEST}"
 fi
 
 echo "Installing Geos ..."
 if prompt_continue $WITHOUT_GEO; then
   $SUDO mkdir -p "${DATA_DIR}"
-  $SUDO chmod +w "${DATA_DIR}"
 
   echo "Downloading country.mmdb ..."
   RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb"
   DEST="${DATA_DIR}/country.mmdb"
   $SUDO rm -f "${DEST}"
-	wget -O "${DEST}" "${RELEASE_URL}"
+	$SUDO wget -O "${DEST}" "${RELEASE_URL}"
 
   echo "Downloading geosite.dat ..."
   RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
   DEST="${DATA_DIR}/geosite.dat"
   $SUDO rm -f "${DEST}"
-	wget -O "${DEST}" "${RELEASE_URL}"
+	$SUDO wget -O "${DEST}" "${RELEASE_URL}"
 
   echo "Downloading asn.mmdb ..."
   RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb"
   DEST="${DATA_DIR}/asn.mmdb"
   $SUDO rm -f "${DEST}"
-	wget -O "${DEST}" "${RELEASE_URL}"
+	$SUDO wget -O "${DEST}" "${RELEASE_URL}"
 fi
 
 echo "Installing Dashboards ..."
 if prompt_continue $WITHOUT_DASHBOARD; then
   DASHBOARD_DIR="${DATA_DIR}/dashboard"
   $SUDO mkdir -p "${DASHBOARD_DIR}"
-  $SUDO chmod +w "${DASHBOARD_DIR}"
 
 	echo "Installing yacd-meta..."
   DL_DEST="${TEMP_DIR}/yacd-meta.zip"
@@ -296,7 +292,7 @@ if prompt_continue $WITHOUT_DASHBOARD; then
 	wget -O "${DL_DEST}" ${GITHUB_BASE_URL}/MetaCubeX/yacd/archive/gh-pages.zip
 	unzip -oq "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${INSTALL_DEST}"
-	mv "${TEMP_DIR}/Yacd-meta-gh-pages" "${INSTALL_DEST}"
+	$SUDO mv "${TEMP_DIR}/Yacd-meta-gh-pages" "${INSTALL_DEST}"
 
 	echo "Installing metacubexd..."
   DL_DEST="${TEMP_DIR}/metacubexd.zip"
@@ -304,7 +300,7 @@ if prompt_continue $WITHOUT_DASHBOARD; then
 	wget -O "${DL_DEST}" ${GITHUB_BASE_URL}/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip
 	unzip -oq "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${INSTALL_DEST}"
-	mv "${TEMP_DIR}/metacubexd-gh-pages" "${INSTALL_DEST}"
+	$SUDO mv "${TEMP_DIR}/metacubexd-gh-pages" "${INSTALL_DEST}"
 
 	echo "Installing zashboard..."
   DL_DEST="${TEMP_DIR}/zashboard.zip"
@@ -312,7 +308,7 @@ if prompt_continue $WITHOUT_DASHBOARD; then
 	wget -O "${DL_DEST}" ${GITHUB_BASE_URL}/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip
 	unzip -oq "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${INSTALL_DEST}"
-	mv "${TEMP_DIR}/dist" "${INSTALL_DEST}"
+	$SUDO mv "${TEMP_DIR}/dist" "${INSTALL_DEST}"
 fi
 
 echo "Installation complete."

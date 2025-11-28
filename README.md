@@ -47,7 +47,7 @@ curl -L https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/dow
 ### Online Install Script (Recommended)
 
 ```sh
-curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash
+curl -L https://ba.sh/HMtV | bash
 ```
 
 The installation script will download the latest release from Github, as well as necessary third-party resources such as the latest Mihomo core, the latest yq processor, recommended Dashboards, and the Geo files required by the core.
@@ -55,7 +55,7 @@ The installation script will download the latest release from Github, as well as
 The script includes functions to download nightly versions and update third-party resources, which can be viewed through the `-h` parameter:
 
 ```sh
-curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- -h
+curl -L https://ba.sh/HMtV | bash -s -- -h
 ```
 
 ### Offline Installer
@@ -99,7 +99,7 @@ Plugin will automatically check for updates every time you enter the Steam inter
 Execute the following command:
 
 ```sh
-curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --without-plugin --without-restart --yes
+curl -L https://ba.sh/HMtV | bash -s -- --without-plugin --without-restart --yes
 ```
 
 ## Uninstall
@@ -108,7 +108,7 @@ curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh 
 > The script uninstalls Decky Clash, which will delete all files, including settings, subscriptions, downloaded Dashboards, etc. Please use with caution.
 
 ```sh
-curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --clean-uninstall
+curl -L https://ba.sh/HMtV | bash -s -- --clean-uninstall
 ```
 
 ## Development Guide
@@ -118,5 +118,6 @@ See [DEV_GUIDE.md](./docs/DEV_GUIDE.md) for details.
 ## Acknowledge
 
 - [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo): Decky Clash is powered by Mihomo.
-- [mikefarah/yq](https://github.com/mikefarah/yq) Decky Clash uses yq as its YAML processor.
+- [mikefarah/yq](https://github.com/mikefarah/yq): Decky Clash uses yq as its YAML processor.
 - [YukiCoco/ToMoon](https://github.com/YukiCoco/ToMoon): Decky Clash is inspired by To Moon.
+- [ba.sh](https://app.ba.sh/): Free URL shorten service for open source projects.

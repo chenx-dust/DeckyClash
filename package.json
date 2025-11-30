@@ -27,7 +27,7 @@
   "homepage": "https://github.com/chenx-dust/DeckyClash#readme",
   "devDependencies": {
     "@decky/rollup": "^1.0.2",
-    "@decky/ui": "^4.11.0",
+    "@decky/ui": "^4.11.1",
     "@types/react": "19.2.6",
     "@types/react-dom": "^19.2.3",
     "@types/webpack": "^5.28.5",

@@ -210,7 +210,7 @@ fi
 echo "Installing Binaries ..."
 if prompt_continue $WITHOUT_BINARY; then
   BIN_DIR="${PLUGIN_DIR}/bin"
-  mkdir -p "${BIN_DIR}"
+  $SUDO mkdir -p "${BIN_DIR}"
 	echo "Installing Mihomo ..."
 
   RELEASE=$(curl -s "${API_BASE_URL}/repos/MetaCubeX/mihomo/releases/latest")

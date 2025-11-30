@@ -173,8 +173,8 @@ echo "SHA256: ${SHA256}"
 edit_json "$DEST_NAME" "$URL" "$SHA256"
 echo
 
-REPO_NAME="MetaCubeX/Yacd-meta"
-DEST_NAME="yacd-meta.zip"
+REPO_NAME="haishanh/yacd"
+DEST_NAME="yacd.zip"
 echo "Checking $REPO_NAME ..."
 JSON=`get_commit_json "$REPO_NAME" gh-pages`
 COMMIT_ID=`extract_commit_id "$JSON"`

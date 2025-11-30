@@ -286,13 +286,13 @@ if prompt_continue $WITHOUT_DASHBOARD; then
   DASHBOARD_DIR="${DATA_DIR}/dashboard"
   $SUDO mkdir -p "${DASHBOARD_DIR}"
 
-	echo "Installing yacd-meta..."
-  DL_DEST="${TEMP_DIR}/yacd-meta.zip"
-  INSTALL_DEST="${DASHBOARD_DIR}/yacd-meta"
-	wget -O "${DL_DEST}" ${GITHUB_BASE_URL}/MetaCubeX/yacd/archive/gh-pages.zip
+	echo "Installing yacd..."
+  DL_DEST="${TEMP_DIR}/yacd.zip"
+  INSTALL_DEST="${DASHBOARD_DIR}/yacd"
+	wget -O "${DL_DEST}" ${GITHUB_BASE_URL}/haishanh/yacd/archive/refs/heads/gh-pages.zip
 	unzip -oq "${DL_DEST}" -d "${TEMP_DIR}"
   $SUDO rm -rf "${INSTALL_DEST}"
-	$SUDO mv "${TEMP_DIR}/Yacd-meta-gh-pages" "${INSTALL_DEST}"
+	$SUDO mv "${TEMP_DIR}/yacd-gh-pages" "${INSTALL_DEST}"
 
 	echo "Installing metacubexd..."
   DL_DEST="${TEMP_DIR}/metacubexd.zip"

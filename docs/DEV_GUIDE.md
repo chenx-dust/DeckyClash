@@ -36,7 +36,7 @@ Based on Decky Loader architecture, Decky Clash consists of the following compon
 │   └── DeckyClash
 │       ├── dashboard       # Dashboards
 │       │   ├── metacubexd
-│       │   ├── yacd-meta
+│       │   ├── yacd
 │       │   ├── zashboard
 │       │   └── ...         # Other dashboards
 │       ├── asn.mmdb        # Geo files (below)
@@ -68,7 +68,7 @@ The settings json file is located at `~/homebrew/settings/DeckyClash/config.json
     // ~/homebrew/settings/DeckyClash/subscriptions/Example.yaml
   },
   "current": "Example",         // Current subscription. Default: [none]
-  "dashboard": "yacd-meta",     // Current dashboard. Default: [none]
+  "dashboard": "yacd",          // Current dashboard. Default: [none]
   "secret": "RANDOM_SECRET",    // Controller secret. Default: [random]
   "override_dns": true,         // Override DNS settings. Default: true
   "enhanced_mode": "fake-ip",   // Enhanced mode. Default: fake-ip

@@ -28,7 +28,10 @@ class Plugin:
             name="config", settings_directory=decky.DECKY_PLUGIN_SETTINGS_DIR
         )
         logger.info(f"starting {PACKAGE_NAME} ...")
-        await extract.extract_all()
+        try:
+            await extract.extract_all()
+        except Exception as e:
+            logger.error(f"extract_all: failed with {e}")
 
         self._set_default("subscriptions", {})
         self._set_default("secret", utils.rand_thing())
@@ -43,6 +46,7 @@ class Plugin:
         self._set_default("disable_verify", False)
         self._set_default("external_run_bg", False)
         self._set_default("auto_check_update", True)
+        self._set_default("skip_steam_download", False)
         self._set_default("log_level", logging.getLevelName(logging.INFO))
 
         level = self._get("log_level")
@@ -96,7 +100,8 @@ class Plugin:
             self._get("controller_port"),
             self._get("allow_remote_access"),
             str(dashboard.DASHBOARD_DIR),
-            self._get("dashboard", True)
+            self._get("dashboard", True),
+            self._get("skip_steam_download"),
         )
 
     async def get_core_status(self) -> bool:
@@ -152,6 +157,7 @@ class Plugin:
             "autostart": self._get("autostart"),
             "dashboard": self._get("dashboard", True),
             "controller_port": self._get("controller_port"),
+            "skip_steam_download": self._get("skip_steam_download"),
         }
         logger.debug(config)
         return config
@@ -170,6 +176,7 @@ class Plugin:
             "dashboard",
             "external_run_bg",
             "auto_check_update",
+            "skip_steam_download",
         ]
         if key not in PERMITTED_KEYS:
             logger.error(f"set_config_value: not permitted key {key}")
@@ -182,6 +189,8 @@ class Plugin:
             match res:
                 case "plugin":
                     version = decky.DECKY_PLUGIN_VERSION
+                    if version[0].isdigit():
+                        version = "v" + version
                 case "core":
                     version = CoreController.get_version()
                 case "yq":
@@ -199,17 +208,8 @@ class Plugin:
         logger.debug(f"get_dashboard_list: {dashboard_list}")
         return dashboard_list
 
-    def _check_subs(self) -> None:
-        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
-        for name in subs:
-            if not os.path.exists(subscription.get_path(name)):
-                subs.pop(name)
-                logger.info(f"check_subs: {name} not exists")
-        self.settings.setSetting("subscriptions", subs)
-
     async def get_subscription_list(self) -> Dict[str, str]:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
-        self._check_subs()
         logger.debug(f"get_subscription_list: {subs}")
         return subs
 
@@ -221,6 +221,8 @@ class Plugin:
             return False, "subscription not found"
         result = await subscription.update_sub(name, subs[name], self._get("timeout"))
         if result is None:
+            if self.core.is_running and name == self._get("current"):
+                await self.restart_core()
             return True, None
         else:
             return False, result
@@ -319,6 +321,6 @@ class Plugin:
                 raise ValueError(f'Value of "{key}" is None')
             return value
 
-    def _set_default(self, key: str, value: Any):
+    def _set_default(self, key: str, value: Any) -> None:
         if not self.settings.getSetting(key):
             self.settings.setSetting(key, value)

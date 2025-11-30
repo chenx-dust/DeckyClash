@@ -10,7 +10,7 @@
 
 ## Plugin Structure
 
-Based on Decky Loader architecture, DeckyClash consists of the following components:
+Based on Decky Loader architecture, Decky Clash consists of the following components:
 
 ```sh
 ~/homebrew
@@ -25,6 +25,8 @@ Based on Decky Loader architecture, DeckyClash consists of the following compone
 │       ├── external        # External importer
 │       │   ├── index.html
 │       │   └── ...
+│       ├── data            # Initial resources
+│       │   └── ...
 │       ├── py_modules      # Python modules
 │       ├── main.py         # Plugin entrypoint
 │       ├── override.yaml   # Override manifest
@@ -34,7 +36,7 @@ Based on Decky Loader architecture, DeckyClash consists of the following compone
 │   └── DeckyClash
 │       ├── dashboard       # Dashboards
 │       │   ├── metacubexd
-│       │   ├── yacd-meta
+│       │   ├── yacd
 │       │   ├── zashboard
 │       │   └── ...         # Other dashboards
 │       ├── asn.mmdb        # Geo files (below)
@@ -66,7 +68,7 @@ The settings json file is located at `~/homebrew/settings/DeckyClash/config.json
     // ~/homebrew/settings/DeckyClash/subscriptions/Example.yaml
   },
   "current": "Example",         // Current subscription. Default: [none]
-  "dashboard": "yacd-meta",     // Current dashboard. Default: [none]
+  "dashboard": "yacd",          // Current dashboard. Default: [none]
   "secret": "RANDOM_SECRET",    // Controller secret. Default: [random]
   "override_dns": true,         // Override DNS settings. Default: true
   "enhanced_mode": "fake-ip",   // Enhanced mode. Default: fake-ip
@@ -79,6 +81,7 @@ The settings json file is located at `~/homebrew/settings/DeckyClash/config.json
   "disable_verify": false,      // Disable verify SSL. Default: false
   "external_run_bg": false,     // Run external importer in background. Default: false
   "auto_check_update": true,    // Auto check update. Default: true
+  "skip_steam_download": false, // Skip proxy for Steam download. Default: false
   "log_level": "DEBUG"          // Log level. Default: INFO
 }
 ```

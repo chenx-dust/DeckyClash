@@ -26,7 +26,7 @@ export const About: FC = () => {
     // The outermost div is to push the content down into the visible area
     <DialogBody>
       <DialogControlsSection>
-        <DescriptionField label="DeckyClash">
+        <DescriptionField label="Decky Clash">
           Light-weight Clash/Mihomo proxy client for Steam OS.
           <br />
           <b>{t(L.STORE_VERSION_TIPS)}</b>
@@ -55,7 +55,7 @@ export const About: FC = () => {
         <DescriptionField label="Mihomo">
           Another Mihomo Kernel.
           <br />
-          <i>DeckyClash is powered by Mihomo.</i>
+          <i>Decky Clash is powered by Mihomo.</i>
         </DescriptionField>
         <Field
           label={t(L.INSTALLED_VERSION)}
@@ -78,7 +78,7 @@ export const About: FC = () => {
         <DescriptionField label="YQ">
           A portable command-line YAML, JSON, XML, CSV, TOML and properties processor.
           <br />
-          <i>DeckyClash uses yq as its YAML processor.</i>
+          <i>Decky Clash uses yq as its YAML processor.</i>
         </DescriptionField>
         <Field label={t(L.INSTALLED_VERSION)} focusable >
           {yqVersion}
@@ -103,7 +103,7 @@ export const About: FC = () => {
         <DescriptionField label="To Moon">
           A network toolbox for SteamOS.
           <br />
-          <i>DeckyClash is inspired by To Moon.</i>
+          <i>Decky Clash is inspired by To Moon.</i>
         </DescriptionField>
         <Field
           icon={<FiGithub style={{ display: "block" }} />}

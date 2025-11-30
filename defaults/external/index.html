@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="logo.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decky Clash External</title>
+  
+  <!-- Local stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="root">
+    <h1>
+      Decky Clash
+    </h1>
+    <p id="import-tip">
+      Clash / Mihomo Subscription Import
+    </p>
+    <div class="input-container">
+      <input 
+        id="input-url" 
+        type="text" 
+        placeholder="Subscription Link"
+      />
+      <button 
+        id="download-btn"
+      >
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0.0228571 48L48 24L0.0228571 0L0 18.6667L34.2857 24L0 29.3333L0.0228571 48Z" fill="white" />
+        </svg>
+      </button>
+    </div>
+    <div class="language-container">
+      <span id="sel-lang">Language:</span>
+      <select id="language-select">
+        <option value="en">English</option>
+        <option value="zh-CN">中文（中国）</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Main application script -->
+  <script src="app.js"></script>
+</body>
+</html>

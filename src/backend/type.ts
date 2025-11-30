@@ -19,4 +19,5 @@ export interface Config {
   dashboard: string | null,
   controller_port: number,
   autostart: boolean,
+  skip_steam_download: boolean,
 }

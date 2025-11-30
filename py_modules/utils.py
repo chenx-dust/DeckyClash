@@ -5,6 +5,7 @@ import os
 import random
 import re
 import ssl
+import tempfile
 import urllib.request
 import fcntl
 import struct
@@ -38,11 +39,10 @@ async def get_url_to_json(url: str | urllib.request.Request, timeout: Optional[f
 
 async def get_url_to_file(url: str | urllib.request.Request, dest: str, timeout: Optional[float] = None) -> None:
     def _impl():
-        if os.path.exists(dest):
-            os.remove(dest)
         with urllib.request.urlopen(url, timeout=timeout, context=_ssl_context) as response:
             data = response.read()
         if os.path.exists(dest):
+            logger.debug(f"get_url_to_file: removing {dest}")
             os.remove(dest)
         with open(dest, 'wb') as out:
             out.write(data)
@@ -105,20 +105,18 @@ def env_fix() -> dict[str, str]:
     return current_env
 
 ProgressCallback = Callable[[int], Awaitable]
-async def download_with_progress(url: str, path: str, progress_callback: ProgressCallback) -> None:
-    logger.debug(f"downloading: {url} to {path}")
-    downloaded_size = 0
-    last_percent = 0
-    await progress_callback(0)
-    if os.path.exists(path):
-        os.remove(path)
-    async with aiohttp.ClientSession(
-        connector=aiohttp.TCPConnector(ssl=get_ssl_context()),
-        timeout=aiohttp.ClientTimeout(0)) as session:
-        async with session.get(url) as response:
-            total_size = int(response.headers.get("Content-Length", 0))
-            logger.debug(f"downloading: {total_size} bytes")
-            with open(path, "wb") as f:
+async def download_with_progress(url: str, name: str, progress_callback: ProgressCallback) -> str:
+    with tempfile.NamedTemporaryFile("wb", suffix=name, delete=False) as f:
+        logger.debug(f"downloading: {url} to {f.name}")
+        downloaded_size = 0
+        last_percent = 0
+        await progress_callback(0)
+        async with aiohttp.ClientSession(
+            connector=aiohttp.TCPConnector(ssl=get_ssl_context()),
+            timeout=aiohttp.ClientTimeout(0)) as session:
+            async with session.get(url) as response:
+                total_size = int(response.headers.get("Content-Length", 0))
+                logger.debug(f"downloading: {total_size} bytes")
                 while True:
                     chunk = await response.content.read(128*1024)
                     if not chunk:
@@ -130,4 +128,5 @@ async def download_with_progress(url: str, path: str, progress_callback: Progres
                         last_percent = percent
                         logger.debug(f"downloading: {percent}%")
                         await progress_callback(last_percent)
-    await progress_callback(-1)
+        await progress_callback(-1)
+        return f.name

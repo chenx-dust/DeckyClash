@@ -27,11 +27,16 @@ async def generate_config(
         allow_remote_access: bool,
         dashboard_dir: str,
         dashboard: Optional[str],
+        skip_steam_download: bool,
         ) -> None:
     shutil.copyfile(ori_config, new_config)
     if override_dns:
         cmd = 'select(fi==0).dns = select(fi==1).dns-override | ' \
             f'select(fi==0).dns += select(fi==1).{enhanced_mode.value}-dns | ' \
+            'select(fi==0)'
+        await _edit_in_place_with_ref(new_config, OVERRIDE_YAML, cmd)
+    if skip_steam_download:
+        cmd = 'select(fi==0).rules = select(fi==1).skip-steam-rules + select(fi==0).rules | ' \
             'select(fi==0)'
         await _edit_in_place_with_ref(new_config, OVERRIDE_YAML, cmd)
 
@@ -101,5 +106,5 @@ def get_yq_version() -> str:
     logger.debug(f"get_yq_version: output: {output}")
     for s in output.decode().split(" "):
         if s.startswith("v") and not s.startswith("version"):
-            return s[1:].strip()
+            return s.strip()
     return ""

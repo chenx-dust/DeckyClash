@@ -1,5 +1,5 @@
 <div align="center">
-   <img src="./assets/logo.svg" width="400" height="200" alt="DeckyClash">
+   <img src="./assets/logo.svg" width="400" height="200" alt="Decky Clash">
    <div>
       <img src="https://img.shields.io/github/check-runs/chenx-dust/DeckyClash/main" alt="Actions">
       <img src="https://img.shields.io/github/v/release/chenx-dust/DeckyClash" alt="Release">
@@ -41,6 +41,7 @@ See [DEV_GUIDE.md](./docs/DEV_GUIDE.md) for details.
 
 ## Acknowledge
 
-- [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo): DeckyClash is powered by Mihomo.
-- [mikefarah/yq](https://github.com/mikefarah/yq) DeckyClash uses yq as its YAML processor.
-- [YukiCoco/ToMoon](https://github.com/YukiCoco/ToMoon): DeckyClash is inspired by To Moon.
+- [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo): Decky Clash is powered by Mihomo.
+- [mikefarah/yq](https://github.com/mikefarah/yq): Decky Clash uses yq as its YAML processor.
+- [YukiCoco/ToMoon](https://github.com/YukiCoco/ToMoon): Decky Clash is inspired by To Moon.
+- [ba.sh](https://app.ba.sh/): Free URL shorten service for open source projects.

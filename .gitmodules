@@ -1,4 +1,0 @@
-[submodule "external"]
-	path = backend/external
-	url = https://github.com/chenx-dust/DeckyClash.git
-	branch = external

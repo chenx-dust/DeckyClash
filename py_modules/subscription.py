@@ -123,7 +123,7 @@ async def update_sub(name: str, url: str, timeout: float) -> Optional[str]:
         req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
         await utils.get_url_to_file(req, get_path(name), timeout)
     except Exception as e:
-        logger.error(f"update sub {name} error: {e}")
+        logger.error(f"update_sub: update {name} with error {e}")
         return str(e)
     return None
 

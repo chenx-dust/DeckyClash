@@ -1,4 +1,0 @@
-[submodule "external"]
-	path = defaults/external
-	url = https://github.com/chenx-dust/DeckyClash.git
-	branch = gh-pages

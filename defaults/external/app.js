@@ -54,6 +54,14 @@ function t(key) {
   return translations[currentLanguage][key] || key;
 }
 
+// HTML escape function
+function escapeHtml(text) {
+  if (text == null) return '';
+  const div = document.createElement('div');
+  div.textContent = String(text);
+  return div.innerHTML;
+}
+
 // Update page text
 function updatePageText() {
   document.getElementById('import-tip').textContent = t('import-tip');
@@ -66,14 +74,14 @@ function updatePageText() {
 const Modal = {
   // Create modal HTML
   createHTML(icon, title, content, showButton = true) {
-    const iconHTML = icon === 'loading' 
+    const iconHTML = icon === 'loading'
       ? '<div class="loading-spinner"></div>'
       : `<div class="modal-icon ${icon}">${this.getIconSymbol(icon)}</div>`;
-    
-    const buttonHTML = showButton 
+
+    const buttonHTML = showButton
       ? `<button class="modal-button" onclick="Modal.close()">${t('ok')}</button>`
       : '';
-    
+
     return `
       <div class="modal">
         ${iconHTML}
@@ -83,7 +91,7 @@ const Modal = {
       </div>
     `;
   },
-  
+
   // Get icon symbol
   getIconSymbol(icon) {
     const symbols = {
@@ -93,26 +101,26 @@ const Modal = {
     };
     return symbols[icon] || 'ℹ';
   },
-  
+
   // Show modal
   show(icon, title, content, showButton = true) {
     // Remove existing modal
     this.close();
-    
+
     // Create overlay
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.id = 'modal-overlay';
     overlay.innerHTML = this.createHTML(icon, title, content, showButton);
-    
+
     // Append to page
     document.body.appendChild(overlay);
-    
+
     // Trigger animation
     setTimeout(() => {
       overlay.classList.add('show');
     }, 10);
-    
+
     // Close on overlay click (only when button is shown)
     if (showButton) {
       overlay.addEventListener('click', (e) => {
@@ -122,7 +130,7 @@ const Modal = {
       });
     }
   },
-  
+
   // Close modal
   close() {
     const overlay = document.getElementById('modal-overlay');
@@ -133,22 +141,22 @@ const Modal = {
       }, 300);
     }
   },
-  
+
   // Show loading
   showLoading(title, message) {
     this.show('loading', title, message, false);
   },
-  
+
   // Show success
   showSuccess(title, message) {
     this.show('success', title, message, true);
   },
-  
+
   // Show error
   showError(title, message) {
     this.show('error', title, message, true);
   },
-  
+
   // Show info
   showInfo(title, message) {
     this.show('info', title, message, true);
@@ -159,7 +167,7 @@ const Modal = {
 function fetchWithParams(url, params) {
   const queryString = new URLSearchParams(params).toString();
   const fullUrl = queryString ? `${url}?${queryString}` : url;
-  
+
   return fetch(fullUrl, {
     method: 'GET',
     headers: {
@@ -174,7 +182,7 @@ function fetchWithParams(url, params) {
       } else {
         data = await response.text();
       }
-      
+
       // Return axios-like response format
       return {
         status: response.status,
@@ -192,31 +200,31 @@ function onDownloadBtnClick(url) {
     Modal.showError(t('frontend-err'), t('please-enter-link'));
     return;
   }
-  
+
   // Show loading
   Modal.showLoading(t('loading'), t('loading-msg'));
-  
+
   fetchWithParams('/download_sub', { link: url.trim() })
     .then((response) => {
       console.log(response);
       Modal.close();
-      
+
       if (response.status === 200) {
         Modal.showSuccess(t('success'), t('success-msg'));
       } else {
         const errorMsg = typeof response.data === 'object' && response.data.error
           ? response.data.error
           : 'Unknown error';
-        
+
         Modal.showError(
           t('backend-err'),
           `
             <div>
               <b>${t('resp-status')}</b>
-              <code>${response.status}</code>
+              <code>${escapeHtml(response.status)}</code>
               <br />
               <b>${t('err-msg')}</b>
-              <code>${errorMsg}</code>
+              <code>${escapeHtml(errorMsg)}</code>
             </div>
           `
         );
@@ -229,10 +237,10 @@ function onDownloadBtnClick(url) {
         `
           <div>
             <b>${t('err-name')}</b>
-            <code>${error.name || 'Error'}</code>
+            <code>${escapeHtml(error.name || 'Error')}</code>
             <br />
             <b>${t('err-msg')}</b>
-            <code>${error.message || 'Unknown error'}</code>
+            <code>${escapeHtml(error.message || 'Unknown error')}</code>
           </div>
         `
       );

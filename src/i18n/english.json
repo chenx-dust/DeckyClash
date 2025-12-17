@@ -90,6 +90,6 @@
     "GENERAL": "General",
     "AUTO_CHECK_UPDATE": "Check Update Automatically",
     "MISC": "Miscellaneous",
-    "SKIP_STEAM": "Skip Steam Download",
-    "SKIP_STEAM_DESC": "Skip proxy for Steam download"
+    "SKIP_STEAM": "Use Local Steam Download CDN",
+    "SKIP_STEAM_DESC": "Skip proxy for relevant detect URLs"
 }

@@ -114,20 +114,6 @@ echo "SHA256: ${SHA256}"
 edit_json "$DEST_NAME" "$URL" "$SHA256"
 echo
 
-REPO_NAME="mikefarah/yq"
-FILE_NAME="yq_linux_amd64"
-DEST_NAME="yq_bin"
-echo "Checking $REPO_NAME ..."
-JSON=`get_latest_json "$REPO_NAME"`
-TAG=`extract_tag "$JSON"`
-echo "Latest release: ${TAG}"
-URL=`extract_release_url "$JSON" "$FILE_NAME"`
-echo "URL: ${URL}"
-SHA256=`extract_release_sha256 "$JSON" "$FILE_NAME"`
-echo "SHA256: ${SHA256}"
-edit_json "$DEST_NAME" "$URL" "$SHA256"
-echo
-
 REPO_NAME="P3TERX/GeoLite.mmdb"
 FILE_NAME="GeoLite2-Country.mmdb"
 DEST_NAME="country.mmdb"

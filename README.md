@@ -42,6 +42,6 @@ See [DEV_GUIDE.md](./docs/DEV_GUIDE.md) for details.
 ## Acknowledge
 
 - [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo): Decky Clash is powered by Mihomo.
-- [mikefarah/yq](https://github.com/mikefarah/yq): Decky Clash uses yq as its YAML processor.
+- [ruamel-yaml](https://sourceforge.net/projects/ruamel-yaml/): Decky Clash uses ruamel-yaml as its YAML processor.
 - [YukiCoco/ToMoon](https://github.com/YukiCoco/ToMoon): Decky Clash is inspired by To Moon.
 - [ba.sh](https://app.ba.sh/): Free URL shorten service for open source projects.

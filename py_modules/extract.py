@@ -12,8 +12,6 @@ import core
 import dashboard
 import decky
 from decky import logger
-from metadata import CORE_REPO, PACKAGE_REPO, YQ_REPO
-import utils
 import config
 
 def remove_no_fail(path: str):
@@ -69,25 +67,6 @@ async def extract_core() -> None:
         remove_no_fail(downloaded_filepath)
 
         logger.info("extract_core: complete")
-
-async def extract_yq() -> None:
-    downloaded_filepath = os.path.join(decky.DECKY_PLUGIN_DIR, "bin", "yq_bin")
-    yq_path = config.YQ_PATH
-
-    if os.path.exists(downloaded_filepath):
-        logger.info("extracting yq ...")
-        ensure_bin_dir()
-        logger.debug(f"removing old plugin from {yq_path}")
-        # remove old plugin
-        remove_no_fail(yq_path)
-
-        logger.debug(f"extracting ota file to {yq_path}")
-
-        shutil.move(downloaded_filepath, yq_path)
-        os.chmod(yq_path, 0o755)
-        shutil.chown(yq_path, decky.DECKY_USER, decky.DECKY_USER)
-
-        logger.info("extract_yq: complete")
 
 GEO_FILES = [
     "country.mmdb",
@@ -157,6 +136,5 @@ async def extract_dashboards():
 
 async def extract_all() -> None:
     await extract_core()
-    await extract_yq()
     await extract_geos()
     await extract_dashboards()

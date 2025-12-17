@@ -17,8 +17,7 @@ Based on Decky Loader architecture, Decky Clash consists of the following compon
 ├── plugins
 │   └── DeckyClash
 │       ├── bin             # Dependency Binaries
-│       │   ├── mihomo
-│       │   └── yq
+│       │   └── mihomo
 │       ├── dist            # Decky frontend
 │       │   ├── index.html
 │       │   └── ...

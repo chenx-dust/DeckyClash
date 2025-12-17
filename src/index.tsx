@@ -70,7 +70,6 @@ const Content: FC<{}> = ({ }) => {
 
   const [pluginVersion, setPluginVersion] = useState("");
   const [coreVersion, setCoreVersion] = useState("");
-  const [yqVersion, setYqVersion] = useState("");
   const [clashState, setClashState] = useState(localConfig.status);
   const [clashStateChanging, setClashStateChanging] = useState(false);
   const [subOptions, setSubOptions] = useState<DropdownOption[]>(parseSubOptions(localSubscriptions));
@@ -95,12 +94,10 @@ const Content: FC<{}> = ({ }) => {
 
   const refreshVersions = async () => {
     const _coreVersion = await backend.getVersion(ResourceType.CORE);
-    const _yqVersion = await backend.getVersion(ResourceType.YQ);
     const _pluginVersion = await backend.getVersion(ResourceType.PLUGIN);
     setCoreVersion(_coreVersion);
-    setYqVersion(_yqVersion);
     setPluginVersion(_pluginVersion);
-    return [_coreVersion, _yqVersion];
+    return [_coreVersion];
   };
 
   useEffect(() => {
@@ -515,14 +512,6 @@ const Content: FC<{}> = ({ }) => {
             label="Mihomo"
           >
             {coreVersion}
-          </Field>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <Field
-            focusable
-            label="YQ"
-          >
-            {yqVersion}
           </Field>
         </PanelSectionRow>
         <PanelSectionRow>

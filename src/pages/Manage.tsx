@@ -19,8 +19,8 @@ export const Manage: FC<ManageProp> = (props) => {
   const [reorderEnabled, setReorderEnabled] = useState(false);
   const refs: RefObject<Record<string, CallbackRef>> = useRef({});
 
-  const updateSubs = () => 
-    Object.values(refs.current).forEach(ref => ref?.());
+  const updateSubs = () =>
+    Object.values(refs.current).forEach(ref => ref?.update());
 
   const refreshSubs = async () => {
     const subs = await backend.getSubscriptionList();
@@ -169,6 +169,7 @@ export const Manage: FC<ManageProp> = (props) => {
                 description={url}
                 editMode={editMode}
                 updateCallback={async () => {
+                  console.trace("updateCallback");
                   const [success, error] = await backend.updateSubscription(name);
                   if (!success) {
                     toaster.toast({

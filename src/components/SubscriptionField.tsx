@@ -42,7 +42,10 @@ export interface SubscriptionFieldProps {
   reorderFinishCallback?: (save: boolean) => void;
 }
 
-export type CallbackRef = (() => void) | null;
+interface Updatable {
+  update: () => void;
+}
+export type CallbackRef = Updatable | null;
 
 export const SubscriptionField: FC<SubscriptionFieldProps & RefAttributes<any>> =
   forwardRef((props: SubscriptionFieldProps, ref: ForwardedRef<CallbackRef>) => {
@@ -64,7 +67,9 @@ export const SubscriptionField: FC<SubscriptionFieldProps & RefAttributes<any>> 
       });
     };
 
-    useImperativeHandle(ref, () => handleUpdateClick, []);
+    useImperativeHandle(ref, () => {
+      return { update: handleUpdateClick };
+    }, []);
 
     useEffect(() => {
       if (!updating && updateTips != t(L.UPDATE)) {

@@ -41,7 +41,7 @@ async def generate_config(
     if skip_steam_download:
         config['rules'] = override_config['skip-steam-rules'] + config['rules']
 
-    config['external-controller'] = f'"{"0.0.0.0" if allow_remote_access else "127.0.0.1"}:{controller_port}"'
+    config['external-controller'] = f'{"0.0.0.0" if allow_remote_access else "127.0.0.1"}:{controller_port}'
     config['secret'] = secret
     config['external-ui'] = dashboard_dir
     if dashboard is not None:

@@ -6,7 +6,6 @@ export enum EnhancedMode {
 export enum ResourceType {
   PLUGIN = "plugin",
   CORE = "core",
-  YQ = "yq",
 }
 
 export interface Config {

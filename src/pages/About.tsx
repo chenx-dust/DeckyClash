@@ -9,7 +9,6 @@ import { DescriptionField } from "../components";
 export const About: FC = () => {
   const [version, setVersion] = useState<string>();
   const [coreVersion, setCoreVersion] = useState<string>();
-  const [yqVersion, setYqVersion] = useState<string>();
 
   useLayoutEffect(() => {
     backend.getVersion(ResourceType.PLUGIN).then((x) => {
@@ -17,9 +16,6 @@ export const About: FC = () => {
     });
     backend.getVersion(ResourceType.CORE).then((x) => {
       setCoreVersion(x);
-    });
-    backend.getVersion(ResourceType.YQ).then((x) => {
-      setYqVersion(x);
     });
   }, []);
   return (
@@ -72,49 +68,6 @@ export const About: FC = () => {
         >
           GitHub Repo
         </Field>
-
-        <DescriptionField label="YQ">
-          A portable command-line YAML, JSON, XML, CSV, TOML and properties processor.
-          <br />
-          <i>Decky Clash uses yq as its YAML processor.</i>
-        </DescriptionField>
-        <Field label={t(L.INSTALLED_VERSION)} focusable >
-          {yqVersion}
-        </Field>
-        <Field
-          icon={<FiGithub style={{ display: "block" }} />}
-          label="mikefarah/yq"
-          onClick={() => {
-            Navigation.NavigateToExternalWeb(
-              "https://github.com/mikefarah/yq"
-            );
-          }}
-        >
-          GitHub Repo
-        </Field>
-
-      </DialogControlsSection>
-      <DialogControlsSection>
-        <DialogControlsSectionHeader>
-          {t(L.ACKNOWLEDGE)}
-        </DialogControlsSectionHeader>
-        <DescriptionField label="To Moon">
-          A network toolbox for SteamOS.
-          <br />
-          <i>Decky Clash is inspired by To Moon.</i>
-        </DescriptionField>
-        <Field
-          icon={<FiGithub style={{ display: "block" }} />}
-          label="YukiCoco/ToMoon"
-          onClick={() => {
-            Navigation.NavigateToExternalWeb(
-              "https://github.com/YukiCoco/ToMoon"
-            );
-          }}
-        >
-          GitHub Repo
-        </Field>
-
       </DialogControlsSection>
     </DialogBody>
   );

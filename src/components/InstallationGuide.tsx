@@ -11,14 +11,12 @@ import { DeckyClashIcon } from "../global";
 
 export interface InstallationGuideProps {
   coreVersion: string;
-  yqVersion: string;
   refreshCallback: () => any;
   quitCallback: () => any;
 }
 
 export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
   const [coreInstalling, setCoreInstalling] = useState(false);
-  const [yqInstalling, setYqInstalling] = useState(false);
   const [geosInstalling, setGeosInstalling] = useState(false);
   const [geosInstalled, setGeosInstalled] = useState(false);
   const [dashboardsInstalling, setDashboardsInstalling] = useState(false);
@@ -33,19 +31,6 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
       toaster.toast({
         title: t(L.INSTALL_FAILURE),
         body: `Mihomo: ${error}`,
-        icon: <DeckyClashIcon />,
-      });
-  };
-
-  const installYQ = async () => {
-    setYqInstalling(true);
-    const [success, error] =
-      await backend.upgrade(ResourceType.YQ, await backend.getLatestVersion(ResourceType.YQ));
-    setYqInstalling(false);
-    if (!success)
-      toaster.toast({
-        title: t(L.INSTALL_FAILURE),
-        body: `yq: ${error}`,
         icon: <DeckyClashIcon />,
       });
   };
@@ -80,8 +65,6 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
     let promises = [];
     if (props.coreVersion === "" && !coreInstalling)
       promises.push(installCore());
-    if (props.yqVersion === "" && !yqInstalling)
-      promises.push(installCore());
     if (!geosInstalling && !geosInstalled)
       promises.push(installGeos());
     if (!dashboardsInstalling && !dashboardsInstalled)
@@ -104,19 +87,6 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
             {coreInstalling ? (<Spinner style={{ width: '1.1em' }} />) : (
                 props.coreVersion === "" ? (<FaTimes />) :
                   (<>{props.coreVersion} <FaCheck /></>)
-            )}
-          </div>
-        </Field>
-      </PanelSectionRow>
-      <PanelSectionRow>
-        <Field
-          label="yq"
-          onClick={() => installYQ().then(props.refreshCallback)}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            {yqInstalling ? (<Spinner style={{ width: '1.1em' }} />) : (
-              props.yqVersion === "" ? (<FaTimes />) :
-                (<>{props.yqVersion} <FaCheck /></>)
             )}
           </div>
         </Field>
@@ -155,7 +125,7 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
       </PanelSectionRow>
       <PanelSectionRow>
         <ActionButtonItem onClick={props.quitCallback}>
-          {props.coreVersion !== "" && props.yqVersion !== "" &&
+          {props.coreVersion !== "" &&
             t(L.INSTALLATION_FINISH) ||
             t(L.INSTALLATION_SKIP)
           }

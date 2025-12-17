@@ -29,7 +29,7 @@ function usage() {
   echo "  -v, --version <version>     Specify version"
   echo "      --no-privilege          Run without sudo"
   echo "      --without-plugin        Skip installing ${PACKAGE} plugin"
-  echo "      --without-binary        Skip installing Mihomo and yq"
+  echo "      --without-binary        Skip installing Mihomo"
   echo "      --without-geo           Skip installing country.mmdb, geosite.dat and asn.mmdb"
   echo "      --without-dashboard     Skip installing dashboards"
   echo "      --without-restart       Skip restarting Decky Loader"
@@ -235,27 +235,6 @@ if prompt_continue $WITHOUT_BINARY; then
   $SUDO rm -f "${INSTALL_DEST}"
   $SUDO mv "${TEMP_DIR}/mihomo" "${INSTALL_DEST}"
 	$SUDO chmod +x "${INSTALL_DEST}"
-
-	echo "Installing yq ..."
-  RELEASE=$(curl -s "${API_BASE_URL}/repos/mikefarah/yq/releases/latest")
-  MESSAGE=$(echo "${RELEASE}" | grep "message" | cut -d '"' -f 4)
-  RELEASE_VERSION=$(echo "${RELEASE}" | grep "tag_name" | cut -d '"' -f 4)
-	RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url.*yq_linux_amd64\"" | cut -d '"' -f 4);
-
-  if [[ "${MESSAGE}" != "" ]]; then
-    echo "Github Error: ${MESSAGE}" >&2
-    exit 1
-  fi
-  if [ -z "${RELEASE_URL}" ]; then
-    echo "Failed to get latest release" >&2
-    exit 1
-  fi
-  echo "Version: ${RELEASE_VERSION}"
-
-  DEST="${BIN_DIR}/yq"
-  $SUDO rm -f "${DEST}"
-	$SUDO wget -O "${DEST}" "${RELEASE_URL}"
-	$SUDO chmod +x "${DEST}"
 fi
 
 echo "Installing Geos ..."

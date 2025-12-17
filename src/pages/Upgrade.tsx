@@ -13,8 +13,6 @@ export const Upgrade: FC = () => {
   const [pluginLatest, setPluginLatest] = useState<string>();
   const [coreCurrent, setCoreCurrent] = useState<string>();
   const [coreLatest, setCoreLatest] = useState<string>();
-  const [yqCurrent, setYqCurrent] = useState<string>();
-  const [yqLatest, setYqLatest] = useState<string>();
   const [channel, setChannel] = useState<string>(
     window.localStorage.getItem("decky-clash-upgrade-channel") || "latest"
   );
@@ -34,8 +32,6 @@ export const Upgrade: FC = () => {
     backend.getLatestVersion(ResourceType.PLUGIN).then(setPluginLatest);
     backend.getVersion(ResourceType.CORE).then(setCoreCurrent);
     backend.getLatestVersion(ResourceType.CORE).then(setCoreLatest);
-    backend.getVersion(ResourceType.YQ).then(setYqCurrent);
-    backend.getLatestVersion(ResourceType.YQ).then(setYqLatest);
   }
   useLayoutEffect(getVersions, []);
 
@@ -76,7 +72,6 @@ export const Upgrade: FC = () => {
     "DeckyClash", pluginLatest
   );
   const upgradeCore = upgradeCallback(() => backend.upgrade(ResourceType.CORE, coreLatest), "Mihomo", coreLatest);
-  const upgradeYq = upgradeCallback(() => backend.upgrade(ResourceType.YQ, yqLatest), "yq", yqLatest);
   const upgradeGeos = upgradeCallback(() => backend.installGeos(), t(L.INSTALLATION_GEO), "");
   const upgradeDashboard = upgradeCallback(() => backend.installDashboards(), t(L.INSTALLATION_DASHBOARD), "");
 
@@ -136,19 +131,6 @@ export const Upgrade: FC = () => {
           backend.getLatestVersion(ResourceType.CORE).then(setCoreLatest);
         }}
         onUpgradeClick={upgradeCore} />
-      <UpgradeItem label="YQ" current={yqCurrent} latest={yqLatest}
-        progressEvent="dl_yq_progress"
-        checkUpgrading={() => backend.isUpgrading(ResourceType.YQ)}
-        cancelCallback={() => backend.cancelUpgrade(ResourceType.YQ)}
-        onCurrentClick={() => {
-          setYqCurrent(undefined);
-          backend.getVersion(ResourceType.YQ).then(setYqCurrent);
-        }}
-        onLatestClick={() => {
-          setYqLatest(undefined);
-          backend.getLatestVersion(ResourceType.YQ).then(setYqLatest);
-        }}
-        onUpgradeClick={upgradeYq} />
       <DialogControlsSection>
         <DialogControlsSectionHeader>
           {t(L.MISC)}

@@ -104,6 +104,10 @@ def env_fix() -> dict[str, str]:
     current_env.pop('LD_LIBRARY_PATH', None)
     return current_env
 
+def get_traceback(e: BaseException) -> str:
+    import traceback
+    return '\n'.join(traceback.format_exception(e))
+
 ProgressCallback = Callable[[int], Awaitable]
 async def download_with_progress(url: str, name: str, progress_callback: ProgressCallback) -> str:
     with tempfile.NamedTemporaryFile("wb", suffix=name, delete=False) as f:

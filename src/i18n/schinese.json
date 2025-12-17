@@ -90,6 +90,6 @@
     "GENERAL": "通用",
     "AUTO_CHECK_UPDATE": "自动检查更新",
     "MISC": "杂项",
-    "SKIP_STEAM": "跳过 Steam 下载",
-    "SKIP_STEAM_DESC": "不代理 Steam 下载"
+    "SKIP_STEAM": "使用本地 Steam 下载 CDN",
+    "SKIP_STEAM_DESC": "不代理相关的探测 URL"
 }

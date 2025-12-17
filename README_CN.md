@@ -53,15 +53,15 @@ curl -L https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/dow
 > 使用在线安装脚本安装 Decky Clash 需要在能流畅访问 Github 的网络条件下进行。
 
 ```sh
-curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash
+curl -L https://ba.sh/HMtV | bash
 ```
 
-安装脚本会从 Github 下载最新的发行版本，以及必要的第三方资源，如：最新的 Mihomo 核心、最新的 yq 处理器、推荐使用的 Dashboards 以及核心需要的 Geo 文件等。
+安装脚本会从 Github 下载最新的发行版本，以及必要的第三方资源，如：最新的 Mihomo 核心、推荐使用的 Dashboards 以及核心需要的 Geo 文件等。
 
 脚本包含下载每夜版本、更新第三方资源等功能，可以通过 `-h/--help` 参数查看用法：
 
 ```sh
-curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --help
+curl -L https://ba.sh/HMtV | bash -s -- --help
 ```
 
 ### 离线安装包
@@ -108,7 +108,7 @@ curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh 
 执行以下下命令：
 
 ```sh
-curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --without-plugin --without-restart --yes
+curl -L https://ba.sh/HMtV | bash -s -- --without-plugin --without-restart --yes
 ```
 
 ## 卸载
@@ -119,7 +119,7 @@ curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh 
 在终端执行：
 
 ```sh
-curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh | bash -s -- --clean-uninstall
+curl -L https://ba.sh/HMtV | bash -s -- --clean-uninstall
 ```
 
 ## 开发指南
@@ -129,5 +129,6 @@ curl -L https://github.com/chenx-dust/DeckyClash/raw/refs/heads/main/install.sh 
 ## 致谢
 
 - [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo): Decky Clash 由 Mihomo 提供支持。
-- [mikefarah/yq](https://github.com/mikefarah/yq) Decky Clash 使用 yq 作为 YAML 处理器。
+- [ruamel-yaml](https://sourceforge.net/projects/ruamel-yaml/) Decky Clash 使用 ruamel-yaml 作为 YAML 处理器。
 - [YukiCoco/ToMoon](https://github.com/YukiCoco/ToMoon): Decky Clash 是受 To Moon 启发而开发的。
+- [ba.sh](https://app.ba.sh/): 为开源项目提供免费的 URL 短链服务。

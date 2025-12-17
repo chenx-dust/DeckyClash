@@ -1,16 +1,16 @@
-import asyncio
 from enum import Enum
 import os
-import shutil
-import subprocess
-from typing import List, Optional
+from typing import Optional
 
 from dashboard import BUILTIN_DASHBOARDS
+from ruamel.yaml import YAML
 import decky
 from decky import logger
+from ruamel.yaml.comments import CommentedMap
 
-YQ_PATH = os.path.join(decky.DECKY_PLUGIN_DIR, 'bin', 'yq')
 OVERRIDE_YAML = os.path.join(decky.DECKY_PLUGIN_DIR, 'override.yaml')
+
+yaml = YAML()
 
 class EnhancedMode(Enum):
     RedirHost = 'redir-host'
@@ -18,8 +18,8 @@ class EnhancedMode(Enum):
 
 
 async def generate_config(
-        ori_config: str,
-        new_config: str,
+        ori_path: str,
+        new_path: str,
         secret: str,
         override_dns: bool,
         enhanced_mode: EnhancedMode,
@@ -29,82 +29,31 @@ async def generate_config(
         dashboard: Optional[str],
         skip_steam_download: bool,
         ) -> None:
-    shutil.copyfile(ori_config, new_config)
+    with open(ori_path) as f:
+        config = yaml.load(f)
+    logger.debug(f'generate_config: config: {config}')
+    with open(OVERRIDE_YAML) as f:
+        override_config = yaml.load(f)
+    logger.debug(f'generate_config: override_config: {override_config}')
     if override_dns:
-        cmd = 'select(fi==0).dns = select(fi==1).dns-override | ' \
-            f'select(fi==0).dns += select(fi==1).{enhanced_mode.value}-dns | ' \
-            'select(fi==0)'
-        await _edit_in_place_with_ref(new_config, OVERRIDE_YAML, cmd)
+        config['dns'] = override_config['dns-override']
+        _merge_dict(config['dns'], override_config[f'{enhanced_mode.value}-dns'])
     if skip_steam_download:
-        cmd = 'select(fi==0).rules = select(fi==1).skip-steam-rules + select(fi==0).rules | ' \
-            'select(fi==0)'
-        await _edit_in_place_with_ref(new_config, OVERRIDE_YAML, cmd)
+        config['rules'] = override_config['skip-steam-rules'] + config['rules']
 
-    cmd = '.external-controller = ' \
-        f'"{"0.0.0.0" if allow_remote_access else "127.0.0.1"}' \
-        f':{controller_port}" | ' \
-        f'.secret = "{secret}" | ' \
-        f'.external-ui = "{dashboard_dir}"'
+    config['external-controller'] = f'"{"0.0.0.0" if allow_remote_access else "127.0.0.1"}:{controller_port}"'
+    config['secret'] = secret
+    config['external-ui'] = dashboard_dir
     if dashboard is not None:
-        cmd += f' | .external-ui-name = "{dashboard}"'
+        config['external-ui-name'] = dashboard
         if dashboard in BUILTIN_DASHBOARDS:
-            cmd += f' | .external-ui-url = "{BUILTIN_DASHBOARDS[dashboard]}"'
-    await _edit_in_place(new_config, cmd)
+            config['external-ui-url'] = BUILTIN_DASHBOARDS[dashboard]
 
-    cmd = 'select(fi==0).tun = select(fi==1).tun-override | ' \
-        'select(fi==0) += select(fi==1).always-override | ' \
-        'select(fi==0)'
-    await _edit_in_place_with_ref(new_config, OVERRIDE_YAML, cmd)
+    config['tun'] = override_config['tun-override']
+    _merge_dict(config, override_config['always-override'])
+    with open(new_path, 'w') as f:
+        yaml.dump(config, f)
 
-# use yq to edit the config
-async def _exec_yq(cmd: List[str]) -> Optional[str]:
-    command = [YQ_PATH, *cmd]
-    print_cmd = "'" + "' '".join(command) + "'"
-    decky.logger.debug(f'exec_yq: {print_cmd}')
-    process = await asyncio.create_subprocess_exec(
-                *command,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-    stdout, stderr = await process.communicate()
-    return_code = await process.wait()
-    if return_code != 0:
-        raise Exception(f'yq error: {stderr.decode()}')
-    if stderr is not None and len(stderr) > 0:
-        decky.logger.warning(f'yq warning: {stderr.decode()}')
-    if stdout is not None and len(stderr) > 0:
-        decky.logger.debug(f'yq output: {stdout.decode()}')
-        return stdout.decode()
-    else:
-        return None
-
-async def _edit_in_place(path: str, cmd: str) -> None:
-    await _exec_yq([
-            '-i',
-            cmd,
-            path,
-        ])
-
-async def _edit_in_place_with_ref(path: str, ref_path: str, cmd: str) -> None:
-    await _exec_yq([
-            'eval-all',
-            '-i',
-            cmd,
-            path,
-            ref_path,
-        ])
-
-def get_yq_version() -> str:
-    try:
-        cmd = [ YQ_PATH, "-V" ]
-        logger.debug(f"get_yq_version: cmd: {' '.join(cmd)}")
-        output = subprocess.check_output(cmd)
-    except Exception as e:
-        logger.error(f"get_yq_version: failed to exec: {str(e)}")
-        return ""
-
-    logger.debug(f"get_yq_version: output: {output}")
-    for s in output.decode().split(" "):
-        if s.startswith("v") and not s.startswith("version"):
-            return s.strip()
-    return ""
+def _merge_dict(a: CommentedMap, b: CommentedMap) -> None:
+    for k, v in b.items():
+        a[k] = v

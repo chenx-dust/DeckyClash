@@ -13,7 +13,7 @@ import core
 import dashboard
 import decky
 from decky import logger
-from metadata import CORE_REPO, PACKAGE_REPO, YQ_REPO
+from metadata import CORE_REPO, PACKAGE_REPO
 import utils
 from utils import ProgressCallback
 import config
@@ -76,9 +76,8 @@ async def restart_plugin_loader() -> None:
 class ResourceType(Enum):
     PLUGIN = "plugin"
     CORE = "core"
-    YQ = "yq"
 
-RESOURCE_TYPE_ENUMS = [ResourceType.PLUGIN, ResourceType.CORE, ResourceType.YQ]
+RESOURCE_TYPE_ENUMS = [ResourceType.PLUGIN, ResourceType.CORE]
 RESOURCE_TYPE_VALUES = [e.value for e in RESOURCE_TYPE_ENUMS]
 
 async def upgrade_plugin(version: str) -> None:
@@ -159,35 +158,14 @@ async def upgrade_core(version: str) -> None:
 
         logger.info("upgrade_core: complete")
 
-async def upgrade_yq(version: str) -> None:
-    logger.info("upgrade_yq: upgrading")
-    downloaded_filepath = await download_resourse(ResourceType.YQ, version)
-    yq_path = config.YQ_PATH
-
-    if os.path.exists(downloaded_filepath):
-        ensure_bin_dir()
-        logger.debug(f"removing old yq from {yq_path}")
-        # remove old yq
-        remove_no_fail(yq_path)
-
-        logger.debug(f"extracting yq to {yq_path}")
-
-        shutil.move(downloaded_filepath, yq_path)
-        os.chmod(yq_path, 0o755)
-        shutil.chown(yq_path, decky.DECKY_USER, decky.DECKY_USER)
-
-        logger.info("upgrade_yq: complete")
-
 _FUNC_MAP: Dict[ResourceType, Callable[[str], Coroutine[Any, Any, None]]] = {
     ResourceType.PLUGIN: upgrade_plugin,
     ResourceType.CORE: upgrade_core,
-    ResourceType.YQ: upgrade_yq,
 }
 
 _URL_MAP: Dict[ResourceType, Callable[[str], str]] = {
     ResourceType.PLUGIN: lambda ver: f"https://github.com/{PACKAGE_REPO}/releases/download/{ver}/DeckyClash.zip",
     ResourceType.CORE: lambda ver: f"https://github.com/{CORE_REPO}/releases/download/{ver}/mihomo-linux-amd64-{ver}.gz",
-    ResourceType.YQ: lambda ver: f"https://github.com/{YQ_REPO}/releases/download/{ver}/yq_linux_amd64",
 }
 
 async def download_resourse(res: ResourceType, version: str) -> str:
@@ -230,7 +208,6 @@ def cancel_upgrade(res: ResourceType) -> None:
 
 _REPO_MAP: Dict[ResourceType, str] = {
     ResourceType.CORE: CORE_REPO,
-    ResourceType.YQ: YQ_REPO,
     ResourceType.PLUGIN: PACKAGE_REPO,
 }
 _query_history: Dict[ResourceType, Tuple[str, float]] = {}

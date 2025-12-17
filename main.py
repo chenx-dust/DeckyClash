@@ -16,7 +16,7 @@ from decky import logger
 from external import ExternalServer
 import subscription
 import upgrade
-from metadata import CORE_REPO, PACKAGE_NAME, PACKAGE_REPO, YQ_REPO
+from metadata import PACKAGE_NAME
 from settings import SettingsManager
 import utils
 
@@ -32,6 +32,7 @@ class Plugin:
             upgrade.initialize_plugin()
         except Exception as e:
             logger.error(f"initialize_plugin: failed with {e}")
+            logger.debug(f"stack trace: {utils.get_traceback(e)}")
 
         self._set_default("subscriptions", {})
         self._set_default("secret", utils.rand_thing())
@@ -121,6 +122,7 @@ class Plugin:
                 await self.core.stop()
         except Exception as e:
             logger.error(f"set_core_status: failed with {e}")
+            logger.debug(f"stack trace: {utils.get_traceback(e)}")
             return False, str(e)
         return True, None
 
@@ -141,6 +143,7 @@ class Plugin:
             resp: HTTPResponse = urllib.request.urlopen(req, timeout=self._get("timeout"))
         except Exception as e:
             logger.error(f"restart_core: failed with {e}")
+            logger.debug(f"stack trace: {utils.get_traceback(e)}")
             return False
         
         if resp.status == 200:
@@ -196,6 +199,7 @@ class Plugin:
             await upgrade.upgrade(res_type, version)
         except Exception as e:
             logger.error(f"upgrade: failed with {e}")
+            logger.debug(f"stack trace: {utils.get_traceback(e)}")
             return False, str(e)
         return True, None
     
@@ -219,10 +223,9 @@ class Plugin:
                         version = "v" + version
                 case upgrade.ResourceType.CORE:
                     version = CoreController.get_version()
-                case upgrade.ResourceType.YQ:
-                    version = config.get_yq_version()
         except Exception as e:
             logger.error(f"get_version: {res} failed with {type(e)} {e}")
+            logger.debug(f"stack trace: {utils.get_traceback(e)}")
             return ""
         logger.debug(f"get_version: {res} {version}")
         return version
@@ -236,6 +239,7 @@ class Plugin:
             version = await upgrade.get_latest_version(res_type, self._get("timeout"), self._get("debounce_time"))
         except Exception as e:
             logger.error(f"get_latest_version: failed with {e}")
+            logger.debug(f"stack trace: {utils.get_traceback(e)}")
             return ""
         logger.debug(f"get_latest_version: {res} {version}")
         return version
@@ -299,6 +303,7 @@ class Plugin:
                     shutil.move(subscription.get_path(name), new_path)
                 except Exception as e:
                     logger.error(f"edit_subscription: move error {e}")
+                    logger.debug(f"stack trace: {utils.get_traceback(e)}")
                     return
                 subs.pop(name)
                 subs[new_name] = new_url
@@ -329,6 +334,7 @@ class Plugin:
                 os.remove(subscription.get_path(name))
             except Exception as e:
                 logger.error(f"remove_subscription: {e}")
+                logger.debug(f"stack trace: {utils.get_traceback(e)}")
             if self.settings.getSetting("current") == name:
                 self.settings.setSetting("current", None)
             self.settings.setSetting("subscriptions", subs)
@@ -356,6 +362,7 @@ class Plugin:
         try:
             await upgrade.download_geos()
         except Exception as e:
+            logger.debug(f"stack trace: {utils.get_traceback(e)}")
             return False, str(e)
         return True, ""
 
@@ -363,6 +370,7 @@ class Plugin:
         try:
             await upgrade.download_dashboards()
         except Exception as e:
+            logger.debug(f"stack trace: {utils.get_traceback(e)}")
             return False, str(e)
         return True, ""
     
@@ -376,7 +384,6 @@ class Plugin:
         name_map = {
             upgrade.ResourceType.PLUGIN: "DeckyClash",
             upgrade.ResourceType.CORE: "Mihomo",
-            upgrade.ResourceType.YQ: "yq",
         }
         for res in upgrade.RESOURCE_TYPE_ENUMS:
             current = await self.get_version(res.value)

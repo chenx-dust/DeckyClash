@@ -43,8 +43,8 @@
     "SELECT_DASHBOARD": "Select Dashboard",
     "ALLOW_REMOTE_ACCESS": "Allow Remote Access",
     "ALLOW_REMOTE_ACCESS_DESC": "Allow remote to access Dashboard",
-    "OVERRIDE_DNS": "Override DNS",
-    "OVERRIDE_DNS_DESC": "Force Mihomo to hijack DNS query",
+    "OVERRIDE_DNS": "Override DNS in Profile",
+    "OVERRIDE_DNS_DESC": "Replace with DNS preset provided by this plugin",
     "ENHANCED_MODE": "Enhanced Mode",
     "ENHANCED_MODE_DESC": "Enhanced Mode",
     "AUTOSTART": "Autostart",
@@ -89,6 +89,6 @@
     "GENERAL": "General",
     "AUTO_CHECK_UPDATE": "Check Update Automatically",
     "MISC": "Miscellaneous",
-    "SKIP_STEAM": "Use Local Steam Download CDN",
+    "SKIP_STEAM": "Steam Download Use Local CDN",
     "SKIP_STEAM_DESC": "Skip proxy for relevant detect URLs"
 }

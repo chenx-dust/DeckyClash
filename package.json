@@ -53,23 +53,23 @@
   "remote_binary": [
     {
       "name": "mihomo.gz",
-      "url": "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.17/mihomo-linux-amd64-v1.19.17.gz",
-      "sha256hash": "aebf089577047a957bacac5891ca7a7e2bb07d9b12f7f21a91ee0a73dd8d8606"
+      "url": "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.18/mihomo-linux-amd64-v1.19.18.gz",
+      "sha256hash": "bbad6c9fa6322d870e94aab34b54097ffc880829be8fd804de79543d87f1f8e5"
     },
     {
       "name": "country.mmdb",
-      "url": "https://github.com/P3TERX/GeoLite.mmdb/raw/80dc28bf92844908b33aa9963a6b36d95de9bd15/GeoLite2-Country.mmdb",
-      "sha256hash": "71d477cf18e564d51e264e1844b7f6576a08996207f560ab7acf7316b39851bd"
+      "url": "https://github.com/P3TERX/GeoLite.mmdb/raw/419d9b4cd84e80b9e20baf616f8a7be8813ea059/GeoLite2-Country.mmdb",
+      "sha256hash": "b6800640d82b2dcc7027464aac37b028b306bc8f9530b1eee613d9b79dad6a63"
     },
     {
       "name": "geosite.dat",
-      "url": "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/e9a91f1c871b1a85ce1f9611cb5a2adb144f8e98/geosite.dat",
-      "sha256hash": "33859b171eaaea1bbcb1ffd42586cf92c6e391c75db6c68b0d7174958e72e250"
+      "url": "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/b6e23e6f55b73108cfa5ecbdb394b0c475ad631a/geosite.dat",
+      "sha256hash": "6095bed65626306366c4f0a9263ca41757178ae3d55c2a582e1c3674d3300c03"
     },
     {
       "name": "asn.mmdb",
-      "url": "https://github.com/P3TERX/GeoLite.mmdb/raw/80dc28bf92844908b33aa9963a6b36d95de9bd15/GeoLite2-ASN.mmdb",
-      "sha256hash": "fa9495b81f53911e3df187e23fe91ebc73cf52c87048fccabf843ef05eac4e85"
+      "url": "https://github.com/P3TERX/GeoLite.mmdb/raw/419d9b4cd84e80b9e20baf616f8a7be8813ea059/GeoLite2-ASN.mmdb",
+      "sha256hash": "00c90c2738a9457658e160c8344adc8a609dff1a10b95df04f978220c032af6b"
     },
     {
       "name": "yacd.zip",

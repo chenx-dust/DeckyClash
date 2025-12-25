@@ -4,8 +4,8 @@ set -e
 
 PACKAGE="DeckyClash"
 BASE_DIR=${OVERRIDE_BASE_DIR:-"${HOME}/homebrew"}
-PLUGIN_DIR="${BASE_DIR}/plugins/${PACKAGE}"
-DATA_DIR="${BASE_DIR}/data/${PACKAGE}"
+PLUGIN_DIR="${BASE_DIR}/plugins"
+DATA_DIR="${BASE_DIR}/data"
 
 if [ "$UID" -eq 0 ]; then
   echo "WARNING: Running as root."
@@ -48,14 +48,19 @@ function prompt_continue() {
 }
 
 function mv_impl() {
-  local src=$1
-  local dest=$2
-  if [ -d "$dest" ]; then
-    rm -rf "$dest" 2>/dev/null || sudo rm -rf "$dest"
+  local src="$1"
+  local dest="$2"
+  local name"=$3"
+  local full_dest="$2/$3"
+  if [ -d "$full_dest" ]; then
+    rm -rf "$full_dest" 2>/dev/null || sudo rm -rf "$full_dest"
   fi
-  if ! mv "$src" "$dest" 2>/dev/null; then
-    sudo mv "$src" "$dest"
-    sudo chown -R "$(id -u):$(id -g)" "$dest"
+  if [ ! -d "$dest" ]; then
+    mkdir -p "$dest" 2>/dev/null || sudo mkdir -p "$dest"
+  fi
+  if ! mv "$src" "$full_dest" 2>/dev/null; then
+    sudo mv "$src" "$full_dest"
+    sudo chown -R "$(id -u):$(id -g)" "$full_dest"
   fi
 }
 
@@ -91,8 +96,8 @@ if ! prompt_continue; then
   exit 0
 fi
 
-mv_impl "${TEMP_DIR}/${PACKAGE}/data" "${DATA_DIR}"
-mv_impl "${TEMP_DIR}/${PACKAGE}" "${PLUGIN_DIR}"
+mv_impl "${TEMP_DIR}/${PACKAGE}/data" "${DATA_DIR}" "${PACKAGE}"
+mv_impl "${TEMP_DIR}/${PACKAGE}" "${PLUGIN_DIR}" "${PACKAGE}"
 
 echo
 echo "Installation complete!"

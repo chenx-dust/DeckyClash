@@ -91,5 +91,6 @@
     "AUTO_CHECK_UPDATE": "自动检查更新",
     "MISC": "杂项",
     "SKIP_STEAM": "Steam 下载使用本地 CDN",
-    "SKIP_STEAM_DESC": "不代理相关的探测 URL"
+    "SKIP_STEAM_DESC": "不代理相关的探测 URL",
+    "LOCAL_FILE": "本地文件"
 }

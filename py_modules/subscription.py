@@ -118,6 +118,57 @@ def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] 
     
     return True, (filename, url)
 
+def import_sub(file_name: str, data: bytes, now_subs: SubscriptionDict) -> Tuple[bool, Subscription | str]:
+    """
+    Import subscription from file data
+    Args:
+        file_name: Original file name
+        data: File content
+        now_subs: Currently subscriptions list
+    Returns:
+        tuple(bool, Subscription | str)
+        bool: Whether import success
+        Subscription | str: Subscription detail or error message
+    """
+    if not os.path.exists(SUBSCRIPTIONS_DIR):
+        os.mkdir(SUBSCRIPTIONS_DIR)
+
+    filename = file_name or utils.rand_thing()
+    if filename.lower().endswith('.yml'):
+        filename = filename[:-4]
+    if filename.lower().endswith('.yaml'):
+        filename = filename[:-5]
+
+    filename = _deduplicate_name(now_subs, filename)
+    if filename is None:
+        logger.error(f'import_sub: failed to deduplicate name: {filename}')
+        return False, 'No available filename'
+
+    filename = utils.sanitize_filename(filename)
+    path = get_path(filename)
+    logger.info(f'import_sub: saving to {path}')
+
+    try:
+        if os.path.exists(path):
+            logger.warning(f'import_sub: file exists, removing ...')
+            os.remove(path)
+        with open(path, 'xb') as out_file:
+            out_file.write(data)
+    except Exception as e:
+        logger.error(f"import_sub: io error: {e}")
+        return False, f"IO error: {e}"
+
+    valid = core.CoreController.check_config(path)
+    if not valid:
+        logger.error("import_sub: invalid config")
+        try:
+            os.remove(get_path(filename))
+        except Exception as e:
+            logger.error(f"import_sub: error removing file: {e}")
+        return False, "Invalid config"
+
+    return True, (filename, f"local://{filename}")
+
 async def update_sub(name: str, url: str, timeout: float) -> Optional[str]:
     try:
         req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})

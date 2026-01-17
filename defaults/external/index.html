@@ -14,7 +14,7 @@
     <h1>
       Decky Clash
     </h1>
-    <p id="import-tip">
+    <p id="import-tip" class="tip">
       Clash / Mihomo Subscription Import
     </p>
     <div class="input-container">
@@ -31,8 +31,26 @@
         </svg>
       </button>
     </div>
-    <div class="language-container">
-      <span id="sel-lang">Language:</span>
+    <div class="inline-row">
+      <span id="import-file-tip" class="inline-label tip">
+        Import File
+      </span>
+      <input
+        id="input-file"
+        type="file"
+        accept=".yaml,.yml"
+      />
+      <button
+        id="upload-btn"
+      >
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 4L10 18H18V34H30V18H38L24 4Z" fill="white" />
+          <path d="M8 38V44H40V38H8Z" fill="white" />
+        </svg>
+      </button>
+    </div>
+    <div class="inline-row">
+      <span id="sel-lang" class="inline-label">Language:</span>
       <select id="language-select">
         <option value="en">English</option>
         <option value="zh-CN">中文（中国）</option>

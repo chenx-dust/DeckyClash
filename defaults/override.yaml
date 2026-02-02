@@ -6,29 +6,14 @@ dns-override:
   # 启用 DNS 覆盖后采用
   enable: true
   ipv6: false
-  respect-rules: true
-  enhanced-mode: redir-host
   default-nameserver:
     - 223.5.5.5
     - 119.29.29.29
   nameserver:
-    - 223.5.5.5
-    - 119.29.29.29
-    - 'tls://dns.alidns.com'
-    - 'https://dns.alidns.com/dns-query'
-  proxy-server-nameserver:
-    - 223.5.5.5
-    - 119.29.29.29
-    - 'tls://dns.alidns.com'
-    - 'https://dns.alidns.com/dns-query'
-  nameserver-policy:
-    'geosite:gfw':
-      - 8.8.8.8
-      - 1.1.1.1
-      - 'tls://8.8.8.8'
-      - 'tls://1.1.1.1'
-    'geosite:private':
-      - system
+    - tls://223.5.5.5:853
+    - tls://223.6.6.6:853
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
 
 fake-ip-dns:
   # dns config to override if fake-ip is enabled
@@ -58,6 +43,7 @@ tun-override:
   # Tun 配置覆盖, 无论如何都会启用
   enable: true
   stack: mixed
+  auto-route: true
   auto-redirect: true
   auto-detect-interface: true
 

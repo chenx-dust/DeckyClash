@@ -441,5 +441,5 @@ class Plugin:
             return value
 
     def _set_default(self, key: str, value: Any) -> None:
-        if not self.settings.getSetting(key):
+        if self.settings.getSetting(key) is None:
             self.settings.setSetting(key, value)

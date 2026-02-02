@@ -36,26 +36,13 @@ h1 {
   text-align: center;
 }
 
-@media (prefers-color-scheme: dark) {
-  h1 {
-    color: #e5e7eb;
-  }
-}
-
-/* Tip text */
-#import-tip {
+.tip {
   padding: 0 0.5rem;
   color: #6b7280;
   text-align: center;
 }
 
-@media (prefers-color-scheme: dark) {
-  #import-tip {
-    color: #9ca3af;
-  }
-}
-
-/* Input container */
+/* Primary input row */
 .input-container {
   width: 100%;
   display: flex;
@@ -65,7 +52,6 @@ h1 {
   max-width: 1000px;
 }
 
-/* Input field */
 #input-url {
   flex-grow: 1;
   background-color: #f3f4f6;
@@ -78,45 +64,10 @@ h1 {
   color: #374151;
 }
 
-@media (prefers-color-scheme: dark) {
-  #input-url {
-    background-color: #e5e7eb;
-    color: #111827;
-  }
-}
-
-@media screen and (max-width: 450px) {
-  h1 {
-    font-size: 3rem;
-  }
-
-  .input-container {
-    height: 2.5rem;
-    padding: 0;
-  }
-
-  #input-url {
-    font-size: 1rem;
-  }
-}
-
-@media screen and (min-width: 800px) {
-  h1 {
-    font-size: 4.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .input-container {
-    height: 3rem;
-    padding: 0 2rem;
-  }
-}
-
 #input-url::placeholder {
   color: #9ca3af;
 }
 
-/* Download button */
 #download-btn {
   width: 3rem;
   background-color: #6366f1;
@@ -134,39 +85,76 @@ h1 {
   background-color: #4f46e5;
 }
 
-@media (prefers-color-scheme: dark) {
-  #download-btn {
-    background-color: #4338ca;
-  }
-  
-  #download-btn:hover {
-    background-color: #3730a3;
-  }
-}
-
 #download-btn svg {
   height: 1.5rem;
   width: 1.5rem;
 }
 
-/* Language selection container */
-.language-container {
-  margin-bottom: 0.5rem;
-  display: flex;
+/* Inline controls */
+.inline-row {
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  height: 2rem;
+  max-width: 100%;
+  white-space: nowrap;
 }
 
-#sel-lang {
+.inline-label {
   padding: 0 0.5rem 0.2rem 0;
   color: #6b7280;
   text-align: center;
+  font-size: 0.875rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  #sel-lang {
-    color: #9ca3af;
-  }
+#input-file {
+  flex: 1 1 260px;
+  min-width: 0;
+  background-color: transparent;
+  font-size: 0.875rem;
+  padding: 0.15rem 0.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  outline: none;
+  color: #374151;
+}
+
+#input-file::file-selector-button {
+  border: 1px solid #e5e7eb;
+  background-color: #f3f4f6;
+  color: #374151;
+  padding: 0.2rem 0.5rem;
+  margin-right: 0.5rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+#input-file::file-selector-button:hover {
+  background-color: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+#upload-btn {
+  width: 2rem;
+  height: 2rem;
+  background-color: #e5e7eb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+#upload-btn:hover {
+  background-color: #d1d5db;
+}
+
+#upload-btn svg {
+  height: 1.1rem;
+  width: 1.1rem;
 }
 
 #language-select {
@@ -175,15 +163,110 @@ h1 {
   border-radius: 0.5rem;
   padding: 0.25rem 0.75rem;
   font-size: 0.875rem;
-  border: none;
+  border: 1px solid #e5e7eb;
   outline: none;
   cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+#language-select:hover {
+  background-color: #e5e7eb;
+  border-color: #d1d5db;
 }
 
 @media (prefers-color-scheme: dark) {
+  h1 {
+    color: #e5e7eb;
+  }
+
+  .tip,
+  .inline-label {
+    color: #9ca3af;
+  }
+
+  #input-url {
+    background-color: #e5e7eb;
+    color: #111827;
+  }
+
+  #download-btn {
+    background-color: #4338ca;
+  }
+
+  #download-btn:hover {
+    background-color: #3730a3;
+  }
+
+  #input-file {
+    border-color: #4b5563;
+    color: #e5e7eb;
+  }
+
+  #input-file::file-selector-button {
+    background-color: #374151;
+    color: #e5e7eb;
+    border-color: #4b5563;
+  }
+  
+  #input-file::file-selector-button:hover {
+    background-color: #4b5563;
+    border-color: #6b7280;
+  }
+
+  #upload-btn {
+    background-color: #374151;
+    border-color: #4b5563;
+  }
+
+  #upload-btn:hover {
+    background-color: #4b5563;
+  }
+
   #language-select {
     background-color: #374151;
     color: #e5e7eb;
+    border-color: #4b5563;
+  }
+
+  #language-select:hover {
+    background-color: #4b5563;
+    border-color: #6b7280;
+  }
+}
+
+@media screen and (max-width: 450px) {
+  h1 {
+    font-size: 3rem;
+  }
+
+  .input-container {
+    height: 2.5rem;
+    padding: 0;
+  }
+
+  #input-url {
+    font-size: 1rem;
+  }
+
+  .inline-row {
+    height: 1.9rem;
+  }
+
+  #input-file {
+    flex-basis: 180px;
+    font-size: 0.8rem;
+  }
+}
+
+@media screen and (min-width: 800px) {
+  h1 {
+    font-size: 4.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .input-container {
+    height: 3rem;
+    padding: 0 2rem;
   }
 }
 
@@ -343,4 +426,3 @@ h1 {
 .hidden {
   display: none !important;
 }
-

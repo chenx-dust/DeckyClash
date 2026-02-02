@@ -11,6 +11,8 @@ from ruamel.yaml.comments import CommentedMap
 OVERRIDE_YAML = os.path.join(decky.DECKY_PLUGIN_DIR, 'override.yaml')
 
 yaml = YAML()
+yaml.width = float("inf")
+yaml.preserve_quotes = True
 
 class EnhancedMode(Enum):
     RedirHost = 'redir-host'

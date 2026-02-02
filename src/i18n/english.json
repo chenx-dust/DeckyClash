@@ -91,5 +91,6 @@
     "AUTO_CHECK_UPDATE": "Check Update Automatically",
     "MISC": "Miscellaneous",
     "SKIP_STEAM": "Steam Download Use Local CDN",
-    "SKIP_STEAM_DESC": "Skip proxy for relevant detect URLs"
+    "SKIP_STEAM_DESC": "Skip proxy for relevant detect URLs",
+    "LOCAL_FILE": "Local File"
 }

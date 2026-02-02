@@ -66,7 +66,7 @@ class Plugin:
 
         self.external = ExternalServer()
         from aiohttp import web
-        async def _callback(request: web.Request) -> web.Response:
+        async def _download_callback(request: web.Request) -> web.Response:
             import http
             try:
                 link = request.query.get("link")
@@ -82,7 +82,29 @@ class Plugin:
             except RuntimeError as e:
                 logger.error(f"external_callback: runtime error {e}")
                 return web.json_response({"error": str(e)}, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
-        self.external.register_callback("/download_sub", _callback)
+        self.external.register_callback("/download_sub", _download_callback)
+        async def _upload_callback(request: web.Request) -> web.Response:
+            import http
+            try:
+                post_data = await request.post()
+                file_field = post_data.get("file")
+                if file_field is None or not hasattr(file_field, "filename"):
+                    raise ValueError("missing file")
+                file_name = file_field.filename or ""
+                file_bytes = file_field.file.read()
+                if not file_bytes:
+                    raise ValueError("empty file")
+                success, error = await self.import_subscription_file(file_name, file_bytes)
+                if not success:
+                    raise RuntimeError(error)
+                return web.Response(status=http.HTTPStatus.OK)
+            except ValueError as e:
+                logger.error(f"external_upload_callback: value error {e}")
+                return web.json_response({"error": str(e)}, status=http.HTTPStatus.BAD_REQUEST)
+            except RuntimeError as e:
+                logger.error(f"external_upload_callback: runtime error {e}")
+                return web.json_response({"error": str(e)}, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+        self.external.register_callback("/upload_sub", _upload_callback)
         if self._get("external_run_bg"):
             await self.set_external_status(True)
 
@@ -145,7 +167,7 @@ class Plugin:
             logger.error(f"restart_core: failed with {e}")
             logger.debug(f"stack trace: {utils.get_traceback(e)}")
             return False
-        
+
         if resp.status == 200:
             return True
         else:
@@ -202,7 +224,7 @@ class Plugin:
             logger.debug(f"stack trace: {utils.get_traceback(e)}")
             return False, str(e)
         return True, None
-    
+
     async def cancel_upgrade(self, res: str) -> None:
         if res not in upgrade.RESOURCE_TYPE_VALUES:
             logger.error(f"cancel_upgrade: invalid resource {res}")
@@ -243,7 +265,7 @@ class Plugin:
             return ""
         logger.debug(f"get_latest_version: {res} {version}")
         return version
-    
+
     async def is_upgrading(self, res: str) -> bool:
         if res not in upgrade.RESOURCE_TYPE_VALUES:
             logger.error(f"is_upgrading: invalid resource {res}")
@@ -269,6 +291,9 @@ class Plugin:
         if name not in subs:
             logger.error(f"update_subscription: {name} not found")
             return False, "subscription not found"
+        if subs[name].startswith("local://"):
+            logger.error(f"update_subscription: {name} is local subscription")
+            return False, "local subscription"
         result = await subscription.update_sub(name, subs[name], self._get("timeout"))
         if result is None:
             if self.core.is_running and name == self._get("current"):
@@ -314,6 +339,20 @@ class Plugin:
     async def download_subscription(self, url: str) -> Tuple[bool, Optional[str]]:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
         ok, data = subscription.download_sub(url, subs, self._get("timeout"))
+        if ok:
+            name, url = data
+            subs[name] = url
+            self.settings.setSetting("subscriptions", subs)
+            if self.settings.getSetting("current") is None:
+                self.settings.setSetting("current", name)
+            await decky.emit("sub_update", name)
+            return True, None
+        else:
+            return False, data # type: ignore
+
+    async def import_subscription_file(self, file_name: str, file_bytes: bytes) -> Tuple[bool, Optional[str]]:
+        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        ok, data = subscription.import_sub(file_name, file_bytes, subs)
         if ok:
             name, url = data
             subs[name] = url
@@ -373,7 +412,7 @@ class Plugin:
             logger.debug(f"stack trace: {utils.get_traceback(e)}")
             return False, str(e)
         return True, ""
-    
+
     async def set_external_status(self, status: bool) -> None:
         if status:
             await self.external.run(self._get("external_port"))

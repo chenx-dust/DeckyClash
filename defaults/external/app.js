@@ -2,10 +2,13 @@
 const translations = {
   'en': {
     'import-tip': 'Clash / Mihomo Subscription Import',
+    'import-file-tip': 'Import File',
     'sub-link': 'Subscription Link',
     'sel-lang': 'Language:',
     'loading': 'Downloading',
     'loading-msg': 'Downloading subscription, please wait ...',
+    'uploading': 'Uploading',
+    'uploading-msg': 'Uploading subscription file, please wait ...',
     'success': 'Success',
     'success-msg': 'Subscription Imported',
     'backend-err': 'Server Error',
@@ -14,14 +17,18 @@ const translations = {
     'err-msg': 'Error Message:',
     'err-name': 'Error Name:',
     'ok': 'OK',
-    'please-enter-link': 'Please enter subscription link'
+    'please-enter-link': 'Please enter subscription link',
+    'please-select-file': 'Please select a subscription file'
   },
   'zh-CN': {
     'import-tip': '导入 Clash / Mihomo订阅',
+    'import-file-tip': '导入文件',
     'sub-link': '订阅链接',
     'sel-lang': '语言：',
     'loading': '下载中',
     'loading-msg': '正在下载订阅，请稍候……',
+    'uploading': '上传中',
+    'uploading-msg': '正在上传订阅文件，请稍候……',
     'success': '成功',
     'success-msg': '订阅已导入',
     'backend-err': '服务器错误',
@@ -30,7 +37,8 @@ const translations = {
     'err-msg': '错误信息：',
     'err-name': '错误名称：',
     'ok': '确定',
-    'please-enter-link': '请输入订阅链接'
+    'please-enter-link': '请输入订阅链接',
+    'please-select-file': '请选择订阅文件'
   }
 };
 
@@ -65,6 +73,7 @@ function escapeHtml(text) {
 // Update page text
 function updatePageText() {
   document.getElementById('import-tip').textContent = t('import-tip');
+  document.getElementById('import-file-tip').textContent = t('import-file-tip');
   document.getElementById('input-url').placeholder = t('sub-link');
   document.getElementById('sel-lang').textContent = t('sel-lang');
   document.getElementById('language-select').value = currentLanguage;
@@ -194,6 +203,30 @@ function fetchWithParams(url, params) {
     });
 }
 
+function fetchWithForm(url, formData) {
+  return fetch(url, {
+    method: 'POST',
+    body: formData,
+  })
+    .then(async (response) => {
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
+
+      return {
+        status: response.status,
+        statusText: response.statusText,
+        data: data,
+        headers: response.headers,
+        config: {}
+      };
+    });
+}
+
 // Download subscription
 function onDownloadBtnClick(url) {
   if (!url || !url.trim()) {
@@ -247,6 +280,60 @@ function onDownloadBtnClick(url) {
     });
 }
 
+function onUploadBtnClick(file) {
+  if (!file) {
+    Modal.showError(t('frontend-err'), t('please-select-file'));
+    return;
+  }
+
+  Modal.showLoading(t('uploading'), t('uploading-msg'));
+
+  const formData = new FormData();
+  formData.append('file', file, file.name);
+
+  fetchWithForm('/upload_sub', formData)
+    .then((response) => {
+      console.log(response);
+      Modal.close();
+
+      if (response.status === 200) {
+        Modal.showSuccess(t('success'), t('success-msg'));
+      } else {
+        const errorMsg = typeof response.data === 'object' && response.data.error
+          ? response.data.error
+          : 'Unknown error';
+
+        Modal.showError(
+          t('backend-err'),
+          `
+            <div>
+              <b>${t('resp-status')}</b>
+              <code>${escapeHtml(response.status)}</code>
+              <br />
+              <b>${t('err-msg')}</b>
+              <code>${escapeHtml(errorMsg)}</code>
+            </div>
+          `
+        );
+      }
+    })
+    .catch(error => {
+      Modal.close();
+      Modal.showError(
+        t('frontend-err'),
+        `
+          <div>
+            <b>${t('err-name')}</b>
+            <code>${escapeHtml(error.name || 'Error')}</code>
+            <br />
+            <b>${t('err-msg')}</b>
+            <code>${escapeHtml(error.message || 'Unknown error')}</code>
+          </div>
+        `
+      );
+    });
+}
+
 // Initialize application
 function initApp() {
   // Update page text
@@ -255,6 +342,8 @@ function initApp() {
   // Get DOM elements
   const inputUrl = document.getElementById('input-url');
   const downloadBtn = document.getElementById('download-btn');
+  const inputFile = document.getElementById('input-file');
+  const uploadBtn = document.getElementById('upload-btn');
   const languageSelect = document.getElementById('language-select');
 
   // Set current language
@@ -270,6 +359,11 @@ function initApp() {
   // Download button click event
   downloadBtn.addEventListener('click', () => {
     onDownloadBtnClick(inputUrl.value);
+  });
+
+  uploadBtn.addEventListener('click', () => {
+    const file = inputFile.files && inputFile.files[0];
+    onUploadBtnClick(file);
   });
 
   // Language change event

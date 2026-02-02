@@ -162,13 +162,14 @@ export const Manage: FC<ManageProp> = (props) => {
           onSecondaryButton={!reorderEnabled && (() => setReorderEnabled(true)) || undefined}
           onSecondaryActionDescription={!reorderEnabled && t(L.REORDER) || undefined}
           children={Object.entries(subscriptions).map(([name, url], index) => {
+            let isLocal = url.startsWith("local");
             return (
               <SubscriptionField
                 ref={(el) => refs.current[name] = el}
                 label={name}
-                description={url}
+                description={isLocal ? t(L.LOCAL_FILE) : url}
                 editMode={editMode}
-                updateCallback={async () => {
+                updateCallback={isLocal ? undefined : async () => {
                   console.trace("updateCallback");
                   const [success, error] = await backend.updateSubscription(name);
                   if (!success) {

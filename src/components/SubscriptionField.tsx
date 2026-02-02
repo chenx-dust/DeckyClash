@@ -31,7 +31,7 @@ const IconButton: FC<{
 export interface SubscriptionFieldProps {
   label: ReactNode;
   description?: ReactNode;
-  updateCallback: () => Promise<boolean>;
+  updateCallback?: () => Promise<boolean>;
   onOtherClick?: (e: MouseEvent) => void;
   editMode: boolean;
   onEditClick?: (e: MouseEvent) => void;
@@ -55,6 +55,8 @@ export const SubscriptionField: FC<SubscriptionFieldProps & RefAttributes<any>> 
     const [isSelectedLastFrame, setIsSelectedLastFrame] = useState(false);
 
     const handleUpdateClick = () => {
+      if (props.updateCallback === undefined)
+        return;
       setUpdating(true);
       setUpdateTips(t(L.UPDATING));
       props.updateCallback().then((success) => {
@@ -140,23 +142,23 @@ export const SubscriptionField: FC<SubscriptionFieldProps & RefAttributes<any>> 
               {props.onCopyClick && <IconButton icon={<FaCopy />} onClick={props.onCopyClick} disabled={props.reorderEnabled} />}
               {props.onDelClick && <IconButton style={{ color: 'red' }} icon={<FaTrashAlt />} onClick={props.onDelClick} disabled={props.reorderEnabled} />}
             </>) : (<>
-              <DialogButton
-                style={{
-                  height: '40px',
-                  padding: '10px 12px',
-                  minWidth: '40px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  columnGap: '8px',
-                }}
-                disabled={updating || props.reorderEnabled}
-                onClick={handleUpdateClick}
-              >
-                <FaRedoAlt style={updating ? {
-                  animation: "dc_spin 1s linear infinite",
-                } : undefined} />
-                {updateTips}
-              </DialogButton>
+                {props.updateCallback && <DialogButton
+                  style={{
+                    height: '40px',
+                    padding: '10px 12px',
+                    minWidth: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    columnGap: '8px',
+                  }}
+                  disabled={updating || props.reorderEnabled}
+                  onClick={handleUpdateClick}
+                >
+                  <FaRedoAlt style={updating ? {
+                    animation: "dc_spin 1s linear infinite",
+                  } : undefined} />
+                  {updateTips}
+                </DialogButton>}
                 {props.onOtherClick && <IconButton icon={<FaEllipsisH />} onClick={props.onOtherClick} disabled={props.reorderEnabled} />}
             </>)}
           </Focusable>

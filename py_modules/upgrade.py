@@ -227,9 +227,10 @@ async def get_latest_version(res: ResourceType, timeout: float, debounce_time: f
     return tag
 
 _GEO_FILES = {
-    "country.mmdb": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb",
-    "geosite.dat": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat",
+    "geoip.metadb": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb",
     "asn.mmdb": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb",
+    "geoip.dat": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat",
+    "geosite.dat": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat",
 }
 
 async def download_geos():

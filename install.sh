@@ -30,7 +30,7 @@ function usage() {
   echo "      --no-privilege          Run without sudo"
   echo "      --without-plugin        Skip installing ${PACKAGE} plugin"
   echo "      --without-binary        Skip installing Mihomo"
-  echo "      --without-geo           Skip installing country.mmdb, geosite.dat and asn.mmdb"
+  echo "      --without-geo           Skip installing geo files"
   echo "      --without-dashboard     Skip installing dashboards"
   echo "      --without-restart       Skip restarting Decky Loader"
   echo "      --clean                 Remove all plugin files (includes config) before installing"
@@ -237,25 +237,31 @@ if prompt_continue $WITHOUT_BINARY; then
 	$SUDO chmod +x "${INSTALL_DEST}"
 fi
 
-echo "Installing Geos ..."
+echo "Installing Geo Files ..."
 if prompt_continue $WITHOUT_GEO; then
   $SUDO mkdir -p "${DATA_DIR}"
 
-  echo "Downloading country.mmdb ..."
-  RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb"
-  DEST="${DATA_DIR}/country.mmdb"
-  $SUDO rm -f "${DEST}"
-	$SUDO wget -O "${DEST}" "${RELEASE_URL}"
-
-  echo "Downloading geosite.dat ..."
-  RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
-  DEST="${DATA_DIR}/geosite.dat"
+  echo "Downloading geoip.metadb ..."
+  RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb"
+  DEST="${DATA_DIR}/geoip.metadb"
   $SUDO rm -f "${DEST}"
 	$SUDO wget -O "${DEST}" "${RELEASE_URL}"
 
   echo "Downloading asn.mmdb ..."
   RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb"
   DEST="${DATA_DIR}/asn.mmdb"
+  $SUDO rm -f "${DEST}"
+	$SUDO wget -O "${DEST}" "${RELEASE_URL}"
+
+  echo "Downloading geoip.dat ..."
+  RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat"
+  DEST="${DATA_DIR}/geoip.dat"
+  $SUDO rm -f "${DEST}"
+	$SUDO wget -O "${DEST}" "${RELEASE_URL}"
+
+  echo "Downloading geosite.dat ..."
+  RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
+  DEST="${DATA_DIR}/geosite.dat"
   $SUDO rm -f "${DEST}"
 	$SUDO wget -O "${DEST}" "${RELEASE_URL}"
 fi

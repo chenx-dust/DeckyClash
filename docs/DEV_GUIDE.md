@@ -39,7 +39,8 @@ Based on Decky Loader architecture, Decky Clash consists of the following compon
 │       │   ├── zashboard
 │       │   └── ...         # Other dashboards
 │       ├── asn.mmdb        # Geo files (below)
-│       ├── country.mmdb
+│       ├── geoip.dat
+│       ├── geoip.metadb
 │       └── geosite.dat
 ├── settings
 │   └── DeckyClash

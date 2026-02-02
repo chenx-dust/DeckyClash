@@ -130,6 +130,21 @@ edit_json "$DEST_NAME" "$URL" "$SHA256"
 echo
 
 REPO_NAME="Loyalsoldier/v2ray-rules-dat"
+FILE_NAME="geoip.dat"
+DEST_NAME="geoip.dat"
+echo "Checking $REPO_NAME $FILE_NAME ..."
+JSON=`get_commit_json "$REPO_NAME" release`
+COMMIT_ID=`extract_commit_id "$JSON"`
+echo "Latest commit: ${COMMIT_ID}"
+URL=`extract_commit_url "$JSON" "$FILE_NAME"`
+echo "URL: ${URL}"
+download_file "$URL" "$TEMP_DIR/$DEST_NAME"
+SHA256=`get_sha256 "$TEMP_DIR/$DEST_NAME"`
+echo "SHA256: ${SHA256}"
+edit_json "$DEST_NAME" "$URL" "$SHA256"
+echo
+
+REPO_NAME="Loyalsoldier/v2ray-rules-dat"
 FILE_NAME="geosite.dat"
 DEST_NAME="geosite.dat"
 echo "Checking $REPO_NAME $FILE_NAME ..."

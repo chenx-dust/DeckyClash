@@ -14,7 +14,7 @@ from decky import logger
 import utils
 
 SUBSCRIPTIONS_DIR = os.path.join(decky.DECKY_PLUGIN_SETTINGS_DIR, "subscriptions")
-USER_AGENT = f"{decky.DECKY_PLUGIN_NAME}/{decky.DECKY_PLUGIN_VERSION} mihomo/1.19.10 clash-verge/2.2.3 Clash/v1.18.0"
+USER_AGENT = f"{decky.DECKY_PLUGIN_NAME}/{decky.DECKY_PLUGIN_VERSION} mihomo/1.19.19 clash.meta/1.19.19 clash-verge/2.4.5 mihomo.party/v1.9.1"
 
 SubscriptionDict = Dict[str, str]
 Subscription = Tuple[str, str]

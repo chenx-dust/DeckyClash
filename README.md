@@ -16,13 +16,16 @@
    <p>
 </div>
 
+> [!CAUTION]
+> 如果您是中华人民共和国公民或者长期居住在中华人民共和国境内，请在使用前仔细阅读并理解 [免责声明](./README_CN.md#免责声明) 中的内容。下载、安装或使用本项目即表示您同意免责声明中的条款，并承担由此产生的全部责任。
+
 ## Features
 
 - ✅ **Full featured:** [Mihomo](https://github.com/MetaCubeX/mihomo) core included
 - 🚀 **Blazing fast:** optimized frontend and backend
 - 📦 **Easy to use:** out of the box, with subscriptions importer and installation guide, etc.
 - 🔒 **Focus on security:** random controller password, controllable outside access, etc.
-- ⚙️ **Friendly to maintain:** written by Python and Node.js (React & Vite)
+- ⚙️ **Friendly to maintain:** written by Python and Node.js
 - 💡 **Keep update:** built-in upgrade tool to keep 3rd-party resources update
 - 🌍 **I18n ready:** currently with Chinese (Simplified) and English support
 

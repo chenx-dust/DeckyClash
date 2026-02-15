@@ -14,7 +14,7 @@ from decky import logger
 import utils
 
 SUBSCRIPTIONS_DIR = os.path.join(decky.DECKY_PLUGIN_SETTINGS_DIR, "subscriptions")
-USER_AGENT = f"{decky.DECKY_PLUGIN_NAME}/{decky.DECKY_PLUGIN_VERSION} mihomo/1.19.19 clash.meta/1.19.19 clash-verge/2.4.5 mihomo.party/v1.9.1"
+USER_AGENT = lambda: f"{decky.DECKY_PLUGIN_NAME}/{decky.DECKY_PLUGIN_VERSION} mihomo/{core.LAST_CORE_VERSION} clash.meta/{core.LAST_CORE_VERSION} clash-verge/2.4.5 mihomo.party/v1.9.1"
 
 SubscriptionDict = Dict[str, str]
 Subscription = Tuple[str, str]
@@ -58,7 +58,7 @@ def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] 
     if not os.path.exists(SUBSCRIPTIONS_DIR):
         os.mkdir(SUBSCRIPTIONS_DIR)
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT()})
         resp: http.client.HTTPResponse = urllib.request.urlopen(
             req, timeout=timeout, context=utils.get_ssl_context())
     except Exception as e:
@@ -171,7 +171,7 @@ def import_sub(file_name: str, data: bytes, now_subs: SubscriptionDict) -> Tuple
 
 async def update_sub(name: str, url: str, timeout: float) -> Optional[str]:
     try:
-        req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
+        req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT()})
         await utils.get_url_to_file(req, get_path(name), timeout)
     except Exception as e:
         logger.error(f"update_sub: update {name} with error {e}")

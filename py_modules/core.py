@@ -8,6 +8,7 @@ import decky
 from decky import logger
 import utils
 
+LAST_CORE_VERSION = "1.19.20"
 
 ExitCallback = Callable[[Optional[int]], Awaitable[None]]
 
@@ -30,7 +31,7 @@ class CoreController:
         if self._process.returncode is None:
             return True
         return False
-    
+
     @classmethod
     def _gen_cmd(cls, config_path: str) -> List[str]:
         return [
@@ -72,7 +73,7 @@ class CoreController:
     async def stop(self) -> None:
         if not self._process or self._process.returncode is not None:
             raise RuntimeError("No running core")
-            
+
         logger.info(f"terminating core (PID: {self._process.pid})")
         if self._monitor_task is not None:
             self._monitor_task.cancel()
@@ -130,5 +131,7 @@ class CoreController:
         logger.debug(f"get_version: output: {output}")
         for s in output.decode().split(" "):
             if s.startswith("v"):
-                return s.strip()
+                global LAST_CORE_VERSION
+                LAST_CORE_VERSION = s.strip()
+                return LAST_CORE_VERSION
         return ""

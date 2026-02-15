@@ -74,12 +74,12 @@ const Content: FC<{}> = ({ }) => {
   const [clashState, setClashState] = useState(localConfig.status);
   const [clashStateChanging, setClashStateChanging] = useState(false);
   const [subOptions, setSubOptions] = useState<DropdownOption[]>(parseSubOptions(localSubscriptions));
+  const [currentSub, setCurrentSub] = useState<string | null>(localConfig.current);
   const [clashStateTips, setClashStateTips] = useState(
     localConfig.status ?
       t(L.ENABLE_CLASH_IS_RUNNING) :
-      t(L.ENABLE_CLASH_DESC)
+      (currentSub === null ? t(L.ENABLE_CLASH_NO_SUB) : t(L.ENABLE_CLASH_DESC))
   );
-  const [currentSub, setCurrentSub] = useState<string | null>(localConfig.current);
   const [overrideDNS, setOverrideDNS] = useState(localConfig.override_dns);
   const [enhancedMode, setEnhancedMode] = useState<EnhancedMode>(localConfig.enhanced_mode);
   const [autostart, setAutostart] = useState(localConfig.autostart);
@@ -139,7 +139,7 @@ const Content: FC<{}> = ({ }) => {
     setClashStateTips(
       config.status ?
         t(L.ENABLE_CLASH_IS_RUNNING) :
-        t(L.ENABLE_CLASH_DESC)
+        (currentSub === null ? t(L.ENABLE_CLASH_NO_SUB) : t(L.ENABLE_CLASH_DESC))
     );
     setClashState(config.status);
     setCurrentSub(config.current);
@@ -226,6 +226,9 @@ const Content: FC<{}> = ({ }) => {
   }, []);
 
   useEffect(() => {
+    if (currentSub === null && clashStateTips != t(L.ENABLE_CLASH_NO_SUB)) {
+      setClashStateTips(t(L.ENABLE_CLASH_NO_SUB));
+    }
     if (!clashState && clashStateTips != t(L.ENABLE_CLASH_DESC)) {
       const timer = setTimeout(() => {
         setClashStateTips(t(L.ENABLE_CLASH_DESC));
@@ -233,7 +236,7 @@ const Content: FC<{}> = ({ }) => {
       return () => clearTimeout(timer);
     }
     return;
-  }, [clashState, clashStateTips]);
+  }, [clashState, clashStateTips, currentSub]);
 
   const enhancedModeOptions = [
     { mode: EnhancedMode.RedirHost, label: "Redir Host" },
@@ -305,14 +308,14 @@ const Content: FC<{}> = ({ }) => {
             label={t(L.ENABLE_CLASH)}
             description={clashStateTips}
             checked={clashState}
-            disabled={clashStateChanging}
+            disabled={clashStateChanging || currentSub === null && !clashState}
             onChange={async (value: boolean) => {
               setClashState(value);
               setClashStateChanging(true);
               setClashStateTips(
                 value ?
                   t(L.ENABLE_CLASH_LOADING) :
-                  t(L.ENABLE_CLASH_DESC)
+                  (currentSub === null ? t(L.ENABLE_CLASH_NO_SUB) : t(L.ENABLE_CLASH_DESC))
               );
               const [success, error] = await backend.setCoreStatus(value);
               setClashStateChanging(false);
@@ -330,7 +333,7 @@ const Content: FC<{}> = ({ }) => {
                 setClashStateTips(
                   value ?
                     t(L.ENABLE_CLASH_IS_RUNNING) :
-                    t(L.ENABLE_CLASH_DESC)
+                    (currentSub === null ? t(L.ENABLE_CLASH_NO_SUB) : t(L.ENABLE_CLASH_DESC))
                 );
               }
               backend.getCoreStatus().then(setClashState);
@@ -408,6 +411,20 @@ const Content: FC<{}> = ({ }) => {
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField
+            label={t(L.AUTOSTART)}
+            description={t(L.AUTOSTART_DESC)}
+            checked={autostart}
+            onChange={(value: boolean) => {
+              setAutostart(value);
+              backend.setConfigValue("autostart", value).then(() =>
+                backend.getConfigValue("autostart").then(setAutostart));
+            }}
+          ></ToggleField>
+        </PanelSectionRow>
+      </PanelSection>
+      <PanelSection title={t(L.OVERRIDE)}>
+        <PanelSectionRow>
+          <ToggleField
             label={t(L.ALLOW_REMOTE_ACCESS)}
             description=
             {(allowRemoteAccess && clashState && !clashStateChanging && qrPageUrl) ? (
@@ -463,18 +480,6 @@ const Content: FC<{}> = ({ }) => {
             />
           </PanelSectionRow>
         )}
-        <PanelSectionRow>
-          <ToggleField
-            label={t(L.AUTOSTART)}
-            description={t(L.AUTOSTART_DESC)}
-            checked={autostart}
-            onChange={(value: boolean) => {
-              setAutostart(value);
-              backend.setConfigValue("autostart", value).then(() =>
-                backend.getConfigValue("autostart").then(setAutostart));
-            }}
-          ></ToggleField>
-        </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField
             label={t(L.SKIP_STEAM)}

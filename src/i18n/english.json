@@ -1,5 +1,6 @@
 {
     "SERVICE": "Service",
+    "OVERRIDE": "Override",
     "TOOLS": "Tools",
     "VERSION": "Version",
     "UPGRADE": "Upgrade",
@@ -38,6 +39,7 @@
     "ENABLE_CLASH_CRASH": "Mihomo crashed",
     "ENABLE_CLASH_LOADING": "Loading ...",
     "ENABLE_CLASH_IS_RUNNING": "Mihomo is running",
+    "ENABLE_CLASH_NO_SUB": "No selected subscription",
     "MANAGE_SUBSCRIPTIONS": "Manage Subscriptions",
     "OPEN_DASHBOARD": "Open Dashboard",
     "SELECT_DASHBOARD": "Select Dashboard",

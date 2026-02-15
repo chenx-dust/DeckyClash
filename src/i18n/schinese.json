@@ -1,5 +1,6 @@
 {
     "SERVICE": "服务",
+    "OVERRIDE": "覆写",
     "TOOLS": "工具",
     "VERSION": "版本",
     "UPGRADE": "更新",
@@ -38,6 +39,7 @@
     "ENABLE_CLASH_CRASH": "Clash 崩溃",
     "ENABLE_CLASH_LOADING": "加载中 ...",
     "ENABLE_CLASH_IS_RUNNING": "Clash 正在运行",
+    "ENABLE_CLASH_NO_SUB": "没有选中的订阅",
     "MANAGE_SUBSCRIPTIONS": "管理订阅",
     "OPEN_DASHBOARD": "打开管理面板",
     "SELECT_DASHBOARD": "选择管理面板",

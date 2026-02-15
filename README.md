@@ -8,8 +8,6 @@
    </div>
    <p>
       <i>Light-weight Clash/Mihomo proxy client for Steam OS</i>
-      <br>
-      <i>为 Steam OS 设计的轻量的 Clash/Mihomo 代理客户端</i>
    </p>
 </div>
 

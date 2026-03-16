@@ -183,8 +183,8 @@ if prompt_continue $WITHOUT_PLUGIN; then
   if [ -z "${SPECIFIED_VERSION}" ]; then
     API_URL="${API_BASE_URL}/repos/${AUTHOR}/${REPO_NAME}/releases/latest"
     RELEASE=$(curl -s "$API_URL")
-    MESSAGE=$(echo "${RELEASE}" | grep "message" | cut -d '"' -f 4)
-    RELEASE_VERSION=$(echo "${RELEASE}" | grep "tag_name" | cut -d '"' -f 4)
+    MESSAGE=$(echo "${RELEASE}" | grep '"message"' | cut -d '"' -f 4)
+    RELEASE_VERSION=$(echo "${RELEASE}" | grep '"tag_name"' | cut -d '"' -f 4)
     RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url.*DeckyClash.zip\"" | cut -d '"' -f 4)
 
     if [[ "${MESSAGE}" != "" ]]; then
@@ -214,8 +214,8 @@ if prompt_continue $WITHOUT_BINARY; then
 	echo "Installing Mihomo ..."
 
   RELEASE=$(curl -s "${API_BASE_URL}/repos/MetaCubeX/mihomo/releases/latest")
-  MESSAGE=$(echo "${RELEASE}" | grep "message" | cut -d '"' -f 4)
-  RELEASE_VERSION=$(echo "${RELEASE}" | grep "tag_name" | cut -d '"' -f 4)
+  MESSAGE=$(echo "${RELEASE}" | grep '"message"' | cut -d '"' -f 4)
+  RELEASE_VERSION=$(echo "${RELEASE}" | grep '"tag_name"' | cut -d '"' -f 4)
 	RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url.*mihomo-linux-amd64-${RELEASE_VERSION}.gz\"" | cut -d '"' -f 4);
 
   if [[ "${MESSAGE}" != "" ]]; then

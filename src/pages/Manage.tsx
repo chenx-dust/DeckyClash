@@ -1,4 +1,4 @@
-import { DialogBody, DialogButton, Field, Focusable, Menu, MenuItem, showContextMenu, showModal } from "@decky/ui";
+import { DialogBody, DialogButton, Field, Focusable, Menu, MenuItem, ToggleField, showContextMenu, showModal } from "@decky/ui";
 import { useState, FC, useLayoutEffect, useRef, RefObject } from "react";
 import { BsExclamationCircleFill } from "react-icons/bs";
 import { t } from 'i18next';
@@ -17,6 +17,9 @@ export const Manage: FC<ManageProp> = (props) => {
   const [subscriptions, setSubscriptions] = useState(props.Subscriptions);
   const [editMode, setEditMode] = useState(false);
   const [reorderEnabled, setReorderEnabled] = useState(false);
+  const [autoUpdateSubscription, setAutoUpdateSubscription] = useState(
+    (window.localStorage.getItem("decky-clash-auto-update-subscription") || "false") === "true"
+  );
   const refs: RefObject<Record<string, CallbackRef>> = useRef({});
 
   const updateSubs = () =>
@@ -29,6 +32,10 @@ export const Manage: FC<ManageProp> = (props) => {
 
   useLayoutEffect(() => {
     refreshSubs();
+    backend.getConfigValue("auto_update_subscription").then((value) => {
+      setAutoUpdateSubscription(value);
+      window.localStorage.setItem("decky-clash-auto-update-subscription", value.toString());
+    });
     const callback = (_: string) => {
       refreshSubs();
     };
@@ -132,6 +139,16 @@ export const Manage: FC<ManageProp> = (props) => {
             </DialogButton>
           </Focusable>}
       </Field>
+      <ToggleField
+        label={t(L.AUTO_UPDATE_SUBSCRIPTION)}
+        checked={autoUpdateSubscription}
+        onChange={(x) => {
+          setAutoUpdateSubscription(x);
+          backend.setConfigValue("auto_update_subscription", x).then(() =>
+            backend.getConfigValue("auto_update_subscription").then(setAutoUpdateSubscription));
+          localStorage.setItem("decky-clash-auto-update-subscription", x.toString());
+        }}
+      />
       <style>
         {`
 @keyframes dc_spin {

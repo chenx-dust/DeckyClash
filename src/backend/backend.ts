@@ -22,6 +22,7 @@ export const installDashboards = callable<[], [boolean, string]>("install_dashbo
 
 export const getSubscriptionList = callable<[], Record<string, string>>("get_subscription_list");
 export const updateSubscription = callable<[string], [boolean, string]>("update_subscription");
+export const updateAllSubscriptions = callable<[], []>("update_all_subscriptions");
 export const downloadSubscription = callable<[string], [boolean, string]>("download_subscription");
 export const removeSubscription = callable<[string], []>("remove_subscription");
 export const duplicateSubscription = callable<[string], []>("duplicate_subscription");

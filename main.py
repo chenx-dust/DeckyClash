@@ -1,3 +1,4 @@
+import asyncio
 from http.client import HTTPResponse
 import json
 import logging
@@ -47,6 +48,7 @@ class Plugin:
         self._set_default("disable_verify", False)
         self._set_default("external_run_bg", False)
         self._set_default("auto_check_update", True)
+        self._set_default("auto_update_subscription", False)
         self._set_default("skip_steam_download", False)
         self._set_default("log_level", logging.getLevelName(logging.INFO))
 
@@ -207,6 +209,7 @@ class Plugin:
             "dashboard",
             "external_run_bg",
             "auto_check_update",
+            "auto_update_subscription",
             "skip_steam_download",
         ]
         if key not in PERMITTED_KEYS:
@@ -304,6 +307,29 @@ class Plugin:
             return True, None
         else:
             return False, result
+
+    async def update_all_subscriptions(self) -> None:
+        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        current = self._get("current", True)
+        remote_subs = [(name, url) for name, url in subs.items() if not url.startswith("local://")]
+        if len(remote_subs) == 0:
+            return
+
+        results = await asyncio.gather(*[
+            subscription.update_sub(name, url, self._get("timeout"))
+            for name, url in remote_subs
+        ])
+
+        current_updated = False
+        for (name, _), error in zip(remote_subs, results):
+            if error is not None:
+                logger.error(f"update_all_subscriptions: failed to update {name}: {error}")
+                continue
+            if name == current:
+                current_updated = True
+
+        if self.core.is_running and current_updated:
+            await self.restart_core()
 
     async def duplicate_subscription(self, name: str) -> None:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")

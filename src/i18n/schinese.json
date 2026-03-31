@@ -92,6 +92,7 @@
     "NIGHTLY_CHANNEL": "每夜构建",
     "GENERAL": "通用",
     "AUTO_CHECK_UPDATE": "自动检查更新",
+    "AUTO_UPDATE_SUBSCRIPTION": "自动更新订阅",
     "MISC": "杂项",
     "SKIP_STEAM": "Steam 下载使用本地 CDN",
     "SKIP_STEAM_DESC": "不代理相关的探测 URL",

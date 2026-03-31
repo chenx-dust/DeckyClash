@@ -642,6 +642,8 @@ export default definePlugin(() => {
 
   if ((window.localStorage.getItem("decky-clash-auto-check-update") || "true") === "true")
     setTimeout(backend.checkUpdate, 5000);
+  if ((window.localStorage.getItem("decky-clash-auto-update-subscription") || "false") === "true")
+    setTimeout(backend.updateAllSubscriptions, 5000);
 
   return {
     // The name shown in various decky menus

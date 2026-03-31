@@ -52,6 +52,7 @@
     "AUTOSTART": "自动启动",
     "AUTOSTART_DESC": "登录后自动启用 Mihomo",
     "RESTART_CORE": "核心软重启",
+    "KILL_CORE": "强制杀死核心",
     "RELOAD_CONFIG": "刷新前端设置",
     "CLASH_EXIT_TITLE": "Decky Clash 停止运行",
     "DELETE_SUBSCRIPTION": "删除订阅",

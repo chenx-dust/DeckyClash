@@ -276,6 +276,10 @@ const Content: FC<{}> = ({ }) => {
     }
   }
 
+  const killClash = async () => {
+    await backend.killCore();
+  }
+
   useEffect(() => {
     // auto reload with debounce
     const timer = setTimeout(() => {
@@ -509,6 +513,14 @@ const Content: FC<{}> = ({ }) => {
             onClick={restartClash}
           >
             {t(L.RESTART_CORE)}
+          </ActionButtonItem>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ActionButtonItem
+            layout="below"
+            onClick={killClash}
+          >
+            {t(L.KILL_CORE)}
           </ActionButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>

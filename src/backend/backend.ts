@@ -4,6 +4,7 @@ import { Config, ResourceType } from ".";
 export const getCoreStatus = callable<[], boolean>("get_core_status");
 export const setCoreStatus = callable<[boolean], [boolean, string]>("set_core_status");
 export const restartCore = callable<[], boolean>("restart_core");
+export const killCore = callable<[], boolean>("kill_core");
 
 export const getConfig = callable<[], Config>("get_config");
 export const getConfigValue = callable<[string], any>("get_config_value");

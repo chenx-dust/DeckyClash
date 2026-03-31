@@ -174,6 +174,9 @@ class Plugin:
             logger.error(f"restart_core: failed with status code {resp.status}")
             return False
 
+    async def kill_core(self) -> bool:
+        return CoreController.kill(self._get("timeout"))
+
     async def get_config(self) -> dict:
         config = {
             "status": self.core.is_running,

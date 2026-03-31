@@ -13,7 +13,8 @@ LAST_CORE_VERSION = "1.19.20"
 ExitCallback = Callable[[Optional[int]], Awaitable[None]]
 
 class CoreController:
-    CORE_PATH = os.path.join(decky.DECKY_PLUGIN_DIR, "bin", "mihomo")
+    BIN_NAME = "mihomo"
+    CORE_PATH = os.path.join(decky.DECKY_PLUGIN_DIR, "bin", BIN_NAME)
     CONFIG_PATH = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "running_config.yaml")
     RESOURCE_DIR = decky.DECKY_PLUGIN_RUNTIME_DIR
 
@@ -135,3 +136,29 @@ class CoreController:
                 LAST_CORE_VERSION = s.strip()
                 return LAST_CORE_VERSION
         return ""
+
+    @classmethod
+    def kill(cls, timeout: float) -> bool:
+        logger.debug(f"killing core by process name: {cls.BIN_NAME}")
+
+        try:
+            result = subprocess.run(
+                ["pkill", "-KILL", "-x", cls.BIN_NAME],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+            )
+        except Exception as e:
+            logger.error(f"kill core: failed with {e}")
+            return False
+
+        if result.returncode == 0:
+            return True
+
+        logger.error(
+            "kill core: pkill failed with code %s, stdout=%s, stderr=%s",
+            result.returncode,
+            result.stdout.strip(),
+            result.stderr.strip(),
+        )
+        return False

@@ -52,6 +52,7 @@
     "AUTOSTART": "Autostart",
     "AUTOSTART_DESC": "Enable Mihomo automatically",
     "RESTART_CORE": "Soft Restart Core",
+    "KILL_CORE": "Force Kill Core",
     "RELOAD_CONFIG": "Reload Frontend Config",
     "CLASH_EXIT_TITLE": "Decky Clash Stopped",
     "DELETE_SUBSCRIPTION": "Delete Subscription",

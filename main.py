@@ -44,6 +44,7 @@ class Plugin:
         self._set_default("allow_remote_access", False)
         self._set_default("autostart", False)
         self._set_default("timeout", 15.0)
+        self._set_default("user_agent_override", "")
         self._set_default("debounce_time", 10.0)
         self._set_default("disable_verify", False)
         self._set_default("external_run_bg", False)
@@ -300,7 +301,12 @@ class Plugin:
         if subs[name].startswith("local://"):
             logger.error(f"update_subscription: {name} is local subscription")
             return False, "local subscription"
-        result = await subscription.update_sub(name, subs[name], self._get("timeout"))
+        result = await subscription.update_sub(
+            name,
+            subs[name],
+            self._get("timeout"),
+            self._get("user_agent_override"),
+        )
         if result is None:
             if self.core.is_running and name == self._get("current"):
                 await self.restart_core()
@@ -316,7 +322,12 @@ class Plugin:
             return
 
         results = await asyncio.gather(*[
-            subscription.update_sub(name, url, self._get("timeout"))
+            subscription.update_sub(
+                name,
+                url,
+                self._get("timeout"),
+                self._get("user_agent_override"),
+            )
             for name, url in remote_subs
         ])
 
@@ -367,7 +378,12 @@ class Plugin:
 
     async def download_subscription(self, url: str) -> Tuple[bool, Optional[str]]:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
-        ok, data = subscription.download_sub(url, subs, self._get("timeout"))
+        ok, data = subscription.download_sub(
+            url,
+            subs,
+            self._get("timeout"),
+            self._get("user_agent_override"),
+        )
         if ok:
             name, url = data
             subs[name] = url

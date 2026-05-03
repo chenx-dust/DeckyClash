@@ -65,7 +65,7 @@ class Plugin:
         self.core = CoreController()
         self.core.set_exit_callback(lambda x: decky.emit("core_exit", x))
         if self._get("autostart"):
-            await self.core.start()
+            await self.set_core_status(True)
 
         self.external = ExternalServer()
         from aiohttp import web

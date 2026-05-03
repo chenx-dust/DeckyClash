@@ -12,9 +12,9 @@ import core
 import decky
 from decky import logger
 import utils
+import metadata
 
 SUBSCRIPTIONS_DIR = os.path.join(decky.DECKY_PLUGIN_SETTINGS_DIR, "subscriptions")
-DEFAULT_USER_AGENT = lambda: f"clash-verge/v2.4.8 mihomo/{core.LAST_CORE_VERSION} clash.meta/{core.LAST_CORE_VERSION} mihomo.party/v1.9.1 DeckyClash/{decky.DECKY_PLUGIN_VERSION}"
 
 SubscriptionDict = Dict[str, str]
 Subscription = Tuple[str, str]
@@ -22,10 +22,13 @@ Subscription = Tuple[str, str]
 def get_path(filename: str) -> str:
     return os.path.join(SUBSCRIPTIONS_DIR, filename + ".yaml")
 
-def _user_agent(custom_user_agent: Optional[str] = None) -> str:
-    if custom_user_agent is not None and custom_user_agent.strip() != "":
-        return custom_user_agent.strip()
-    return DEFAULT_USER_AGENT()
+def _user_agent(user_agent_override: Optional[str] = None) -> str:
+    if user_agent_override is not None and user_agent_override.strip() != "":
+        return user_agent_override.strip()
+    return f"{metadata.PACKAGE_NAME}/{decky.DECKY_PLUGIN_VERSION} " \
+           f"mihomo/{core.LAST_CORE_VERSION} " \
+           f"clash.meta/{core.LAST_CORE_VERSION} " \
+            "clash-verge/2.4.8 mihomo.party/v1.9.4"
 
 def _deduplicate_name(now_subs: SubscriptionDict, filename: str) -> Optional[str]:
     def check_exist(name) -> bool:

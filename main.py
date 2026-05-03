@@ -44,7 +44,7 @@ class Plugin:
         self._set_default("allow_remote_access", False)
         self._set_default("autostart", False)
         self._set_default("timeout", 15.0)
-        self._set_default("subscription_user_agent", "")
+        self._set_default("user_agent_override", "")
         self._set_default("debounce_time", 10.0)
         self._set_default("disable_verify", False)
         self._set_default("external_run_bg", False)
@@ -211,7 +211,6 @@ class Plugin:
             "external_run_bg",
             "auto_check_update",
             "auto_update_subscription",
-            "subscription_user_agent",
             "skip_steam_download",
         ]
         if key not in PERMITTED_KEYS:
@@ -306,7 +305,7 @@ class Plugin:
             name,
             subs[name],
             self._get("timeout"),
-            self._get("subscription_user_agent"),
+            self._get("user_agent_override"),
         )
         if result is None:
             if self.core.is_running and name == self._get("current"):
@@ -327,7 +326,7 @@ class Plugin:
                 name,
                 url,
                 self._get("timeout"),
-                self._get("subscription_user_agent"),
+                self._get("user_agent_override"),
             )
             for name, url in remote_subs
         ])
@@ -383,7 +382,7 @@ class Plugin:
             url,
             subs,
             self._get("timeout"),
-            self._get("subscription_user_agent"),
+            self._get("user_agent_override"),
         )
         if ok:
             name, url = data

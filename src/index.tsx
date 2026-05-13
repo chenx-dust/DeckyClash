@@ -403,9 +403,10 @@ const Content: FC<{}> = ({ }) => {
           <ButtonItem
             layout="below"
             onClick={() => {
+              let path = currentDashboard == "yacd" ? "" : "#/setup";
               Router.CloseSideMenus();
               Navigation.NavigateToExternalWeb(
-                `http://127.0.0.1:${controllerPort}/ui/${currentDashboard}/?hostname=127.0.0.1&port=${controllerPort}&secret=${secret}`
+                `http://127.0.0.1:${controllerPort}/ui/${currentDashboard}/${path}?hostname=127.0.0.1&port=${controllerPort}&secret=${secret}`
               );
             }}
             disabled={clashStateChanging || !clashState || !currentDashboard}

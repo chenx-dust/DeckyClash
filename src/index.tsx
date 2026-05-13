@@ -265,15 +265,8 @@ const Content: FC<{}> = ({ }) => {
     if (!clashState)
       return;
     setClashStateChanging(true);
-    const success = await backend.restartCore();
+    await backend.restartCore();
     setClashStateChanging(false);
-    if (!success) {
-      toaster.toast({
-        title: t(L.RESTART_CORE),
-        body: t(L.ENABLE_CLASH_FAILED),
-        icon: <DeckyClashIcon />,
-      });
-    }
   }
 
   const killClash = async () => {
@@ -410,7 +403,7 @@ const Content: FC<{}> = ({ }) => {
                 patchLocalConfig("dashboard", value.data);
                 backend.setConfigValue("dashboard", value.data);
                 if (!clashStateChanging && clashState) {
-                  backend.restartCore();
+                  restartClash();
                 }
               }}
             />

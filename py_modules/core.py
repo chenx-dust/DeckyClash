@@ -46,7 +46,7 @@ class CoreController:
     async def start(self) -> None:
         if self._process and self._process.returncode is None:
             logger.warning("core is already running")
-            await self.stop()
+            return
 
         command = self._gen_cmd(self.CONFIG_PATH)
         logger.info(f"starting core: {' '.join(command)}")
@@ -73,7 +73,8 @@ class CoreController:
 
     async def stop(self) -> None:
         if not self._process or self._process.returncode is not None:
-            raise RuntimeError("No running core")
+            logger.warning("no running core")
+            return
 
         logger.info(f"terminating core (PID: {self._process.pid})")
         if self._monitor_task is not None:
@@ -83,12 +84,18 @@ class CoreController:
             self._process.terminate()
         except Exception as e:
             logger.error(f"failed to terminate core with error: {e}")
+            self.kill()
         finally:
             self._process = None
             logger.debug("core terminated")
             if self._logfile:
                 self._logfile.close()
                 self._logfile = None
+
+    async def restart(self) -> None:
+        logger.info("restarting core ...")
+        await self.stop()
+        await self.start()
 
     async def _monitor_exit(self):
         assert self._process is not None
@@ -138,7 +145,7 @@ class CoreController:
         return ""
 
     @classmethod
-    def kill(cls, timeout: float) -> bool:
+    def kill(cls, timeout: Optional[float] = None) -> bool:
         logger.debug(f"killing core by process name: {cls.BIN_NAME}")
 
         try:

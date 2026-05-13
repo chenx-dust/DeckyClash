@@ -151,7 +151,7 @@ class Plugin:
             return False, str(e)
         return True, None
 
-    async def restart_core(self) -> bool:
+    async def restart_core(self) -> None:
         logger.debug("soft restarting core ...")
         await self.generate_config()
         port = self._get("controller_port")
@@ -166,16 +166,13 @@ class Plugin:
                                         headers=headers,
                                         method="POST")
             resp: HTTPResponse = urllib.request.urlopen(req, timeout=self._get("timeout"))
+            if resp.status != 200:
+                logger.error(f"restart_core: failed with status code {resp.status}")
+                self.core.restart()
         except Exception as e:
             logger.error(f"restart_core: failed with {e}")
             logger.debug(f"stack trace: {utils.get_traceback(e)}")
-            return False
-
-        if resp.status == 200:
-            return True
-        else:
-            logger.error(f"restart_core: failed with status code {resp.status}")
-            return False
+            self.core.restart()
 
     async def kill_core(self) -> bool:
         return CoreController.kill(self._get("timeout"))

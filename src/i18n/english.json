@@ -54,7 +54,7 @@
     "ENHANCED_MODE_DESC": "Enhanced Mode",
     "AUTOSTART": "Autostart",
     "AUTOSTART_DESC": "Enable Mihomo automatically",
-    "RESTART_CORE": "Soft Restart Core",
+    "RESTART_CORE": "Restart Core",
     "KILL_CORE": "Force Kill Core",
     "RELOAD_CONFIG": "Reload Frontend Config",
     "CLASH_EXIT_TITLE": "Decky Clash Stopped",

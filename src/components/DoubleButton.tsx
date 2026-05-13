@@ -1,5 +1,6 @@
 import { DialogButton, DialogButtonProps, Field, Focusable } from "@decky/ui";
 import { FC, ReactNode } from "react";
+import { IconButton } from "./IconButton";
 
 export interface DoubleButtonProps {
   description?: ReactNode;
@@ -34,21 +35,12 @@ export const DoubleButton: FC<DoubleButtonProps> =
             >
               {props.largeProps?.children}
             </DialogButton>
-            <DialogButton
-              style={{
-                height: '40px',
-                width: '40px',
-                padding: '10px 12px',
-                minWidth: '40px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-              }}
+            <IconButton
               disabled={props.smallProps?.disabled}
               onClick={props.smallProps?.onClick}
             >
               {props.smallProps?.children}
-            </DialogButton>
+            </IconButton>
           </Focusable>
         }
       />

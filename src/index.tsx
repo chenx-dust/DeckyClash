@@ -346,7 +346,7 @@ const Content: FC<{}> = ({ }) => {
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
-            label={t(L.SELECT_SUBSCRIPTION)}
+            label={t(L.SUBSCRIPTION)}
             strDefaultLabel={t(
               L.SELECT_SUBSCRIPTION
             )}
@@ -385,7 +385,7 @@ const Content: FC<{}> = ({ }) => {
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
-            label={t(L.SELECT_DASHBOARD)}
+            label={t(L.DASHBOARD)}
             strDefaultLabel={t(L.SELECT_DASHBOARD)}
             rgOptions={dashboardOptions}
             selectedOption={currentDashboard}

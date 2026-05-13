@@ -1,5 +1,6 @@
-import { DialogButton, Field, Focusable, TextField } from "@decky/ui";
+import { Field, Focusable, TextField } from "@decky/ui";
 import { ChangeEventHandler, FC, ReactNode } from "react";
+import { IconButton } from "./IconButton";
 
 export interface TextFieldWithButtonProps {
   disabled?: boolean;
@@ -9,7 +10,7 @@ export interface TextFieldWithButtonProps {
   children?: ReactNode;
   value?: string;
   onChange?: ChangeEventHandler<HTMLInputElement>;
-  onClick?: (e: MouseEvent | GamepadEvent) => void;
+  onClick?: (e: MouseEvent) => void;
 }
 
 export const TextFieldWithButton: FC<TextFieldWithButtonProps> =
@@ -40,23 +41,12 @@ export const TextFieldWithButton: FC<TextFieldWithButtonProps> =
                 onChange={props.onChange}
               />
             </div>
-            <DialogButton
-              style={{
-                height: '40px',
-                width: '40px',
-                padding: '10px 12px',
-                minWidth: '40px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-              }}
+            <IconButton
               disabled={props.disabled}
               onClick={props.onClick}
-              /* @ts-expect-error */
-              onOKButton={props.onClick}
             >
               {props.children}
-            </DialogButton>
+            </IconButton>
           </Focusable>
         }
       />

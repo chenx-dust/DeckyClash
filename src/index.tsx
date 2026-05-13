@@ -384,37 +384,6 @@ const Content: FC<{}> = ({ }) => {
           />
         </PanelSectionRow>
         <PanelSectionRow>
-          <DropdownItem
-            label={t(L.DASHBOARD)}
-            strDefaultLabel={t(L.SELECT_DASHBOARD)}
-            rgOptions={dashboardOptions}
-            selectedOption={currentDashboard}
-            onMenuWillOpen={fetchDashboards}
-            disabled={clashStateChanging}
-            onChange={(value) => {
-              setCurrentDashboard(value.data);
-              patchLocalConfig("dashboard", value.data);
-              backend.setConfigValue("dashboard", value.data);
-              backend.restartCore();
-            }}
-          />
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <ButtonItem
-            layout="below"
-            onClick={() => {
-              let path = currentDashboard == "yacd" ? "" : "#/setup";
-              Router.CloseSideMenus();
-              Navigation.NavigateToExternalWeb(
-                `http://127.0.0.1:${controllerPort}/ui/${currentDashboard}/${path}?hostname=127.0.0.1&port=${controllerPort}&secret=${secret}`
-              );
-            }}
-            disabled={clashStateChanging || !clashState || !currentDashboard}
-          >
-            {t(L.OPEN_DASHBOARD)}
-          </ButtonItem>
-        </PanelSectionRow>
-        <PanelSectionRow>
           <ToggleField
             label={t(L.AUTOSTART)}
             description={t(L.AUTOSTART_DESC)}
@@ -427,6 +396,42 @@ const Content: FC<{}> = ({ }) => {
           ></ToggleField>
         </PanelSectionRow>
       </PanelSection>
+      {clashState && (
+        <PanelSection title={t(L.STATUS)}>
+          <PanelSectionRow>
+            <DropdownItem
+              label={t(L.DASHBOARD)}
+              strDefaultLabel={t(L.SELECT_DASHBOARD)}
+              rgOptions={dashboardOptions}
+              selectedOption={currentDashboard}
+              onMenuWillOpen={fetchDashboards}
+              onChange={(value) => {
+                setCurrentDashboard(value.data);
+                patchLocalConfig("dashboard", value.data);
+                backend.setConfigValue("dashboard", value.data);
+                if (!clashStateChanging && clashState) {
+                  backend.restartCore();
+                }
+              }}
+            />
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <ButtonItem
+              layout="below"
+              onClick={() => {
+                let path = currentDashboard == "yacd" ? "" : "#/setup";
+                Router.CloseSideMenus();
+                Navigation.NavigateToExternalWeb(
+                  `http://127.0.0.1:${controllerPort}/ui/${currentDashboard}/${path}?hostname=127.0.0.1&port=${controllerPort}&secret=${secret}`
+                );
+              }}
+              disabled={clashStateChanging || !clashState || !currentDashboard}
+            >
+              {t(L.OPEN_DASHBOARD)}
+            </ButtonItem>
+          </PanelSectionRow>
+        </PanelSection>
+      )}
       <PanelSection title={t(L.OVERRIDE)}>
         <PanelSectionRow>
           <ToggleField

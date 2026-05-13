@@ -11,6 +11,7 @@
     "DEPENDENCY": "Dependency",
     "SUBSCRIPTION": "Subscription",
     "DASHBOARD": "Dashboard",
+    "STATUS": "Status",
     "EDIT": "Edit",
     "DUPLICATE": "Duplicate",
     "SUBSCRIPTION_ACTIONS": "Subscription Actions",

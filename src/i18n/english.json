@@ -102,5 +102,7 @@
     "OUTBOUND_MODE": "Outbound Mode",
     "RULE": "Rule",
     "GLOBAL": "Global",
-    "DIRECT": "Direct"
+    "DIRECT": "Direct",
+    "TRAFFIC": "Traffic",
+    "MEMORY": "Memory"
 }

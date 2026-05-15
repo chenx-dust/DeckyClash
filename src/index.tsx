@@ -27,7 +27,15 @@ import { QRCodeCanvas } from "qrcode.react";
 
 import { About, Import, Manage, Upgrade } from "./pages";
 import { backend, Config, EnhancedMode, ResourceType } from "./backend";
-import { ClashMode, getClashMode, setClashMode as patchClashMode } from "./backend/core";
+import {
+  ClashMode,
+  Memory,
+  Traffic,
+  getClashMode,
+  setClashMode as patchClashMode,
+  streamMemory,
+  streamTraffic,
+} from "./backend/core";
 import { ActionButtonItem, DoubleButton, InstallationGuide } from "./components";
 import { localizationManager, L } from "./i18n";
 import { DeckyClashIcon, TIPS_TIMEOUT } from "./global";
@@ -94,6 +102,8 @@ const Content: FC<{}> = ({ }) => {
   const [qrPageUrl, setQRPageUrl] = useState<string>();
   const [currentIP, setCurrentIP] = useState<string>(localIP);
   const [clashMode, setClashMode] = useState<ClashMode | null>(null);
+  const [traffic, setTraffic] = useState<Traffic | null>(null);
+  const [memory, setMemory] = useState<Memory | null>(null);
 
   const refreshVersions = async () => {
     const _coreVersion = await backend.getVersion(ResourceType.CORE);
@@ -181,6 +191,17 @@ const Content: FC<{}> = ({ }) => {
     }
   };
 
+  const formatBytes = (value: number) => {
+    const units = ["B", "KB", "MB", "GB"];
+    let scaled = value;
+    let index = 0;
+    while (scaled >= 1024 && index < units.length - 1) {
+      scaled /= 1024;
+      index++;
+    }
+    return `${scaled.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+  };
+
   const fetchAllConfig = async () => {
     await Promise.all([
       fetchConfig(),
@@ -227,6 +248,30 @@ const Content: FC<{}> = ({ }) => {
     else
       setClashMode(null);
   }, [clashState]);
+
+  useEffect(() => {
+    if (!clashState) {
+      setTraffic(null);
+      setMemory(null);
+      return;
+    }
+
+    const trafficController = new AbortController();
+    const memoryController = new AbortController();
+    streamTraffic(controllerPort, secret, trafficController.signal, setTraffic).catch((e) => {
+      if (!trafficController.signal.aborted)
+        console.error(e);
+    });
+    streamMemory(controllerPort, secret, memoryController.signal, setMemory).catch((e) => {
+      if (!memoryController.signal.aborted)
+        console.error(e);
+    });
+
+    return () => {
+      trafficController.abort();
+      memoryController.abort();
+    };
+  }, [clashState, controllerPort, secret]);
 
   useEffect(() => {
     // core exit callback
@@ -411,6 +456,28 @@ const Content: FC<{}> = ({ }) => {
       </PanelSection>
       {clashState && (
         <PanelSection title={t(L.STATUS)}>
+          <PanelSectionRow>
+            <Field
+              label={t(L.TRAFFIC)}
+            >
+              {traffic ?
+                (<div style={{ textAlign: "right" }}>
+                  {`↑ ${formatBytes(traffic.up)}/s (${formatBytes(traffic.upTotal)})`}
+                  <br></br>
+                  {`↓ ${formatBytes(traffic.down)}/s (${formatBytes(traffic.downTotal)})`}
+                </div>) :
+                t(L.ENABLE_CLASH_LOADING)}
+            </Field>
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <Field
+              label={t(L.MEMORY)}
+            >
+              {memory ?
+                `${formatBytes(memory.inuse)}${memory.oslimit ? ` / ${formatBytes(memory.oslimit)}` : ''}` :
+                t(L.ENABLE_CLASH_LOADING)}
+            </Field>
+          </PanelSectionRow>
           <PanelSectionRow>
             <DropdownItem
               label={t(L.OUTBOUND_MODE)}

@@ -103,5 +103,7 @@
     "OUTBOUND_MODE": "出站模式",
     "RULE": "规则",
     "GLOBAL": "全局",
-    "DIRECT": "直连"
+    "DIRECT": "直连",
+    "TRAFFIC": "流量",
+    "MEMORY": "内存"
 }

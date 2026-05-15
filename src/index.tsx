@@ -12,6 +12,7 @@ import {
   SliderField,
   NotchLabel,
   Field,
+  Dropdown,
 } from "@decky/ui";
 import {
   addEventListener,
@@ -36,10 +37,10 @@ import {
   streamMemory,
   streamTraffic,
 } from "./backend/core";
-import { ActionButtonItem, DoubleButton, InstallationGuide } from "./components";
+import { ActionButtonItem, IconButton, InstallationGuide, RowField } from "./components";
 import { localizationManager, L } from "./i18n";
 import { DeckyClashIcon, TIPS_TIMEOUT } from "./global";
-import { FaPlus } from "react-icons/fa";
+import { FaExternalLinkAlt, FaPencilAlt } from "react-icons/fa";
 
 let subscriptions: Record<string, string> = {};
 
@@ -403,59 +404,65 @@ const Content: FC<{}> = ({ }) => {
           />
         </PanelSectionRow>
         <PanelSectionRow>
-          <DropdownItem
-            label={t(L.SUBSCRIPTION)}
-            strDefaultLabel={t(
-              L.SELECT_SUBSCRIPTION
-            )}
-            rgOptions={subOptions}
-            selectedOption={currentSub}
-            onMenuWillOpen={fetchSubscriptions}
-            disabled={clashStateChanging}
-            onChange={async (x) => {
-              setCurrentSub(x.data);
-              patchLocalConfig("current", x.data);
-              const success = await backend.setCurrent(x.data);
-              if (!success)
-                setCurrentSub(null);
-              else
-                restartClash();
-            }}
-          />
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <DoubleButton
-            largeProps={{
-              children: t(L.MANAGE_SUBSCRIPTIONS),
-              onClick: () => {
-                Router.CloseSideMenus();
-                Router.Navigate("/decky-clash/manage");
-              }
-            }}
-            smallProps={{
-              children: <FaPlus />,
-              onClick: () => {
-                Router.CloseSideMenus();
-                Router.Navigate("/decky-clash/import");
-              }
-            }}
-          />
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <ToggleField
-            label={t(L.AUTOSTART)}
-            description={t(L.AUTOSTART_DESC)}
-            checked={autostart}
-            onChange={(value: boolean) => {
-              setAutostart(value);
-              backend.setConfigValue("autostart", value).then(() =>
-                backend.getConfigValue("autostart").then(setAutostart));
-            }}
-          ></ToggleField>
+          <RowField label={t(L.SUBSCRIPTION)}>
+            <Dropdown
+              strDefaultLabel={t(
+                L.SELECT_SUBSCRIPTION
+              )}
+              rgOptions={subOptions}
+              selectedOption={currentSub}
+              onMenuWillOpen={fetchSubscriptions}
+              disabled={clashStateChanging}
+              onChange={async (x) => {
+                setCurrentSub(x.data);
+                patchLocalConfig("current", x.data);
+                const success = await backend.setCurrent(x.data);
+                if (!success)
+                  setCurrentSub(null);
+                else
+                  restartClash();
+              }}
+            />
+            <IconButton onClick={() => {
+              Router.CloseSideMenus();
+              Router.Navigate("/decky-clash/manage");
+            }}>
+              <FaPencilAlt />
+            </IconButton>
+          </RowField>
         </PanelSectionRow>
       </PanelSection>
       {clashState && (
         <PanelSection title={t(L.STATUS)}>
+          <PanelSectionRow>
+            <RowField label={t(L.DASHBOARD)}>
+              <Dropdown
+                strDefaultLabel={t(L.SELECT_DASHBOARD)}
+                rgOptions={dashboardOptions}
+                selectedOption={currentDashboard}
+                onMenuWillOpen={fetchDashboards}
+                onChange={(value) => {
+                  setCurrentDashboard(value.data);
+                  patchLocalConfig("dashboard", value.data);
+                  backend.setConfigValue("dashboard", value.data);
+                  if (!clashStateChanging && clashState) {
+                    restartClash();
+                  }
+                }}
+              />
+              <IconButton
+                onClick={() => {
+                  let path = currentDashboard == "yacd" ? "" : "#/setup";
+                  Router.CloseSideMenus();
+                  Navigation.NavigateToExternalWeb(
+                    `http://127.0.0.1:${controllerPort}/ui/${currentDashboard}/${path}?hostname=127.0.0.1&port=${controllerPort}&secret=${secret}`
+                  );
+                }}
+                disabled={clashStateChanging || !clashState || !currentDashboard}>
+                <FaExternalLinkAlt />
+              </IconButton>
+            </RowField>
+          </PanelSectionRow>
           <PanelSectionRow>
             <Field
               label={t(L.TRAFFIC)}
@@ -505,41 +512,21 @@ const Content: FC<{}> = ({ }) => {
               }}
             />
           </PanelSectionRow>
-          <PanelSectionRow>
-            <DropdownItem
-              label={t(L.DASHBOARD)}
-              strDefaultLabel={t(L.SELECT_DASHBOARD)}
-              rgOptions={dashboardOptions}
-              selectedOption={currentDashboard}
-              onMenuWillOpen={fetchDashboards}
-              onChange={(value) => {
-                setCurrentDashboard(value.data);
-                patchLocalConfig("dashboard", value.data);
-                backend.setConfigValue("dashboard", value.data);
-                if (!clashStateChanging && clashState) {
-                  restartClash();
-                }
-              }}
-            />
-          </PanelSectionRow>
-          <PanelSectionRow>
-            <ButtonItem
-              layout="below"
-              onClick={() => {
-                let path = currentDashboard == "yacd" ? "" : "#/setup";
-                Router.CloseSideMenus();
-                Navigation.NavigateToExternalWeb(
-                  `http://127.0.0.1:${controllerPort}/ui/${currentDashboard}/${path}?hostname=127.0.0.1&port=${controllerPort}&secret=${secret}`
-                );
-              }}
-              disabled={clashStateChanging || !clashState || !currentDashboard}
-            >
-              {t(L.OPEN_DASHBOARD)}
-            </ButtonItem>
-          </PanelSectionRow>
         </PanelSection>
       )}
-      <PanelSection title={t(L.OVERRIDE)}>
+      <PanelSection title={t(L.SETTINGS)}>
+        <PanelSectionRow>
+          <ToggleField
+            label={t(L.AUTOSTART)}
+            description={t(L.AUTOSTART_DESC)}
+            checked={autostart}
+            onChange={(value: boolean) => {
+              setAutostart(value);
+              backend.setConfigValue("autostart", value).then(() =>
+                backend.getConfigValue("autostart").then(setAutostart));
+            }}
+          />
+        </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField
             label={t(L.ALLOW_REMOTE_ACCESS)}
@@ -561,7 +548,7 @@ const Content: FC<{}> = ({ }) => {
                 backend.getConfigValue("allow_remote_access").then(setAllowRemoteAccess));
               fetchIP();
             }}
-          ></ToggleField>
+          />
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField
@@ -574,7 +561,7 @@ const Content: FC<{}> = ({ }) => {
               backend.setConfigValue("override_dns", value).then(() =>
                 backend.getConfigValue("override_dns").then(setOverrideDNS));
             }}
-          ></ToggleField>
+          />
         </PanelSectionRow>
         {overrideDNS && (
           <PanelSectionRow>
@@ -607,7 +594,7 @@ const Content: FC<{}> = ({ }) => {
               backend.setConfigValue("skip_steam_download", value).then(() =>
                 backend.getConfigValue("skip_steam_download").then(setSkipSteamDownload));
             }}
-          ></ToggleField>
+          />
         </PanelSectionRow>
       </PanelSection>
       <PanelSection title={t(L.TOOLS)}>

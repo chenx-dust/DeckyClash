@@ -1,13 +1,14 @@
-import { Field, PanelSection, PanelSectionRow, Spinner } from "@decky/ui";
+import { DialogButton, Field, PanelSection, PanelSectionRow, Spinner } from "@decky/ui";
 import { FC, useState } from "react";
 import { FaCheck, FaEllipsisH, FaRedoAlt, FaTimes } from "react-icons/fa";
-import { DoubleButton } from "./DoubleButton";
 import { ActionButtonItem } from "./ActionButtonItem";
 import { backend, ResourceType } from "../backend";
 import { t } from 'i18next';
 import { L } from "../i18n";
 import { toaster } from "@decky/api";
 import { DeckyClashIcon } from "../global";
+import { RowField } from "./RowField";
+import { IconButton } from "./IconButton";
 
 export interface InstallationGuideProps {
   coreVersion: string;
@@ -112,16 +113,14 @@ export const InstallationGuide: FC<InstallationGuideProps> = (props) => {
         </Field>
       </PanelSectionRow>
       <PanelSectionRow>
-        <DoubleButton
-          largeProps={{
-            children: t(L.INSTALLATION_ALL),
-            onClick: installAll,
-          }}
-          smallProps={{
-            children: <FaRedoAlt />,
-            onClick: props.refreshCallback,
-          }}
-        />
+        <RowField>
+          <DialogButton onClick={installAll}>
+            {t(L.INSTALLATION_ALL)}
+          </DialogButton>
+          <IconButton onClick={props.refreshCallback}>
+            <FaRedoAlt />
+          </IconButton>
+        </RowField>
       </PanelSectionRow>
       <PanelSectionRow>
         <ActionButtonItem onClick={props.quitCallback}>

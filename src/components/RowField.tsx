@@ -12,21 +12,17 @@ export const RowField: FC<RowFieldProps> =
     return (
       <Field
         description={props.description}
-        label={
-          /* @ts-expect-error */
-          <Focusable style={{
-            display: 'flex',
-            flexGrow: 1,
-            columnGap : '10px',
-          }}>
-            {props.label &&
-              <div class="DialogLabel" style={{ width: '100%' }}>
-                {props.label}
-              </div>
-            }
-            {props.children}
-          </Focusable>
-        }
-      />
+        label={props.label}
+        childrenLayout="below"
+      >
+        {/* @ts-expect-error */}
+        <Focusable style={{
+          display: 'flex',
+          flexGrow: 1,
+          columnGap: '10px',
+        }}>
+          {props.children}
+        </Focusable>
+      </Field>
     )
   }

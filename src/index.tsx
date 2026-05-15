@@ -82,7 +82,6 @@ const Content: FC<{}> = ({ }) => {
   const [pluginVersion, setPluginVersion] = useState("");
   const [coreVersion, setCoreVersion] = useState("");
   const [clashState, setClashState] = useState(localConfig.status);
-  const [clashStateChanging, setClashStateChanging] = useState(false);
   const [subOptions, setSubOptions] = useState<DropdownOption[]>(parseSubOptions(localSubscriptions));
   const [currentSub, setCurrentSub] = useState<string | null>(localConfig.current);
   const [clashStateTips, setClashStateTips] = useState(
@@ -330,9 +329,7 @@ const Content: FC<{}> = ({ }) => {
   const restartClash = async () => {
     if (!clashState)
       return;
-    setClashStateChanging(true);
     await backend.restartCore();
-    setClashStateChanging(false);
   }
 
   const killClash = async () => {
@@ -371,17 +368,15 @@ const Content: FC<{}> = ({ }) => {
             label={t(L.ENABLE_CLASH)}
             description={clashStateTips}
             checked={clashState}
-            disabled={clashStateChanging || currentSub === null && !clashState}
+            disabled={currentSub === null && !clashState}
             onChange={async (value: boolean) => {
               setClashState(value);
-              setClashStateChanging(true);
               setClashStateTips(
                 value ?
-                  t(L.ENABLE_CLASH_LOADING) :
+                  t(L.LOADING) :
                   (currentSub === null ? t(L.ENABLE_CLASH_NO_SUB) : t(L.ENABLE_CLASH_DESC))
               );
               const [success, error] = await backend.setCoreStatus(value);
-              setClashStateChanging(false);
               if (!success) {
                 setClashState(false);
                 toaster.toast({
@@ -412,7 +407,6 @@ const Content: FC<{}> = ({ }) => {
               rgOptions={subOptions}
               selectedOption={currentSub}
               onMenuWillOpen={fetchSubscriptions}
-              disabled={clashStateChanging}
               onChange={async (x) => {
                 setCurrentSub(x.data);
                 patchLocalConfig("current", x.data);
@@ -445,7 +439,7 @@ const Content: FC<{}> = ({ }) => {
                   setCurrentDashboard(value.data);
                   patchLocalConfig("dashboard", value.data);
                   backend.setConfigValue("dashboard", value.data);
-                  if (!clashStateChanging && clashState) {
+                  if (clashState) {
                     restartClash();
                   }
                 }}
@@ -458,7 +452,7 @@ const Content: FC<{}> = ({ }) => {
                     `http://127.0.0.1:${controllerPort}/ui/${currentDashboard}/${path}?hostname=127.0.0.1&port=${controllerPort}&secret=${secret}`
                   );
                 }}
-                disabled={clashStateChanging || !clashState || !currentDashboard}>
+                disabled={!clashState || !currentDashboard}>
                 <FaExternalLinkAlt />
               </IconButton>
             </RowField>
@@ -467,13 +461,11 @@ const Content: FC<{}> = ({ }) => {
             <Field
               label={t(L.TRAFFIC)}
             >
-              {traffic ?
-                (<div style={{ textAlign: "right" }}>
-                  {`↑ ${formatBytes(traffic.up)}/s (${formatBytes(traffic.upTotal)})`}
-                  <br></br>
-                  {`↓ ${formatBytes(traffic.down)}/s (${formatBytes(traffic.downTotal)})`}
-                </div>) :
-                t(L.ENABLE_CLASH_LOADING)}
+              <div style={{ textAlign: "right" }}>
+                {"↑ " + (traffic ? `${formatBytes(traffic.up)}/s (${formatBytes(traffic.upTotal)})` : t(L.LOADING))}
+                <br/>
+                {"↓ " + (traffic ? `${formatBytes(traffic.down)}/s (${formatBytes(traffic.downTotal)})` : t(L.LOADING))}
+              </div>
             </Field>
           </PanelSectionRow>
           <PanelSectionRow>
@@ -482,7 +474,7 @@ const Content: FC<{}> = ({ }) => {
             >
               {memory ?
                 `${formatBytes(memory.inuse)}${memory.oslimit ? ` / ${formatBytes(memory.oslimit)}` : ''}` :
-                t(L.ENABLE_CLASH_LOADING)}
+                t(L.LOADING)}
             </Field>
           </PanelSectionRow>
           <PanelSectionRow>
@@ -494,7 +486,6 @@ const Content: FC<{}> = ({ }) => {
                 { label: t(L.DIRECT), data: "direct" as ClashMode },
               ]}
               selectedOption={clashMode}
-              disabled={clashStateChanging}
               onChange={async (value) => {
                 const previousMode = clashMode;
                 setClashMode(value.data);
@@ -531,7 +522,7 @@ const Content: FC<{}> = ({ }) => {
           <ToggleField
             label={t(L.ALLOW_REMOTE_ACCESS)}
             description=
-            {(allowRemoteAccess && clashState && !clashStateChanging && qrPageUrl) ? (
+            {(allowRemoteAccess && clashState && qrPageUrl) ? (
               <div style={{ overflowWrap: "break-word" }}>
                 <QRCodeCanvas style={{
                   display: "block",
@@ -541,7 +532,6 @@ const Content: FC<{}> = ({ }) => {
               </div>
             ) : t(L.ALLOW_REMOTE_ACCESS_DESC) }
             checked={allowRemoteAccess}
-            disabled={clashStateChanging}
             onChange={(value: boolean) => {
               setAllowRemoteAccess(value);
               backend.setConfigValue("allow_remote_access", value).then(() =>
@@ -555,7 +545,6 @@ const Content: FC<{}> = ({ }) => {
             label={t(L.OVERRIDE_DNS)}
             description={t(L.OVERRIDE_DNS_DESC)}
             checked={overrideDNS}
-            disabled={clashStateChanging}
             onChange={(value: boolean) => {
               setOverrideDNS(value);
               backend.setConfigValue("override_dns", value).then(() =>
@@ -574,7 +563,6 @@ const Content: FC<{}> = ({ }) => {
               notchLabels={enhancedModeNotchLabels}
               notchTicksVisible={true}
               step={1}
-              disabled={clashStateChanging}
               onChange={(value: number) => {
                 const _enhancedMode = convertEnhancedMode(value);
                 setEnhancedMode(_enhancedMode);
@@ -608,7 +596,7 @@ const Content: FC<{}> = ({ }) => {
         </PanelSectionRow>
         <PanelSectionRow>
           <ActionButtonItem
-            disabled={!clashState || clashStateChanging}
+            disabled={!clashState}
             layout="below"
             onClick={restartClash}
           >

@@ -40,7 +40,7 @@
     "ENABLE_CLASH_DESC": "运行 Mihomo 以代理流量",
     "ENABLE_CLASH_FAILED": "启动失败",
     "ENABLE_CLASH_CRASH": "Mihomo 崩溃",
-    "ENABLE_CLASH_LOADING": "加载中 ...",
+    "LOADING": "加载中 ...",
     "ENABLE_CLASH_IS_RUNNING": "Mihomo 正在运行",
     "ENABLE_CLASH_NO_SUB": "没有选中的订阅",
     "MANAGE_SUBSCRIPTIONS": "管理订阅",

@@ -98,5 +98,9 @@
     "MISC": "Miscellaneous",
     "SKIP_STEAM": "Steam Download Use Local CDN",
     "SKIP_STEAM_DESC": "Skip proxy for relevant detect URLs",
-    "LOCAL_FILE": "Local File"
+    "LOCAL_FILE": "Local File",
+    "OUTBOUND_MODE": "Outbound Mode",
+    "RULE": "Rule",
+    "GLOBAL": "Global",
+    "DIRECT": "Direct"
 }

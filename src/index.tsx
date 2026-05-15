@@ -27,6 +27,7 @@ import { QRCodeCanvas } from "qrcode.react";
 
 import { About, Import, Manage, Upgrade } from "./pages";
 import { backend, Config, EnhancedMode, ResourceType } from "./backend";
+import { ClashMode, getClashMode, setClashMode as patchClashMode } from "./backend/core";
 import { ActionButtonItem, DoubleButton, InstallationGuide } from "./components";
 import { localizationManager, L } from "./i18n";
 import { DeckyClashIcon, TIPS_TIMEOUT } from "./global";
@@ -92,6 +93,7 @@ const Content: FC<{}> = ({ }) => {
   const [initialized, setInitialized] = useState(false);
   const [qrPageUrl, setQRPageUrl] = useState<string>();
   const [currentIP, setCurrentIP] = useState<string>(localIP);
+  const [clashMode, setClashMode] = useState<ClashMode | null>(null);
 
   const refreshVersions = async () => {
     const _coreVersion = await backend.getVersion(ResourceType.CORE);
@@ -168,6 +170,17 @@ const Content: FC<{}> = ({ }) => {
     window.localStorage.setItem("decky-clash-ip", ip);
   };
 
+  const fetchClashMode = async () => {
+    try {
+      const mode = await getClashMode(controllerPort, secret);
+      console.log(mode);
+      setClashMode(mode);
+    } catch (e) {
+      console.error(e);
+      setClashMode(null);
+    }
+  };
+
   const fetchAllConfig = async () => {
     await Promise.all([
       fetchConfig(),
@@ -207,6 +220,13 @@ const Content: FC<{}> = ({ }) => {
   }, [initialized, clashState, currentSub, overrideDNS, enhancedMode, allowRemoteAccess, currentDashboard])
 
   useLayoutEffect(() => { fetchAllConfig(); }, []);
+
+  useEffect(() => {
+    if (clashState)
+      fetchClashMode();
+    else
+      setClashMode(null);
+  }, [clashState]);
 
   useEffect(() => {
     // core exit callback
@@ -391,6 +411,33 @@ const Content: FC<{}> = ({ }) => {
       </PanelSection>
       {clashState && (
         <PanelSection title={t(L.STATUS)}>
+          <PanelSectionRow>
+            <DropdownItem
+              label={t(L.OUTBOUND_MODE)}
+              rgOptions={[
+                { label: t(L.RULE), data: "rule" as ClashMode },
+                { label: t(L.GLOBAL), data: "global" as ClashMode },
+                { label: t(L.DIRECT), data: "direct" as ClashMode },
+              ]}
+              selectedOption={clashMode}
+              disabled={clashStateChanging}
+              onChange={async (value) => {
+                const previousMode = clashMode;
+                setClashMode(value.data);
+                try {
+                  await patchClashMode(controllerPort, secret, value.data);
+                  getClashMode(controllerPort, secret).then(setClashMode);
+                } catch (e) {
+                  setClashMode(previousMode);
+                  toaster.toast({
+                    title: t(L.ENABLE_CLASH_FAILED),
+                    body: e instanceof Error ? e.message : String(e),
+                    icon: <DeckyClashIcon />,
+                  });
+                }
+              }}
+            />
+          </PanelSectionRow>
           <PanelSectionRow>
             <DropdownItem
               label={t(L.DASHBOARD)}

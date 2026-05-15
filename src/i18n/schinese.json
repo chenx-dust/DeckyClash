@@ -99,5 +99,9 @@
     "MISC": "杂项",
     "SKIP_STEAM": "Steam 下载使用本地 CDN",
     "SKIP_STEAM_DESC": "不代理相关的探测 URL",
-    "LOCAL_FILE": "本地文件"
+    "LOCAL_FILE": "本地文件",
+    "OUTBOUND_MODE": "出站模式",
+    "RULE": "规则",
+    "GLOBAL": "全局",
+    "DIRECT": "直连"
 }

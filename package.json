@@ -1,6 +1,6 @@
 {
   "name": "decky-clash",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Light-weight Clash/Mihomo proxy client for Steam OS",
   "type": "module",
   "scripts": {
@@ -53,28 +53,28 @@
   "remote_binary": [
     {
       "name": "mihomo.gz",
-      "url": "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.20/mihomo-linux-amd64-v1.19.20.gz",
-      "sha256hash": "631e9ec36a2f70d876bbe4c70f58c4fd99589584ace741bbc2240098f452ee3a"
+      "url": "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.25/mihomo-linux-amd64-v1.19.25.gz",
+      "sha256hash": "de371dac9f97acc0c1d020d1fbff9ab72ad713bbcb6dfb51bce038a5e6a5430f"
     },
     {
       "name": "country.mmdb",
-      "url": "https://github.com/P3TERX/GeoLite.mmdb/raw/c3e498e120f55d904a931cfb13250c584d2ecb7d/GeoLite2-Country.mmdb",
-      "sha256hash": "1cf82f09ce08a6e160d7426fc59fd6c12d56650e7408c832172b2eb9b62cf28d"
+      "url": "https://github.com/P3TERX/GeoLite.mmdb/raw/dbb7b73e9729bad5f3acfcee3a1fb1c868890aa3/GeoLite2-Country.mmdb",
+      "sha256hash": "730d2a55c257a2515fcb1f41a8116e2019cb6f8408e3e49cd5edc2878a5244f5"
     },
     {
       "name": "geoip.dat",
-      "url": "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/30e28978f8a306fbda0999042b5c273687d4766f/geoip.dat",
-      "sha256hash": "2d4f9bd36a2743e55d7c574f07513444ab706f56cc994e9f37d27be4f731387a"
+      "url": "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/4391a2415e01b01d4ff0a4d49253bec1120927e3/geoip.dat",
+      "sha256hash": "e5fb5bde7ad1377500fc780b3e02c3203916ccfd82cba854c1a7a13d58c462d3"
     },
     {
       "name": "geosite.dat",
-      "url": "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/30e28978f8a306fbda0999042b5c273687d4766f/geosite.dat",
-      "sha256hash": "08dfd128131b559e281b20c6716a1ccf24f9d90e877ec2643993c8f7bad92d4c"
+      "url": "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/4391a2415e01b01d4ff0a4d49253bec1120927e3/geosite.dat",
+      "sha256hash": "ae594e79c9fc9f9f80b0e00e3e1554057755c9747d6584e803ac8e4c8714d5b4"
     },
     {
       "name": "asn.mmdb",
-      "url": "https://github.com/P3TERX/GeoLite.mmdb/raw/c3e498e120f55d904a931cfb13250c584d2ecb7d/GeoLite2-ASN.mmdb",
-      "sha256hash": "b31cb9d39a6bb1efa5f3140abe5829b9524d635b167a4a345078d78061c7597e"
+      "url": "https://github.com/P3TERX/GeoLite.mmdb/raw/dbb7b73e9729bad5f3acfcee3a1fb1c868890aa3/GeoLite2-ASN.mmdb",
+      "sha256hash": "adeff0c48ba4fb560b437f411467d7c3574bcd909abaac9cb44ac1c9d5d2e816"
     },
     {
       "name": "yacd.zip",
@@ -83,13 +83,13 @@
     },
     {
       "name": "metacubexd.zip",
-      "url": "https://github.com/MetaCubeX/metacubexd/archive/d80efe351a6e8466ec54425e8c6892acd1dc4959.zip",
-      "sha256hash": "ceb57dfbdeec7c3d1cb568c5c3eb4c8d3eb68c792df4a2f5288354a19b018128"
+      "url": "https://github.com/MetaCubeX/metacubexd/archive/b33486fb22a483688a80b6ab1dd5b568efb78cc5.zip",
+      "sha256hash": "057929c96ab2229ca92746523a77515904d998becf1947fcbe59f518d52294c1"
     },
     {
       "name": "zashboard.zip",
-      "url": "https://github.com/Zephyruso/zashboard/releases/download/v2.6.0/dist-cdn-fonts.zip",
-      "sha256hash": "9402caaebdd69f83f326b24dbae60b6b696ba731336ecefa8811a9ece4d75c3c"
+      "url": "https://github.com/Zephyruso/zashboard/releases/download/v3.5.1/dist-cdn-fonts.zip",
+      "sha256hash": "c8ad88eca17edf6d9298a928a2de16c49aed4fc152501b9636935859dfe90452"
     }
   ]
 }

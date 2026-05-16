@@ -4,6 +4,9 @@ on:
   push:
     tags-ignore:
       - nightly
+    branches:
+      - main
+      - dev
   pull_request:
 
 permissions:

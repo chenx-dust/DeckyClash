@@ -1,3 +1,4 @@
+import asyncio
 from http.client import HTTPResponse
 import json
 import logging
@@ -43,10 +44,12 @@ class Plugin:
         self._set_default("allow_remote_access", False)
         self._set_default("autostart", False)
         self._set_default("timeout", 15.0)
+        self._set_default("user_agent_override", "")
         self._set_default("debounce_time", 10.0)
         self._set_default("disable_verify", False)
         self._set_default("external_run_bg", False)
         self._set_default("auto_check_update", True)
+        self._set_default("auto_update_subscription", False)
         self._set_default("skip_steam_download", False)
         self._set_default("log_level", logging.getLevelName(logging.INFO))
 
@@ -62,7 +65,7 @@ class Plugin:
         self.core = CoreController()
         self.core.set_exit_callback(lambda x: decky.emit("core_exit", x))
         if self._get("autostart"):
-            await self.core.start()
+            await self.set_core_status(True)
 
         self.external = ExternalServer()
         from aiohttp import web
@@ -145,7 +148,7 @@ class Plugin:
             return False, str(e)
         return True, None
 
-    async def restart_core(self) -> bool:
+    async def restart_core(self) -> None:
         logger.debug("soft restarting core ...")
         await self.generate_config()
         port = self._get("controller_port")
@@ -160,16 +163,16 @@ class Plugin:
                                         headers=headers,
                                         method="POST")
             resp: HTTPResponse = urllib.request.urlopen(req, timeout=self._get("timeout"))
+            if resp.status != 200:
+                logger.error(f"restart_core: failed with status code {resp.status}")
+                self.core.restart()
         except Exception as e:
             logger.error(f"restart_core: failed with {e}")
             logger.debug(f"stack trace: {utils.get_traceback(e)}")
-            return False
+            self.core.restart()
 
-        if resp.status == 200:
-            return True
-        else:
-            logger.error(f"restart_core: failed with status code {resp.status}")
-            return False
+    async def kill_core(self) -> bool:
+        return CoreController.kill(self._get("timeout"))
 
     async def get_config(self) -> dict:
         config = {
@@ -201,6 +204,7 @@ class Plugin:
             "dashboard",
             "external_run_bg",
             "auto_check_update",
+            "auto_update_subscription",
             "skip_steam_download",
         ]
         if key not in PERMITTED_KEYS:
@@ -244,13 +248,46 @@ class Plugin:
         if subs[name].startswith("local://"):
             logger.error(f"update_subscription: {name} is local subscription")
             return False, "local subscription"
-        result = await subscription.update_sub(name, subs[name], self._get("timeout"))
+        result = await subscription.update_sub(
+            name,
+            subs[name],
+            self._get("timeout"),
+            self._get("user_agent_override"),
+        )
         if result is None:
             if self.core.is_running and name == self._get("current"):
                 await self.restart_core()
             return True, None
         else:
             return False, result
+
+    async def update_all_subscriptions(self) -> None:
+        subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
+        current = self._get("current", True)
+        remote_subs = [(name, url) for name, url in subs.items() if not url.startswith("local://")]
+        if len(remote_subs) == 0:
+            return
+
+        results = await asyncio.gather(*[
+            subscription.update_sub(
+                name,
+                url,
+                self._get("timeout"),
+                self._get("user_agent_override"),
+            )
+            for name, url in remote_subs
+        ])
+
+        current_updated = False
+        for (name, _), error in zip(remote_subs, results):
+            if error is not None:
+                logger.error(f"update_all_subscriptions: failed to update {name}: {error}")
+                continue
+            if name == current:
+                current_updated = True
+
+        if self.core.is_running and current_updated:
+            await self.restart_core()
 
     async def duplicate_subscription(self, name: str) -> None:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
@@ -288,7 +325,12 @@ class Plugin:
 
     async def download_subscription(self, url: str) -> Tuple[bool, Optional[str]]:
         subs: subscription.SubscriptionDict = self.settings.getSetting("subscriptions")
-        ok, data = subscription.download_sub(url, subs, self._get("timeout"))
+        ok, data = subscription.download_sub(
+            url,
+            subs,
+            self._get("timeout"),
+            self._get("user_agent_override"),
+        )
         if ok:
             name, url = data
             subs[name] = url

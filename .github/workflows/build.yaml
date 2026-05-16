@@ -1,8 +1,10 @@
 name: Build
 
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - store
+  pull_request:
 
 permissions:
   contents: write
@@ -14,7 +16,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
 
@@ -37,4 +39,3 @@ jobs:
         with:
           name: deckyclash-artifacts
           path: /tmp/output/*.zip
-

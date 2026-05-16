@@ -51,6 +51,12 @@ async def get_url_to_file(url: str | urllib.request.Request, dest: str, timeout:
 def rand_thing() -> str:
     return base64.urlsafe_b64encode(random.randbytes(8)).decode()[:-1]
 
+def probe_iface() -> List[str]:
+    with open("/proc/net/dev", "r") as f:
+        lines = f.readlines()[2:]
+    interfaces = [line.split(':')[0].strip() for line in lines]
+    return interfaces
+
 def get_ip_by_iface(iface: str) -> Optional[str]:
     ifreq = struct.pack('16sH14s', iface.encode(), socket.AF_INET, b'\x00'*14)
     try:
@@ -78,7 +84,15 @@ def get_ip_by_connect(dest: str = "8.8.8.8", port: int = 53) -> Optional[str]:
         return None
 
 def get_ip() -> str:
-    ip = get_ip_by_iface('wlan0')
+    ip = None
+    ifaces = sorted(probe_iface())
+    if2get = next(filter(lambda x: x.startswith('wlan'), ifaces), None)
+    if if2get is None:
+        if2get = next(filter(lambda x: x.startswith('eth'), ifaces), None)
+    if if2get is not None:
+        if2get = next(filter(lambda x: x.startswith("enp"), ifaces), None)
+    if if2get is not None:
+        ip = get_ip_by_iface(if2get)
     if ip is not None:
         return ip
     ip = get_ip_by_iface('eth0')

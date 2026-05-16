@@ -3,7 +3,8 @@ import { Config, ResourceType } from ".";
 
 export const getCoreStatus = callable<[], boolean>("get_core_status");
 export const setCoreStatus = callable<[boolean], [boolean, string]>("set_core_status");
-export const restartCore = callable<[], boolean>("restart_core");
+export const restartCore = callable<[], []>("restart_core");
+export const killCore = callable<[], boolean>("kill_core");
 
 export const getConfig = callable<[], Config>("get_config");
 export const getConfigValue = callable<[string], any>("get_config_value");
@@ -21,6 +22,7 @@ export const installDashboards = callable<[], [boolean, string]>("install_dashbo
 
 export const getSubscriptionList = callable<[], Record<string, string>>("get_subscription_list");
 export const updateSubscription = callable<[string], [boolean, string]>("update_subscription");
+export const updateAllSubscriptions = callable<[], []>("update_all_subscriptions");
 export const downloadSubscription = callable<[string], [boolean, string]>("download_subscription");
 export const removeSubscription = callable<[string], []>("remove_subscription");
 export const duplicateSubscription = callable<[string], []>("duplicate_subscription");

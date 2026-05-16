@@ -2,7 +2,7 @@ import asyncio
 import email
 import email.message
 import shutil
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 import os
 import urllib.request
 import urllib.parse
@@ -12,15 +12,23 @@ import core
 import decky
 from decky import logger
 import utils
+import metadata
 
 SUBSCRIPTIONS_DIR = os.path.join(decky.DECKY_PLUGIN_SETTINGS_DIR, "subscriptions")
-USER_AGENT = lambda: f"{decky.DECKY_PLUGIN_NAME}/{decky.DECKY_PLUGIN_VERSION} mihomo/{core.LAST_CORE_VERSION} clash.meta/{core.LAST_CORE_VERSION} clash-verge/2.4.5 mihomo.party/v1.9.1"
 
 SubscriptionDict = Dict[str, str]
 Subscription = Tuple[str, str]
 
 def get_path(filename: str) -> str:
     return os.path.join(SUBSCRIPTIONS_DIR, filename + ".yaml")
+
+def _user_agent(user_agent_override: Optional[str] = None) -> str:
+    if user_agent_override is not None and user_agent_override.strip() != "":
+        return user_agent_override.strip()
+    return f"{metadata.PACKAGE_NAME}/{decky.DECKY_PLUGIN_VERSION} " \
+           f"mihomo/{core.LAST_CORE_VERSION} " \
+           f"clash.meta/{core.LAST_CORE_VERSION} " \
+            "clash-verge/2.4.8 mihomo.party/v1.9.4"
 
 def _deduplicate_name(now_subs: SubscriptionDict, filename: str) -> Optional[str]:
     def check_exist(name) -> bool:
@@ -41,14 +49,19 @@ def _deduplicate_name(now_subs: SubscriptionDict, filename: str) -> Optional[str
             return None
     return filename
 
-def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] = None) -> Tuple[bool, Subscription | str]:
+def download_sub(
+    url: str,
+    now_subs: SubscriptionDict,
+    timeout: Optional[float] = None,
+    user_agent: Optional[str] = None,
+) -> Tuple[bool, Subscription | str]:
     """
     Download new subscription
     Args:
         url: Subscription url
         now_subs: Currently subscriptions list
         timeout: Download timeout
-        disable_verify: Disable SSL verification
+        user_agent: Override subscription request User-Agent
     Returns:
         tuple(bool, Subscription | str)
         bool: Whether download success
@@ -58,7 +71,8 @@ def download_sub(url: str, now_subs: SubscriptionDict, timeout: Optional[float] 
     if not os.path.exists(SUBSCRIPTIONS_DIR):
         os.mkdir(SUBSCRIPTIONS_DIR)
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT()})
+        ua = _user_agent(user_agent)
+        req = urllib.request.Request(url, headers={"User-Agent": ua})
         resp: http.client.HTTPResponse = urllib.request.urlopen(
             req, timeout=timeout, context=utils.get_ssl_context())
     except Exception as e:
@@ -169,9 +183,10 @@ def import_sub(file_name: str, data: bytes, now_subs: SubscriptionDict) -> Tuple
 
     return True, (filename, f"local://{filename}")
 
-async def update_sub(name: str, url: str, timeout: float) -> Optional[str]:
+async def update_sub(name: str, url: str, timeout: float, user_agent: Optional[str] = None) -> Optional[str]:
     try:
-        req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT()})
+        ua = _user_agent(user_agent)
+        req = urllib.request.Request(url, headers={'User-Agent': ua})
         await utils.get_url_to_file(req, get_path(name), timeout)
     except Exception as e:
         logger.error(f"update_sub: update {name} with error {e}")

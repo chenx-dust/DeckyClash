@@ -154,7 +154,7 @@ export const Import: FC = () => {
                       margin: "8px auto",
                     }} value={externalUrl} size={128} />
                   )}
-                  {externalUrl || t(L.ENABLE_CLASH_LOADING)}
+                  {externalUrl || t(L.LOADING)}
                 </div>
               } />
           )}

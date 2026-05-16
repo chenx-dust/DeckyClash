@@ -12,6 +12,7 @@ import {
   SliderField,
   NotchLabel,
   Field,
+  Dropdown,
 } from "@decky/ui";
 import {
   addEventListener,
@@ -27,10 +28,19 @@ import { QRCodeCanvas } from "qrcode.react";
 
 import { About, Import, Manage } from "./pages";
 import { backend, Config, EnhancedMode, ResourceType } from "./backend";
-import { ActionButtonItem, DoubleButton } from "./components";
+import {
+  ClashMode,
+  Memory,
+  Traffic,
+  getClashMode,
+  setClashMode as patchClashMode,
+  streamMemory,
+  streamTraffic,
+} from "./backend/core";
+import { ActionButtonItem, IconButton, RowField } from "./components";
 import { localizationManager, L } from "./i18n";
 import { DeckyClashIcon, TIPS_TIMEOUT } from "./global";
-import { FaPlus } from "react-icons/fa";
+import { FaExternalLinkAlt, FaPencilAlt } from "react-icons/fa";
 
 let subscriptions: Record<string, string> = {};
 
@@ -71,7 +81,6 @@ const Content: FC<{}> = ({ }) => {
   const [pluginVersion, setPluginVersion] = useState("");
   const [coreVersion, setCoreVersion] = useState("");
   const [clashState, setClashState] = useState(localConfig.status);
-  const [clashStateChanging, setClashStateChanging] = useState(false);
   const [subOptions, setSubOptions] = useState<DropdownOption[]>(parseSubOptions(localSubscriptions));
   const [currentSub, setCurrentSub] = useState<string | null>(localConfig.current);
   const [clashStateTips, setClashStateTips] = useState(
@@ -91,6 +100,9 @@ const Content: FC<{}> = ({ }) => {
   const [initialized, setInitialized] = useState(false);
   const [qrPageUrl, setQRPageUrl] = useState<string>();
   const [currentIP, setCurrentIP] = useState<string>(localIP);
+  const [clashMode, setClashMode] = useState<ClashMode | null>(null);
+  const [traffic, setTraffic] = useState<Traffic | null>(null);
+  const [memory, setMemory] = useState<Memory | null>(null);
 
   const refreshVersions = async () => {
     const _coreVersion = await backend.getVersion(ResourceType.CORE);
@@ -164,6 +176,28 @@ const Content: FC<{}> = ({ }) => {
     window.localStorage.setItem("decky-clash-ip", ip);
   };
 
+  const fetchClashMode = async () => {
+    try {
+      const mode = await getClashMode(controllerPort, secret);
+      console.log(mode);
+      setClashMode(mode);
+    } catch (e) {
+      console.error(e);
+      setClashMode(null);
+    }
+  };
+
+  const formatBytes = (value: number) => {
+    const units = ["B", "KB", "MB", "GB"];
+    let scaled = value;
+    let index = 0;
+    while (scaled >= 1024 && index < units.length - 1) {
+      scaled /= 1024;
+      index++;
+    }
+    return `${scaled.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+  };
+
   const fetchAllConfig = async () => {
     await Promise.all([
       fetchConfig(),
@@ -203,6 +237,37 @@ const Content: FC<{}> = ({ }) => {
   }, [initialized, clashState, currentSub, overrideDNS, enhancedMode, allowRemoteAccess, currentDashboard])
 
   useLayoutEffect(() => { fetchAllConfig(); }, []);
+
+  useEffect(() => {
+    if (clashState)
+      fetchClashMode();
+    else
+      setClashMode(null);
+  }, [clashState]);
+
+  useEffect(() => {
+    if (!clashState) {
+      setTraffic(null);
+      setMemory(null);
+      return;
+    }
+
+    const trafficController = new AbortController();
+    const memoryController = new AbortController();
+    streamTraffic(controllerPort, secret, trafficController.signal, setTraffic).catch((e) => {
+      if (!trafficController.signal.aborted)
+        console.error(e);
+    });
+    streamMemory(controllerPort, secret, memoryController.signal, setMemory).catch((e) => {
+      if (!memoryController.signal.aborted)
+        console.error(e);
+    });
+
+    return () => {
+      trafficController.abort();
+      memoryController.abort();
+    };
+  }, [clashState, controllerPort, secret]);
 
   useEffect(() => {
     // core exit callback
@@ -260,16 +325,11 @@ const Content: FC<{}> = ({ }) => {
   const restartClash = async () => {
     if (!clashState)
       return;
-    setClashStateChanging(true);
-    const success = await backend.restartCore();
-    setClashStateChanging(false);
-    if (!success) {
-      toaster.toast({
-        title: t(L.RESTART_CORE),
-        body: t(L.ENABLE_CLASH_FAILED),
-        icon: <DeckyClashIcon />,
-      });
-    }
+    await backend.restartCore();
+  }
+
+  const killClash = async () => {
+    await backend.killCore();
   }
 
   useEffect(() => {
@@ -298,17 +358,15 @@ const Content: FC<{}> = ({ }) => {
             label={t(L.ENABLE_CLASH)}
             description={clashStateTips}
             checked={clashState}
-            disabled={clashStateChanging || currentSub === null && !clashState}
+            disabled={currentSub === null && !clashState}
             onChange={async (value: boolean) => {
               setClashState(value);
-              setClashStateChanging(true);
               setClashStateTips(
                 value ?
-                  t(L.ENABLE_CLASH_LOADING) :
+                  t(L.LOADING) :
                   (currentSub === null ? t(L.ENABLE_CLASH_NO_SUB) : t(L.ENABLE_CLASH_DESC))
               );
               const [success, error] = await backend.setCoreStatus(value);
-              setClashStateChanging(false);
               if (!success) {
                 setClashState(false);
                 toaster.toast({
@@ -331,74 +389,113 @@ const Content: FC<{}> = ({ }) => {
           />
         </PanelSectionRow>
         <PanelSectionRow>
-          <DropdownItem
-            label={t(L.SELECT_SUBSCRIPTION)}
-            strDefaultLabel={t(
-              L.SELECT_SUBSCRIPTION
-            )}
-            rgOptions={subOptions}
-            selectedOption={currentSub}
-            onMenuWillOpen={fetchSubscriptions}
-            disabled={clashStateChanging}
-            onChange={async (x) => {
-              setCurrentSub(x.data);
-              patchLocalConfig("current", x.data);
-              const success = await backend.setCurrent(x.data);
-              if (!success)
-                setCurrentSub(null);
-              else
-                restartClash();
-            }}
-          />
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <DoubleButton
-            largeProps={{
-              children: t(L.MANAGE_SUBSCRIPTIONS),
-              onClick: () => {
-                Router.CloseSideMenus();
-                Router.Navigate("/decky-clash/manage");
-              }
-            }}
-            smallProps={{
-              children: <FaPlus />,
-              onClick: () => {
-                Router.CloseSideMenus();
-                Router.Navigate("/decky-clash/import");
-              }
-            }}
-          />
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <DropdownItem
-            label={t(L.SELECT_DASHBOARD)}
-            strDefaultLabel={t(L.SELECT_DASHBOARD)}
-            rgOptions={dashboardOptions}
-            selectedOption={currentDashboard}
-            onMenuWillOpen={fetchDashboards}
-            disabled={clashStateChanging}
-            onChange={(value) => {
-              setCurrentDashboard(value.data);
-              patchLocalConfig("dashboard", value.data);
-              backend.setConfigValue("dashboard", value.data);
-              backend.restartCore();
-            }}
-          />
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <ButtonItem
-            layout="below"
-            onClick={() => {
+          <RowField label={t(L.SUBSCRIPTION)}>
+            <Dropdown
+              strDefaultLabel={t(
+                L.SELECT_SUBSCRIPTION
+              )}
+              rgOptions={subOptions}
+              selectedOption={currentSub}
+              onMenuWillOpen={fetchSubscriptions}
+              onChange={async (x) => {
+                setCurrentSub(x.data);
+                patchLocalConfig("current", x.data);
+                const success = await backend.setCurrent(x.data);
+                if (!success)
+                  setCurrentSub(null);
+                else
+                  restartClash();
+              }}
+            />
+            <IconButton onClick={() => {
               Router.CloseSideMenus();
-              Navigation.NavigateToExternalWeb(
-                `http://127.0.0.1:${controllerPort}/ui/${currentDashboard}/?hostname=127.0.0.1&port=${controllerPort}&secret=${secret}`
-              );
-            }}
-            disabled={clashStateChanging || !clashState || !currentDashboard}
-          >
-            {t(L.OPEN_DASHBOARD)}
-          </ButtonItem>
+              Router.Navigate("/decky-clash/manage");
+            }}>
+              <FaPencilAlt />
+            </IconButton>
+          </RowField>
         </PanelSectionRow>
+      </PanelSection>
+      {clashState && (
+        <PanelSection title={t(L.STATUS)}>
+          <PanelSectionRow>
+            <RowField label={t(L.DASHBOARD)}>
+              <Dropdown
+                strDefaultLabel={t(L.SELECT_DASHBOARD)}
+                rgOptions={dashboardOptions}
+                selectedOption={currentDashboard}
+                onMenuWillOpen={fetchDashboards}
+                onChange={(value) => {
+                  setCurrentDashboard(value.data);
+                  patchLocalConfig("dashboard", value.data);
+                  backend.setConfigValue("dashboard", value.data);
+                  if (clashState) {
+                    restartClash();
+                  }
+                }}
+              />
+              <IconButton
+                onClick={() => {
+                  let path = currentDashboard == "yacd" ? "" : "#/setup";
+                  Router.CloseSideMenus();
+                  Navigation.NavigateToExternalWeb(
+                    `http://127.0.0.1:${controllerPort}/ui/${currentDashboard}/${path}?hostname=127.0.0.1&port=${controllerPort}&secret=${secret}`
+                  );
+                }}
+                disabled={!clashState || !currentDashboard}>
+                <FaExternalLinkAlt />
+              </IconButton>
+            </RowField>
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <Field
+              label={t(L.TRAFFIC)}
+            >
+              <div style={{ textAlign: "right" }}>
+                {"↑ " + (traffic ? `${formatBytes(traffic.up)}/s (${formatBytes(traffic.upTotal)})` : t(L.LOADING))}
+                <br/>
+                {"↓ " + (traffic ? `${formatBytes(traffic.down)}/s (${formatBytes(traffic.downTotal)})` : t(L.LOADING))}
+              </div>
+            </Field>
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <Field
+              label={t(L.MEMORY)}
+            >
+              {memory ?
+                `${formatBytes(memory.inuse)}${memory.oslimit ? ` / ${formatBytes(memory.oslimit)}` : ''}` :
+                t(L.LOADING)}
+            </Field>
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <DropdownItem
+              label={t(L.OUTBOUND_MODE)}
+              rgOptions={[
+                { label: t(L.RULE), data: "rule" as ClashMode },
+                { label: t(L.GLOBAL), data: "global" as ClashMode },
+                { label: t(L.DIRECT), data: "direct" as ClashMode },
+              ]}
+              selectedOption={clashMode}
+              onChange={async (value) => {
+                const previousMode = clashMode;
+                setClashMode(value.data);
+                try {
+                  await patchClashMode(controllerPort, secret, value.data);
+                  getClashMode(controllerPort, secret).then(setClashMode);
+                } catch (e) {
+                  setClashMode(previousMode);
+                  toaster.toast({
+                    title: t(L.ENABLE_CLASH_FAILED),
+                    body: e instanceof Error ? e.message : String(e),
+                    icon: <DeckyClashIcon />,
+                  });
+                }
+              }}
+            />
+          </PanelSectionRow>
+        </PanelSection>
+      )}
+      <PanelSection title={t(L.SETTINGS)}>
         <PanelSectionRow>
           <ToggleField
             label={t(L.AUTOSTART)}
@@ -409,15 +506,13 @@ const Content: FC<{}> = ({ }) => {
               backend.setConfigValue("autostart", value).then(() =>
                 backend.getConfigValue("autostart").then(setAutostart));
             }}
-          ></ToggleField>
+          />
         </PanelSectionRow>
-      </PanelSection>
-      <PanelSection title={t(L.OVERRIDE)}>
         <PanelSectionRow>
           <ToggleField
             label={t(L.ALLOW_REMOTE_ACCESS)}
             description=
-            {(allowRemoteAccess && clashState && !clashStateChanging && qrPageUrl) ? (
+            {(allowRemoteAccess && clashState && qrPageUrl) ? (
               <div style={{ overflowWrap: "break-word" }}>
                 <QRCodeCanvas style={{
                   display: "block",
@@ -427,27 +522,25 @@ const Content: FC<{}> = ({ }) => {
               </div>
             ) : t(L.ALLOW_REMOTE_ACCESS_DESC) }
             checked={allowRemoteAccess}
-            disabled={clashStateChanging}
             onChange={(value: boolean) => {
               setAllowRemoteAccess(value);
               backend.setConfigValue("allow_remote_access", value).then(() =>
                 backend.getConfigValue("allow_remote_access").then(setAllowRemoteAccess));
               fetchIP();
             }}
-          ></ToggleField>
+          />
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField
             label={t(L.OVERRIDE_DNS)}
             description={t(L.OVERRIDE_DNS_DESC)}
             checked={overrideDNS}
-            disabled={clashStateChanging}
             onChange={(value: boolean) => {
               setOverrideDNS(value);
               backend.setConfigValue("override_dns", value).then(() =>
                 backend.getConfigValue("override_dns").then(setOverrideDNS));
             }}
-          ></ToggleField>
+          />
         </PanelSectionRow>
         {overrideDNS && (
           <PanelSectionRow>
@@ -460,7 +553,6 @@ const Content: FC<{}> = ({ }) => {
               notchLabels={enhancedModeNotchLabels}
               notchTicksVisible={true}
               step={1}
-              disabled={clashStateChanging}
               onChange={(value: number) => {
                 const _enhancedMode = convertEnhancedMode(value);
                 setEnhancedMode(_enhancedMode);
@@ -480,7 +572,7 @@ const Content: FC<{}> = ({ }) => {
               backend.setConfigValue("skip_steam_download", value).then(() =>
                 backend.getConfigValue("skip_steam_download").then(setSkipSteamDownload));
             }}
-          ></ToggleField>
+          />
         </PanelSectionRow>
       </PanelSection>
       <PanelSection title={t(L.TOOLS)}>
@@ -494,11 +586,19 @@ const Content: FC<{}> = ({ }) => {
         </PanelSectionRow>
         <PanelSectionRow>
           <ActionButtonItem
-            disabled={!clashState || clashStateChanging}
+            disabled={!clashState}
             layout="below"
             onClick={restartClash}
           >
             {t(L.RESTART_CORE)}
+          </ActionButtonItem>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ActionButtonItem
+            layout="below"
+            onClick={killClash}
+          >
+            {t(L.KILL_CORE)}
           </ActionButtonItem>
         </PanelSectionRow>
       </PanelSection>
@@ -582,6 +682,8 @@ export default definePlugin(() => {
       icon: <DeckyClashIcon />,
     });
   });
+  if ((window.localStorage.getItem("decky-clash-auto-update-subscription") || "false") === "true")
+    setTimeout(backend.updateAllSubscriptions, 5000);
 
   return {
     // The name shown in various decky menus

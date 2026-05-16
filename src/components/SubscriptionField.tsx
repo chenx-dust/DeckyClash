@@ -1,32 +1,10 @@
 import { DialogButton, Field, Focusable, GamepadEvent, GamepadButton } from "@decky/ui";
 import { t } from 'i18next';
-import { CSSProperties, FC, ForwardedRef, forwardRef, ReactNode, RefAttributes, useEffect, useImperativeHandle, useState } from "react";
+import { FC, ForwardedRef, forwardRef, ReactNode, RefAttributes, useEffect, useImperativeHandle, useState } from "react";
 import { FaRedoAlt, FaEllipsisH, FaCopy, FaEdit, FaTrashAlt } from 'react-icons/fa';
 import { L } from "../i18n";
 import { TIPS_TIMEOUT } from "../global";
-
-const IconButton: FC<{
-  icon: ReactNode;
-  style?: CSSProperties;
-  onClick: (e: MouseEvent) => void;
-  disabled?: boolean;
-}> = ({ icon, style, onClick, disabled }) =>
-  (<DialogButton
-    style={{
-      ...style,
-      height: '40px',
-      width: '40px',
-      padding: '10px 12px',
-      minWidth: '40px',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-    }}
-    onClick={onClick}
-    disabled={disabled}
-  >
-    {icon}
-  </DialogButton>);
+import { IconButton } from "./IconButton";
 
 export interface SubscriptionFieldProps {
   label: ReactNode;
@@ -138,15 +116,30 @@ export const SubscriptionField: FC<SubscriptionFieldProps & RefAttributes<any>> 
             columnGap: '10px',
           }}>
             {props.editMode ? (<>
-              {props.onEditClick && <IconButton icon={<FaEdit />} onClick={props.onEditClick} disabled={props.reorderEnabled} />}
-              {props.onCopyClick && <IconButton icon={<FaCopy />} onClick={props.onCopyClick} disabled={props.reorderEnabled} />}
-              {props.onDelClick && <IconButton style={{ color: 'red' }} icon={<FaTrashAlt />} onClick={props.onDelClick} disabled={props.reorderEnabled} />}
+              {props.onEditClick && <IconButton
+                onClick={props.onEditClick}
+                disabled={props.reorderEnabled}
+              >
+                <FaEdit />
+              </IconButton>}
+              {props.onCopyClick && <IconButton
+                onClick={props.onCopyClick}
+                disabled={props.reorderEnabled}
+              >
+                <FaCopy />
+              </IconButton>}
+              {props.onDelClick && <IconButton
+                style={{ color: 'red' }}
+                onClick={props.onDelClick}
+                disabled={props.reorderEnabled}
+              >
+                <FaTrashAlt />
+              </IconButton>}
             </>) : (<>
                 {props.updateCallback && <DialogButton
                   style={{
-                    height: '40px',
                     padding: '10px 12px',
-                    minWidth: '40px',
+                    minWidth: 'auto',
                     display: 'flex',
                     alignItems: 'center',
                     columnGap: '8px',
@@ -159,7 +152,12 @@ export const SubscriptionField: FC<SubscriptionFieldProps & RefAttributes<any>> 
                   } : undefined} />
                   {updateTips}
                 </DialogButton>}
-                {props.onOtherClick && <IconButton icon={<FaEllipsisH />} onClick={props.onOtherClick} disabled={props.reorderEnabled} />}
+                {props.onOtherClick && <IconButton
+                  onClick={props.onOtherClick}
+                  disabled={props.reorderEnabled}
+                >
+                  <FaEllipsisH />
+                </IconButton>}
             </>)}
           </Focusable>
         </Field>

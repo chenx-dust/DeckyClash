@@ -1,8 +1,10 @@
 name: Build
 
 on:
-  - push
-  - pull_request
+  push:
+    tags-ignore:
+      - nightly
+  pull_request:
 
 permissions:
   contents: write
@@ -104,6 +106,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_plugin
     steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Move nightly tag to current commit
+        run: |
+          git tag -f nightly "$GITHUB_SHA"
+          git push origin +nightly
+
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
@@ -114,8 +125,6 @@ jobs:
         with:
           files: ./artifacts/deckyclash-artifacts/*
           name: Release Nightly
-          draft: false
-          generate_release_notes: true
           prerelease: true
           tag_name: nightly
         env:

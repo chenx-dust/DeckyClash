@@ -25,10 +25,10 @@ def get_path(filename: str) -> str:
 def _user_agent(user_agent_override: Optional[str] = None) -> str:
     if user_agent_override is not None and user_agent_override.strip() != "":
         return user_agent_override.strip()
-    return f"{metadata.PACKAGE_NAME}/{decky.DECKY_PLUGIN_VERSION} " \
-           f"mihomo/{core.LAST_CORE_VERSION} " \
+    return f"mihomo/{core.LAST_CORE_VERSION} " \
            f"clash.meta/{core.LAST_CORE_VERSION} " \
-            "clash-verge/2.4.8 mihomo.party/v1.9.4"
+            "clash-verge/2.5.0 mihomo.party/v1.9.5 FlClash/v0.8.93 " \
+           f"{metadata.PACKAGE_NAME}/{decky.DECKY_PLUGIN_VERSION}"
 
 def _deduplicate_name(now_subs: SubscriptionDict, filename: str) -> Optional[str]:
     def check_exist(name) -> bool:

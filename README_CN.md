@@ -129,6 +129,10 @@ curl -L https://ba.sh/HMtV | bash -s -- --without-plugin --without-restart --yes
 curl -L https://ba.sh/HMtV | bash -s -- --clean-uninstall
 ```
 
+## 常见问题
+
+参见 [FAQ.md](./docs/FAQ.md#常见问题)
+
 ## 开发指南
 
 参见 [DEV_GUIDE.md](./docs/DEV_GUIDE.md)

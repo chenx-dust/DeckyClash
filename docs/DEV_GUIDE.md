@@ -5,8 +5,8 @@
 - `main`: The main branch for stable releases.
 - `dev`: The development branch for ongoing work.
 - `store`: Special branch for Plugin Store release.
-- `external`: Branch for external importer source code.
-- `gh-pages`: Branch for external importer release.
+- ~~`external`: Branch for external importer source code.~~ (Deprecated)
+- ~~`gh-pages`: Branch for external importer release.~~ (Deprecated)
 
 ## Plugin Structure
 
@@ -16,7 +16,7 @@ Based on Decky Loader architecture, Decky Clash consists of the following compon
 ~/homebrew
 ├── plugins
 │   └── DeckyClash
-│       ├── bin             # Dependency Binaries
+│       ├── bin             # Dependency binaries
 │       │   └── mihomo
 │       ├── dist            # Decky frontend
 │       │   ├── index.html
@@ -38,7 +38,7 @@ Based on Decky Loader architecture, Decky Clash consists of the following compon
 │       │   ├── yacd
 │       │   ├── zashboard
 │       │   └── ...         # Other dashboards
-│       ├── asn.mmdb        # Geo files (below)
+│       ├── asn.mmdb        # Geo files (also below)
 │       ├── geoip.dat
 │       ├── geoip.metadb
 │       └── geosite.dat
@@ -67,22 +67,23 @@ The settings json file is located at `~/homebrew/settings/DeckyClash/config.json
     "Example": "file://example_url"
     // ~/homebrew/settings/DeckyClash/subscriptions/Example.yaml
   },
-  "current": "Example",         // Current subscription. Default: [none]
-  "dashboard": "yacd",          // Current dashboard. Default: [none]
-  "secret": "RANDOM_SECRET",    // Controller secret. Default: [random]
-  "override_dns": true,         // Override DNS settings. Default: true
-  "enhanced_mode": "fake-ip",   // Enhanced mode. Default: fake-ip
-  "controller_port": 9090,      // Controller port. Default: 9090
-  "external_port": 50581,       // External importer port. Default: 50581
-  "allow_remote_access": false, // Allow remote access. Default: false
-  "autostart": true,            // Autostart after loaded. Default: false
-  "timeout": 15.0,              // Resource query timeout (s). Default: 15.0
-  "user_agent_override": "",    // Override User-Agent. Default: [none]
-  "debounce_time": 10.0,        // Query debounce time (s). Default: 10.0
-  "disable_verify": false,      // Disable verify SSL. Default: false
-  "external_run_bg": false,     // Run external importer in background. Default: false
-  "auto_check_update": true,    // Auto check update. Default: true
-  "skip_steam_download": false, // Skip proxy for Steam download. Default: false
-  "log_level": "DEBUG"          // Log level. Default: INFO
+  "current": "Example",               // Current subscription. Default: [none]
+  "dashboard": "yacd",                // Current dashboard. Default: [none]
+  "secret": "RANDOM_SECRET",          // Controller secret. Default: [random]
+  "override_dns": true,               // Override DNS settings. Default: true
+  "enhanced_mode": "fake-ip",         // Enhanced mode. Default: fake-ip
+  "controller_port": 9090,            // Controller port. Default: 9090
+  "external_port": 50581,             // External importer port. Default: 50581
+  "allow_remote_access": false,       // Allow remote access. Default: false
+  "autostart": true,                  // Autostart after loaded. Default: false
+  "timeout": 15.0,                    // Resource query timeout (s). Default: 15.0
+  "user_agent_override": "",          // Override User-Agent. Default: [none]
+  "debounce_time": 10.0,              // Query debounce time (s). Default: 10.0
+  "disable_verify": false,            // Disable verify SSL. Default: false
+  "external_run_bg": false,           // Run external importer in background. Default: false
+  "auto_check_update": true,          // Auto check update. Default: true
+  "auto_update_subscription": false,  // Auto update subscription. Default: false
+  "skip_steam_download": false,       // Skip proxy for Steam download. Default: false
+  "log_level": "DEBUG"                // Log level. Default: INFO
 }
 ```

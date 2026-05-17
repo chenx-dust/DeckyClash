@@ -114,6 +114,10 @@ curl -L https://ba.sh/HMtV | bash -s -- --without-plugin --without-restart --yes
 curl -L https://ba.sh/HMtV | bash -s -- --clean-uninstall
 ```
 
+## Frequently Asked Questions
+
+See [FAQ.md](./docs/FAQ.md#frequently-asked-questions) for details.
+
 ## Development Guide
 
 See [DEV_GUIDE.md](./docs/DEV_GUIDE.md) for details.

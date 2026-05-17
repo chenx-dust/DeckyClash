@@ -4,17 +4,17 @@
 
 ### Q: Why does the "Github Error: XXX" error occur?
 
-A: Decky Clash installation uses the Github API to obtain the latest version information. If the Github API request limit is exceeded, the request fails, or the returned data does not meet expectations, the latest version cannot be retrieved correctly, resulting in an error message. Please check whether your network environment can access the Github API. If you are using a proxy service, check whether the API limit has been exceeded due to multi-user sharing, or try again later. If necessary, you can use the offline installation method provided in the [README](../README.md) to obtain the latest version.
+A: Decky Clash installation uses the Github API to obtain the latest version information. If the Github API request limit is exceeded, the request fails, or the returned data does not meet expectations, the latest version cannot be retrieved correctly, resulting in an error message. Please check whether your network environment can access the Github API. If you are using a proxy service, check whether the API limit has been exceeded due to multi-user sharing, or try again later. If necessary, you can use the offline installation method provided in the [README](../README.md#offline-installer) to obtain the latest version.
 
 ### Q: Should I use Decky Clash from the Decky Store?
 
-A: Not recommended. Because the Decky Store review process is slow, updates are not timely, and built-in cores and other resource versions cannot be updated in real-time. Developers strongly recommend using the installation method provided in the [README](../README.md) to get the latest version of Decky Clash for more timely updates.
+A: Not recommended. Because the Decky Store review process is slow, updates are not timely, and built-in cores and other resource versions cannot be updated in real-time. Developers strongly recommend using the installation method provided in the [README](../README.md#install) to get the latest version of Decky Clash for more timely updates.
 
 ## General Issues
 
 ### Q: How to perform advanced settings?
 
-A: If you need to customize User Agent or adjust log levels, you can edit the settings file `~/homebrew/settings/DeckyClash/config.json`. For specific settings, refer to the instructions in the [Development Guide](DEV_GUIDE.md).
+A: If you need to customize User Agent or adjust log levels, you can edit the settings file `~/homebrew/settings/DeckyClash/config.json`. For specific settings, refer to the instructions in the [Development Guide](./DEV_GUIDE.md#settings-structure).
 Please ensure you save the file after editing and restart Decky Loader for the changes to take effect. You can restart Decky Loader by executing the following command:
 
 ```bash
@@ -34,6 +34,7 @@ A: You can find the `log_level` option in the settings file `~/homebrew/settings
 ### Q: How to add a subscription?
 
 A: For general users, use the Decky menu to enter the subscription import interface of the Decky Clash plugin, and input the subscription URL to add a new subscription. You can also enable the "External Import Panel" under the subscription page, scan a QR code or manually enter a URL to access the external panel, making it easy to import subscriptions. The subscription name will be automatically determined, and you can also modify it manually after import.
+
 For advanced users, you can add subscriptions by editing the `subscriptions` field in the settings file `~/homebrew/settings/DeckyClash/config.json`. Each subscription requires a name and a corresponding URL. The URL can be an HTTP(S) link or a local file path (using the `file://` protocol). Subscription files will be saved in the `~/homebrew/settings/DeckyClash/subscriptions` directory, named `<SubscriptionName>.yaml`. Therefore, subscription names must be unique and valid.
 
 ### Q: How to override subscription configuration?
@@ -48,12 +49,13 @@ A: Decky Clash uses its own User Agent when pulling subscriptions, which may cau
 
 ### Q: How to update Decky Clash and Mihomo core?
 
-A: When automatic update checking is enabled, Decky Clash will periodically check for updates and notify you via notifications when a new version is available. You can also manually check for updates by clicking the latest version button on the plugin's update page. If a new version is available, go to the update page and click the update button. If necessary, you can manually update using the same method as installation; for specific steps, refer to the instructions in the [README](../README.md).
+A: When automatic update checking is enabled, Decky Clash will periodically check for updates and notify you via notifications when a new version is available. You can also manually check for updates by clicking the latest version button on the plugin's update page. If a new version is available, go to the update page and click the update button. If necessary, you can manually update using the same method as installation; for specific steps, refer to the instructions in the [README](../README.md#install).
+
 If you are a store-installed user, Decky Clash updates will be automatically pushed to your device; you only need to click the update button in Decky Loader. The Mihomo core is only distributed with Decky Clash and will not be updated separately.
 
 ### Q: Why is my latest version showing a cross mark?
 
-A: Decky Clash obtains the latest version information by checking the Github API. If the Github API request limit is exceeded, the request fails, or the returned data does not meet expectations, the latest version cannot be retrieved correctly, showing a cross mark. Please check whether your network environment can access the Github API. If you are using a proxy service, check whether the API limit has been exceeded due to multi-user sharing, or try again later. If necessary, you can use the offline installation method provided in the [README](../README.md) to obtain the latest version.
+A: Decky Clash obtains the latest version information by checking the Github API. If the Github API request limit is exceeded, the request fails, or the returned data does not meet expectations, the latest version cannot be retrieved correctly, showing a cross mark. Please check whether your network environment can access the Github API. If you are using a proxy service, check whether the API limit has been exceeded due to multi-user sharing, or try again later. If necessary, you can use the offline installation method provided in the [README](../README.md#offline-installer) to obtain the latest version.
 
 # 常见问题
 
@@ -61,17 +63,17 @@ A: Decky Clash obtains the latest version information by checking the Github API
 
 ### 问：为什么会出现“Github Error: XXX”错误？
 
-答：Decky Clash 安装通过 Github API 来获取最新版本信息，如果 Github API 请求次数超限、请求失败或者返回的数据不符合预期，就会导致无法正确获取最新版本，从而显示错误信息。请检查你的网络环境是否能够访问 Github API，如有使用代理服务，请检查是否因多人共用导致 API 超限，或者稍后再试。如有必要，可以采用 [README](../README_CN.md) 中提供的离线安装方法来获取最新版本。
+答：Decky Clash 安装通过 Github API 来获取最新版本信息，如果 Github API 请求次数超限、请求失败或者返回的数据不符合预期，就会导致无法正确获取最新版本，从而显示错误信息。请检查你的网络环境是否能够访问 Github API，如有使用代理服务，请检查是否因多人共用导致 API 超限，或者稍后再试。如有必要，可以采用 [README](../README_CN.md#离线安装包) 中提供的离线安装方法来获取最新版本。
 
 ### 问：我应该使用 Decky Store 中的 Decky Clash 吗？
 
-答：不推荐。因为 Decky Store 审核流程较慢，更新不及时，且内置的核心和其他资源版本无法实时更新。开发者强烈建议使用 [README](../README_CN.md) 中提供的安装方法来获取最新版本的 Decky Clash，以获得更及时的更新。
+答：不推荐。因为 Decky Store 审核流程较慢，更新不及时，且内置的核心和其他资源版本无法实时更新。开发者强烈建议使用 [README](../README_CN.md#安装) 中提供的安装方法来获取最新版本的 Decky Clash，以获得更及时的更新。
 
 ## 通用问题
 
 ### 问：如何进行高级设置？
 
-答：如果你需要自定义 User Agent 或调整日志级别等操作，可以编辑设置文件 `~/homebrew/settings/DeckyClash/config.json`。具体设置项可以参考 [开发指南](DEV_GUIDE.md) 中的说明。
+答：如果你需要自定义 User Agent 或调整日志级别等操作，可以编辑设置文件 `~/homebrew/settings/DeckyClash/config.json`。具体设置项可以参考 [开发指南](DEV_GUIDE.md#settings-structure) 中的说明。
 
 请确保在编辑后保存文件，并重新启动 Decky Loader 以使更改生效。可以执行如下命令重启 Decky Loader：
 
@@ -107,10 +109,10 @@ sudo systemctl restart plugin_loader.service
 
 ### 问：如何更新 Decky Clash 和 Mihomo 核心？
 
-答：在自动检查更新开启时，Decky Clash 会定期检查更新，并在有新版本时通过通知提示。你也可以手动检查更新，在插件的更新页面点击最新版本的按钮来触发更新检查。如果有新版本可用，进入更新页面按照点击更新按钮即可。在必要时，可以采用与安装相同的方法手动更新，具体步骤可以参考 [README](../README_CN.md) 中的说明。
+答：在自动检查更新开启时，Decky Clash 会定期检查更新，并在有新版本时通过通知提示。你也可以手动检查更新，在插件的更新页面点击最新版本的按钮来触发更新检查。如果有新版本可用，进入更新页面按照点击更新按钮即可。在必要时，可以采用与安装相同的方法手动更新，具体步骤可以参考 [README](../README_CN.md#安装) 中的说明。
 
 如果你是通过商店安装的用户，Decky Clash 更新会自动推送到你的设备上，只需要在 Decky Loader 中点击更新按钮即可。Mihomo 核心只会随 Decky Clash 分发，不会单独更新。
 
 ### 问：为什么我的最新版本显示为叉号？
 
-答：Decky Clash 通过检查 Github API 来获取最新版本信息，如果 Github API 请求次数超限、请求失败或者返回的数据不符合预期，就会导致无法正确获取最新版本，从而显示为叉号。请检查你的网络环境是否能够访问 Github API，如有使用代理服务，请检查是否因多人共用导致 API 超限，或者稍后再试。如有必要，可以采用 [README](../README_CN.md) 中提供的离线安装方法来获取最新版本。
+答：Decky Clash 通过检查 Github API 来获取最新版本信息，如果 Github API 请求次数超限、请求失败或者返回的数据不符合预期，就会导致无法正确获取最新版本，从而显示为叉号。请检查你的网络环境是否能够访问 Github API，如有使用代理服务，请检查是否因多人共用导致 API 超限，或者稍后再试。如有必要，可以采用 [README](../README_CN.md#离线安装包) 中提供的离线安装方法来获取最新版本。

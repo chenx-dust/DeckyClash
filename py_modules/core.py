@@ -8,7 +8,7 @@ import decky
 from decky import logger
 import utils
 
-LAST_CORE_VERSION = "1.19.20"
+LAST_CORE_VERSION = "1.19.25"
 
 ExitCallback = Callable[[Optional[int]], Awaitable[None]]
 

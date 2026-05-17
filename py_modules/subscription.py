@@ -73,6 +73,7 @@ def download_sub(
     try:
         ua = _user_agent(user_agent)
         req = urllib.request.Request(url, headers={"User-Agent": ua})
+        logger.debug(f"download_sub: request headers: {req.header_items()}")
         resp: http.client.HTTPResponse = urllib.request.urlopen(
             req, timeout=timeout, context=utils.get_ssl_context())
     except Exception as e:
@@ -187,6 +188,7 @@ async def update_sub(name: str, url: str, timeout: float, user_agent: Optional[s
     try:
         ua = _user_agent(user_agent)
         req = urllib.request.Request(url, headers={'User-Agent': ua})
+        logger.debug(f"update_sub: request headers: {req.header_items()}")
         await utils.get_url_to_file(req, get_path(name), timeout)
     except Exception as e:
         logger.error(f"update_sub: update {name} with error {e}")

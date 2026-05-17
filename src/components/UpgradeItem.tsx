@@ -11,6 +11,7 @@ export interface UpgradeItemProps {
   latest: string | undefined;
   children?: React.ReactNode;
   progressEvent: string;
+  ignoreLatestUndefined?: boolean;
   checkUpgrading: () => Promise<boolean>;
   cancelCallback: () => void;
   onCurrentClick?: (e: MouseEvent | CustomEvent) => void;
@@ -68,7 +69,7 @@ export const UpgradeItem: FC<UpgradeItemProps> = (props) => {
           {upgradeLabel}
           {upgrading && <Spinner style={{ margin: '0px 8px', width: '1.1em' }} />}
         </span>}
-        disabled={!props.latest && !upgrading}
+        disabled={!props.ignoreLatestUndefined && !props.latest && !upgrading}
         onClick={async (e) => {
           if (upgrading) {
             props.cancelCallback();

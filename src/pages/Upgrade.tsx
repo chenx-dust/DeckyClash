@@ -94,6 +94,7 @@ export const Upgrade: FC = () => {
       </DialogControlsSection>
       <UpgradeItem label={t(L.PLUGIN)} current={pluginCurrent} latest={pluginLatest}
         progressEvent="dl_plugin_progress"
+        ignoreLatestUndefined={channel === "nightly"}
         checkUpgrading={() => backend.isUpgrading(ResourceType.PLUGIN)}
         cancelCallback={() => backend.cancelUpgrade(ResourceType.PLUGIN)}
         onCurrentClick={() => {

@@ -18,6 +18,8 @@ export interface SubscriptionFieldProps {
   reorderEnabled?: boolean;
   reorderCallback?: (diff: number) => void;
   reorderFinishCallback?: (save: boolean) => void;
+  onSecondaryButton?: (evt: GamepadEvent) => void;
+  onSecondaryActionDescription?: ReactNode;
 }
 
 interface Updatable {
@@ -82,85 +84,84 @@ export const SubscriptionField: FC<SubscriptionFieldProps & RefAttributes<any>> 
     };
 
     return (
-      <div style={{
-          transition: isSelected || isSelectedLastFrame
-            ? ''
-            : 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
-          transform: !props.reorderEnabled || isSelected ? 'scale(1)' : 'scale(0.9)',
-          opacity: !props.reorderEnabled || isSelected ? 1 : 0.7,
+      <Field
+        className={[
+          "subscriptionField",
+          isSelected || isSelectedLastFrame ? "subscriptionField--noTransition" : "",
+          !props.reorderEnabled || isSelected ? "subscriptionField--selected" : "subscriptionField--reorder",
+        ].filter(Boolean).join(" ")}
+        label={props.label}
+        description={
+          <div style={{ overflowWrap: "anywhere" }}>
+            {props.description}
+          </div>
+        }
+        onButtonDown={onReorder}
+        onGamepadBlur={() => setIsSelected(false)}
+        onGamepadFocus={() => setIsSelected(true)}
+        onOKButton={props.reorderEnabled
+          ? () => props.reorderFinishCallback?.(true)
+          : undefined}
+        onOKActionDescription={props.reorderEnabled ? t(L.SAVE) : undefined}
+        onCancelButton={props.reorderEnabled
+          ? () => props.reorderFinishCallback?.(false)
+          : undefined}
+        onCancelActionDescription={props.reorderEnabled ? t(L.CANCEL) : undefined}
+        focusable={props.reorderEnabled}
+        onSecondaryButton={props.onSecondaryButton}
+        onSecondaryActionDescription={props.onSecondaryActionDescription}
+      >
+        {/* @ts-expect-error */}
+        <Focusable style={{
+          display: 'flex',
+          flexWrap: 'nowrap',
+          columnGap: '10px',
         }}>
-        <Field
-          label={props.label}
-          description={
-            <div style={{ overflowWrap: "break-word" }}>
-              {props.description}
-            </div>
-          }
-          onButtonDown={onReorder}
-          onGamepadBlur={() => setIsSelected(false)}
-          onGamepadFocus={() => setIsSelected(true)}
-          onOKButton={props.reorderEnabled
-            ? () => props.reorderFinishCallback?.(true)
-            : undefined}
-          onOKActionDescription={props.reorderEnabled ? t(L.SAVE) : undefined}
-          onCancelButton={props.reorderEnabled
-            ? () => props.reorderFinishCallback?.(false)
-            : undefined}
-          onCancelActionDescription={props.reorderEnabled ? t(L.CANCEL) : undefined}
-          focusable={props.reorderEnabled}
-        >
-          {/* @ts-expect-error */}
-          <Focusable style={{
-            display: 'flex',
-            flexWrap: 'nowrap',
-            columnGap: '10px',
-          }}>
-            {props.editMode ? (<>
-              {props.onEditClick && <IconButton
-                onClick={props.onEditClick}
+          {props.editMode ? (<>
+            {props.onEditClick && <IconButton
+              onClick={props.onEditClick}
+              disabled={props.reorderEnabled}
+            >
+              <FaEdit />
+            </IconButton>}
+            {props.onCopyClick && <IconButton
+              onClick={props.onCopyClick}
+              disabled={props.reorderEnabled}
+            >
+              <FaCopy />
+            </IconButton>}
+            {props.onDelClick && <IconButton
+              style={{ color: 'red' }}
+              onClick={props.onDelClick}
+              disabled={props.reorderEnabled}
+            >
+              <FaTrashAlt />
+            </IconButton>}
+          </>) : (<>
+              {props.updateCallback && <DialogButton
+                style={{
+                  padding: '10px 12px',
+                  minWidth: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  columnGap: '8px',
+                }}
+                disabled={updating || props.reorderEnabled}
+                onClick={handleUpdateClick}
+              >
+                <FaRedoAlt style={updating ? {
+                  animation: "dc_spin 1s linear infinite",
+                } : undefined} />
+                {updateTips}
+              </DialogButton>}
+              {props.onOtherClick && <IconButton
+                onClick={props.onOtherClick}
                 disabled={props.reorderEnabled}
               >
-                <FaEdit />
+                <FaEllipsisH />
               </IconButton>}
-              {props.onCopyClick && <IconButton
-                onClick={props.onCopyClick}
-                disabled={props.reorderEnabled}
-              >
-                <FaCopy />
-              </IconButton>}
-              {props.onDelClick && <IconButton
-                style={{ color: 'red' }}
-                onClick={props.onDelClick}
-                disabled={props.reorderEnabled}
-              >
-                <FaTrashAlt />
-              </IconButton>}
-            </>) : (<>
-                {props.updateCallback && <DialogButton
-                  style={{
-                    padding: '10px 12px',
-                    minWidth: 'auto',
-                    display: 'flex',
-                    alignItems: 'center',
-                    columnGap: '8px',
-                  }}
-                  disabled={updating || props.reorderEnabled}
-                  onClick={handleUpdateClick}
-                >
-                  <FaRedoAlt style={updating ? {
-                    animation: "dc_spin 1s linear infinite",
-                  } : undefined} />
-                  {updateTips}
-                </DialogButton>}
-                {props.onOtherClick && <IconButton
-                  onClick={props.onOtherClick}
-                  disabled={props.reorderEnabled}
-                >
-                  <FaEllipsisH />
-                </IconButton>}
-            </>)}
-          </Focusable>
-        </Field>
-      </div>
+          </>)}
+        </Focusable>
+      </Field>
     )
   });

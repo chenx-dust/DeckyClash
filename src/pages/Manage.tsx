@@ -174,13 +174,30 @@ export const Manage: FC<ManageProp> = (props) => {
       transform: rotate(360deg);
   }
 }
+
+.subscriptionField {
+  transition:
+    transform 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.subscriptionField--noTransition {
+  transition: none;
+}
+
+.subscriptionField--selected {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.subscriptionField--reorder {
+  opacity: 0.7;
+  transform: scale(0.9);
+}
         `}
       </style>
       {Object.keys(subscriptions).length > 0 ?
-        (<Focusable
-          onSecondaryButton={!reorderEnabled && (() => setReorderEnabled(true)) || undefined}
-          onSecondaryActionDescription={!reorderEnabled && t(L.REORDER) || undefined}
-          children={Object.entries(subscriptions).map(([name, url], index) => {
+        (Object.entries(subscriptions).map(([name, url], index) => {
             let isLocal = url.startsWith("local");
             return (
               <SubscriptionField
@@ -207,10 +224,13 @@ export const Manage: FC<ManageProp> = (props) => {
                 reorderEnabled={reorderEnabled}
                 reorderCallback={(diff) => swapEntries(index, index + diff)}
                 reorderFinishCallback={finishReorder}
+                onSecondaryButton={!reorderEnabled && Object.keys(subscriptions).length > 1
+                  && (() => setReorderEnabled(true)) || undefined}
+                onSecondaryActionDescription={!reorderEnabled && Object.keys(subscriptions).length > 1
+                  && t(L.REORDER) || undefined}
               />
             );
-          })}
-        />) : <p style={{ textAlign: 'center' }}>{t(L.NO_SUBSCRIPTIONS)}</p>}
+          })) : <p style={{ textAlign: 'center' }}>{t(L.NO_SUBSCRIPTIONS)}</p>}
     </DialogBody>
   );
 };

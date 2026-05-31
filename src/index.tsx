@@ -101,7 +101,7 @@ const Content: FC<{}> = ({ }) => {
   const [initialized, setInitialized] = useState(false);
   const [qrPageUrl, setQRPageUrl] = useState<string>();
   const [currentIP, setCurrentIP] = useState<string>(localIP);
-  const [clashMode, setClashMode] = useState<ClashMode | null>(null);
+  const [clashMode, setClashMode] = useState<ClashMode>("rule");
   const [traffic, setTraffic] = useState<Traffic | null>(null);
   const [memory, setMemory] = useState<Memory | null>(null);
 
@@ -184,10 +184,10 @@ const Content: FC<{}> = ({ }) => {
     try {
       const mode = await getClashMode(controllerPort, secret);
       console.log(mode);
-      setClashMode(mode);
+      setClashMode(mode || "rule");
     } catch (e) {
       console.error(e);
-      setClashMode(null);
+      setClashMode("rule");
     }
   };
 
@@ -246,7 +246,7 @@ const Content: FC<{}> = ({ }) => {
     if (clashState)
       fetchClashMode();
     else
-      setClashMode(null);
+      setClashMode("rule");
   }, [clashState]);
 
   useEffect(() => {
@@ -492,7 +492,7 @@ const Content: FC<{}> = ({ }) => {
                 setClashMode(value.data);
                 try {
                   await patchClashMode(controllerPort, secret, value.data);
-                  getClashMode(controllerPort, secret).then(setClashMode);
+                  getClashMode(controllerPort, secret).then((mode) => setClashMode(mode || "rule"));
                 } catch (e) {
                   setClashMode(previousMode);
                   toaster.toast({
@@ -524,7 +524,7 @@ const Content: FC<{}> = ({ }) => {
             label={t(L.ALLOW_REMOTE_ACCESS)}
             description=
             {(allowRemoteAccess && clashState && qrPageUrl) ? (
-              <div style={{ overflowWrap: "break-word" }}>
+              <div style={{ overflowWrap: "anywhere" }}>
                 <QRCodeCanvas style={{
                   display: "block",
                   margin: "8px auto",

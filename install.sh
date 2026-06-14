@@ -6,7 +6,6 @@ AUTHOR="chenx-dust"
 REPO_NAME="DeckyClash"
 PACKAGE="DeckyClash"
 GITHUB_BASE_URL=${OVERRIDE_GITHUB_BASE_URL:-"https://github.com"}
-API_BASE_URL=${OVERRIDE_API_BASE_URL:-"https://api.github.com"}
 SCRIPT_URL="${GITHUB_BASE_URL}/${AUTHOR}/${REPO_NAME}/raw/refs/heads/main/install.sh"
 BASE_DIR=${OVERRIDE_BASE_DIR:-"${HOME}/homebrew"}
 PLUGIN_DIR=${OVERRIDE_PLUGIN_DIR:-"${BASE_DIR}/plugins/${PACKAGE}"}
@@ -38,7 +37,6 @@ function usage() {
   echo
   echo "Environment Variables:"
   echo '  OVERRIDE_GITHUB_BASE_URL    Override default: "https://github.com"'
-  echo '  OVERRIDE_API_BASE_URL       Override default: "https://api.github.com"'
   echo '  OVERRIDE_BASE_DIR           Override default: "${HOME}/homebrew"'
   echo '  OVERRIDE_PLUGIN_DIR         Override default: "${BASE_DIR}/plugins/${PACKAGE}"'
   echo '  OVERRIDE_DATA_DIR           Override default: "${BASE_DIR}/data/${PACKAGE}"'
@@ -181,24 +179,22 @@ echo
 echo "Installing $REPO_NAME ..."
 if prompt_continue $WITHOUT_PLUGIN; then
   if [ -z "${SPECIFIED_VERSION}" ]; then
-    API_URL="${API_BASE_URL}/repos/${AUTHOR}/${REPO_NAME}/releases/latest"
-    RELEASE=$(curl -s "$API_URL")
-    MESSAGE=$(echo "${RELEASE}" | grep '"message"' | cut -d '"' -f 4)
-    RELEASE_VERSION=$(echo "${RELEASE}" | grep '"tag_name"' | cut -d '"' -f 4)
-    RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url.*DeckyClash.zip\"" | cut -d '"' -f 4)
-
-    if [[ "${MESSAGE}" != "" ]]; then
-      echo "Github Error: ${MESSAGE}" >&2
-      exit 1
-    fi
-    echo "Version: ${RELEASE_VERSION}"
+    RELEASE_VERSION=$(curl -fsSL "${GITHUB_BASE_URL}/${AUTHOR}/${REPO_NAME}/releases/latest/download/version.txt")
+  elif [ "${SPECIFIED_VERSION}" = "nightly" ]; then
+    RELEASE_VERSION=$(curl -fsSL "${GITHUB_BASE_URL}/${AUTHOR}/${REPO_NAME}/releases/download/nightly/version.txt")
   else
-    RELEASE_URL="${GITHUB_BASE_URL}/${AUTHOR}/${REPO_NAME}/releases/download/${SPECIFIED_VERSION}/${PACKAGE}.zip"
+    RELEASE_VERSION="${SPECIFIED_VERSION}"
+  fi
+  if [[ "${RELEASE_VERSION}" == nightly-* ]]; then
+    RELEASE_URL="${GITHUB_BASE_URL}/${AUTHOR}/${REPO_NAME}/releases/download/nightly/${PACKAGE}.zip"
+  else
+    RELEASE_URL="${GITHUB_BASE_URL}/${AUTHOR}/${REPO_NAME}/releases/download/${RELEASE_VERSION}/${PACKAGE}.zip"
   fi
   if [ -z "${RELEASE_URL}" ]; then
     echo "Failed to get latest release" >&2
     exit 1
   fi
+  echo "Version: ${RELEASE_VERSION}"
 
   DL_DEST="${TEMP_DIR}/${PACKAGE}.zip"
   wget -O "${DL_DEST}" "${RELEASE_URL}"
@@ -213,15 +209,8 @@ if prompt_continue $WITHOUT_BINARY; then
   $SUDO mkdir -p "${BIN_DIR}"
 	echo "Installing Mihomo ..."
 
-  RELEASE=$(curl -s "${API_BASE_URL}/repos/MetaCubeX/mihomo/releases/latest")
-  MESSAGE=$(echo "${RELEASE}" | grep '"message"' | cut -d '"' -f 4)
-  RELEASE_VERSION=$(echo "${RELEASE}" | grep '"tag_name"' | cut -d '"' -f 4)
-	RELEASE_URL=$(echo "${RELEASE}" | grep "browser_download_url.*mihomo-linux-amd64-${RELEASE_VERSION}.gz\"" | cut -d '"' -f 4);
-
-  if [[ "${MESSAGE}" != "" ]]; then
-    echo "Github Error: ${MESSAGE}" >&2
-    exit 1
-  fi
+  RELEASE_VERSION=$(curl -fsSL "${GITHUB_BASE_URL}/MetaCubeX/mihomo/releases/latest/download/version.txt")
+	RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/mihomo/releases/download/${RELEASE_VERSION}/mihomo-linux-amd64-${RELEASE_VERSION}.gz"
   if [ -z "${RELEASE_URL}" ]; then
     echo "Failed to get latest release" >&2
     exit 1

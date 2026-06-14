@@ -37,6 +37,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           VERSION=${{github.ref_name}}
+          echo "${VERSION}" > version.txt
           VERSION=${VERSION#v}
           sed -i "s/{{DECKY_CLASH_VERSION}}/${VERSION}/g" package.json
 
@@ -46,6 +47,7 @@ jobs:
           HASH=$(git rev-parse HEAD)
           DATE=$(date -u +'%y%m%d')
           VERSION=nightly-${DATE}-${HASH:0:7}
+          echo "${VERSION}" > version.txt
           sed -i "s/{{DECKY_CLASH_VERSION}}/${VERSION}/g" package.json
 
       - name: Install package and build
@@ -59,6 +61,7 @@ jobs:
           cp -R defaults/* dist py_modules release/DeckyClash/
           rm -rf release/DeckyClash/defaults/external/.git
           cp main.py plugin.json package.json LICENSE release/DeckyClash/
+          cp version.txt release/
           cd release 
           zip -r DeckyClash.zip DeckyClash
           cd ..
@@ -80,6 +83,7 @@ jobs:
             ./release/DeckyClash.zip
             ./release/DeckyClash-full.zip
             ./release/Installer-DeckyClash.sh
+            ./release/version.txt
           if-no-files-found: error
 
   publish:

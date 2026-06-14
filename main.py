@@ -256,13 +256,13 @@ class Plugin:
         logger.debug(f"get_version: {res} {version}")
         return version
 
-    async def get_latest_version(self, res: str) -> str:
+    async def get_latest_version(self, res: str, channel: str = "") -> str:
         if res not in upgrade.RESOURCE_TYPE_VALUES:
             logger.error(f"get_latest_version: invalid resource {res}")
             return ""
         res_type = upgrade.ResourceType(res)
         try:
-            version = await upgrade.get_latest_version(res_type, self._get("timeout"), self._get("debounce_time"))
+            version = await upgrade.get_latest_version(res_type, self._get("timeout"), self._get("debounce_time"), channel)
         except Exception as e:
             logger.error(f"get_latest_version: failed with {e}")
             logger.debug(f"stack trace: {utils.get_traceback(e)}")

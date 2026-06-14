@@ -11,10 +11,10 @@ export const getConfigValue = callable<[string], any>("get_config_value");
 export const setConfigValue = callable<[string, any], []>("set_config_value");
 
 export const checkUpdate = callable<[], []>("check_update");
-export const upgrade = callable<[ResourceType, string | undefined], [boolean, string]>("upgrade");
+export const upgrade = callable<[ResourceType, string?], [boolean, string]>("upgrade");
 export const cancelUpgrade = callable<[ResourceType], []>("cancel_upgrade");
 export const getVersion = callable<[ResourceType], string>("get_version");
-export const getLatestVersion = callable<[ResourceType], string>("get_latest_version");
+export const getLatestVersion = callable<[ResourceType, string?], string>("get_latest_version");
 export const isUpgrading = callable<[ResourceType], boolean>("is_upgrading");
 
 export const installGeos = callable<[], [boolean, string]>("install_geos");

@@ -92,6 +92,8 @@
     "UPGRADE_CHANNEL": "Upgrade Channel",
     "LATEST_CHANNEL": "Latest",
     "NIGHTLY_CHANNEL": "Nightly",
+    "META_CHANNEL": "Meta Branch",
+    "ALPHA_CHANNEL": "Alpha Branch",
     "GENERAL": "General",
     "AUTO_CHECK_UPDATE": "Check Update Automatically",
     "AUTO_UPDATE_SUBSCRIPTION": "Update Subscriptions Automatically",

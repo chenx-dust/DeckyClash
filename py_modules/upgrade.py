@@ -2,12 +2,12 @@ import asyncio
 from enum import Enum
 import gzip
 import os
-from pathlib import Path
 import shutil
 import stat
 import tempfile
 import time
-from typing import Any, Awaitable, Callable, Coroutine, Dict, Tuple
+import urllib.request
+from typing import Awaitable, Callable, Coroutine, Dict, Tuple
 
 import core
 import dashboard
@@ -15,7 +15,6 @@ import decky
 from decky import logger
 from metadata import CORE_REPO, PACKAGE_REPO
 import utils
-from utils import ProgressCallback
 import config
 
 def remove_no_fail(path: str):
@@ -25,12 +24,6 @@ def remove_no_fail(path: str):
         logger.warning(f"remove_no_fail: {e}")
     except Exception as e:
         raise e
-
-def get_latest_release_url(repo: str) -> str:
-    return f"https://api.github.com/repos/{repo}/releases/latest"
-
-def get_releases_url(repo: str) -> str:
-    return f"https://api.github.com/repos/{repo}/releases"
 
 def recursive_chmod(path: str, perms: int) -> None:
     for dirpath, _, filenames in os.walk(path):
@@ -164,8 +157,29 @@ _FUNC_MAP: Dict[ResourceType, Callable[[str], Coroutine[Any, Any, None]]] = {
 }
 
 _URL_MAP: Dict[ResourceType, Callable[[str], str]] = {
-    ResourceType.PLUGIN: lambda ver: f"https://github.com/{PACKAGE_REPO}/releases/download/{ver}/DeckyClash.zip",
-    ResourceType.CORE: lambda ver: f"https://github.com/{CORE_REPO}/releases/download/{ver}/mihomo-linux-amd64-{ver}.gz",
+    ResourceType.PLUGIN: lambda ver: (
+        f"https://github.com/{PACKAGE_REPO}/releases/download/nightly/DeckyClash.zip"
+        if ver.startswith("nightly-")
+        else f"https://github.com/{PACKAGE_REPO}/releases/download/{ver}/DeckyClash.zip"
+    ),
+    ResourceType.CORE: lambda ver: (
+        f"https://github.com/{CORE_REPO}/releases/download/Prerelease-Alpha/mihomo-linux-amd64-{ver}.gz"
+        if ver.startswith("alpha-")
+        else f"https://github.com/{CORE_REPO}/releases/download/{ver}/mihomo-linux-amd64-{ver}.gz"
+    ),
+}
+
+_VERSION_URL_MAP: Dict[ResourceType, Callable[[str], str]] = {
+    ResourceType.PLUGIN: lambda channel: (
+        f"https://github.com/{PACKAGE_REPO}/releases/download/nightly/version.txt"
+        if channel == "nightly"
+        else f"https://github.com/{PACKAGE_REPO}/releases/latest/download/version.txt"
+    ),
+    ResourceType.CORE: lambda channel: (
+        f"https://github.com/{CORE_REPO}/releases/download/Prerelease-Alpha/version.txt"
+        if channel == "alpha"
+        else f"https://github.com/{CORE_REPO}/releases/latest/download/version.txt"
+    ),
 }
 
 async def download_resourse(res: ResourceType, version: str) -> str:
@@ -206,25 +220,25 @@ def cancel_upgrade(res: ResourceType) -> None:
     rtn = _upgrade_tasks[res].cancel()
     logger.info(f"cancel_upgrade: {res.value} {rtn}")
 
-_REPO_MAP: Dict[ResourceType, str] = {
-    ResourceType.CORE: CORE_REPO,
-    ResourceType.PLUGIN: PACKAGE_REPO,
-}
-_query_history: Dict[ResourceType, Tuple[str, float]] = {}
-async def get_latest_version(res: ResourceType, timeout: float, debounce_time: float) -> str:
-    if res in _query_history:
-        last_query, last_time = _query_history[res]
+_query_history: Dict[str, Tuple[str, float]] = {}
+def _get_latest_version_text(url: str, timeout: float, debounce_time: float) -> str:
+    if url in _query_history:
+        last_query, last_time = _query_history[url]
         if time.time() - last_time <= debounce_time:
             return last_query
 
-    json_data = await utils.get_url_to_json(
-        get_latest_release_url(_REPO_MAP[res]),
-        timeout=timeout)
+    with urllib.request.urlopen(url, context=utils.get_ssl_context(), timeout=timeout) as response:
+        tag = response.read().decode().strip()
 
-    tag = json_data.get("tag_name")
-
-    _query_history[res] = (tag, time.time())
+    _query_history[url] = (tag, time.time())
     return tag
+
+async def get_latest_version(res: ResourceType, timeout: float, debounce_time: float, channel: str | None = None) -> str:
+    is_nightly = res == ResourceType.PLUGIN and channel == "nightly"
+    is_alpha = res == ResourceType.CORE and channel == "alpha"
+    version_channel = channel if is_nightly or is_alpha else "latest"
+    url = _VERSION_URL_MAP[res](version_channel)
+    return await asyncio.to_thread(_get_latest_version_text, url, timeout, debounce_time)
 
 _GEO_FILES = {
     "geoip.metadb": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb",

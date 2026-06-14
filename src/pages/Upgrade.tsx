@@ -16,6 +16,9 @@ export const Upgrade: FC = () => {
   const [channel, setChannel] = useState<string>(
     window.localStorage.getItem("decky-clash-upgrade-channel") || "latest"
   );
+  const [coreChannel, setCoreChannel] = useState<string>(
+    window.localStorage.getItem("decky-clash-core-upgrade-channel") || "meta"
+  );
   const [autoCheckUpdate, setAutoCheckUpdate] = useState(
     (window.localStorage.getItem("decky-clash-auto-check-update") || "true") === "true"
   );
@@ -29,11 +32,11 @@ export const Upgrade: FC = () => {
 
   const getVersions = () => {
     backend.getVersion(ResourceType.PLUGIN).then(setPluginCurrent);
-    backend.getLatestVersion(ResourceType.PLUGIN).then(setPluginLatest);
+    backend.getLatestVersion(ResourceType.PLUGIN, channel).then(setPluginLatest);
     backend.getVersion(ResourceType.CORE).then(setCoreCurrent);
-    backend.getLatestVersion(ResourceType.CORE).then(setCoreLatest);
+    backend.getLatestVersion(ResourceType.CORE, coreChannel).then(setCoreLatest);
   }
-  useLayoutEffect(getVersions, []);
+  useLayoutEffect(getVersions, [channel, coreChannel]);
 
   const upgradeCallback = (
     func: () => Promise<[boolean, string]>,
@@ -68,7 +71,7 @@ export const Upgrade: FC = () => {
   };
 
   const upgradePlugin = upgradeCallback(
-    () => backend.upgrade(ResourceType.PLUGIN, channel === "nightly" ? "nightly" : pluginLatest),
+    () => backend.upgrade(ResourceType.PLUGIN, pluginLatest),
     "DeckyClash", pluginLatest
   );
   const upgradeCore = upgradeCallback(() => backend.upgrade(ResourceType.CORE, coreLatest), "Mihomo", coreLatest);
@@ -94,7 +97,6 @@ export const Upgrade: FC = () => {
       </DialogControlsSection>
       <UpgradeItem label={t(L.PLUGIN)} current={pluginCurrent} latest={pluginLatest}
         progressEvent="dl_plugin_progress"
-        ignoreLatestUndefined={channel === "nightly"}
         checkUpgrading={() => backend.isUpgrading(ResourceType.PLUGIN)}
         cancelCallback={() => backend.cancelUpgrade(ResourceType.PLUGIN)}
         onCurrentClick={() => {
@@ -103,7 +105,7 @@ export const Upgrade: FC = () => {
         }}
         onLatestClick={() => {
           setPluginLatest(undefined);
-          backend.getLatestVersion(ResourceType.PLUGIN).then(setPluginLatest);
+          backend.getLatestVersion(ResourceType.PLUGIN, channel).then(setPluginLatest);
         }}
         onUpgradeClick={upgradePlugin}>
         <DropdownItem
@@ -114,6 +116,7 @@ export const Upgrade: FC = () => {
           ]}
           selectedOption={channel}
           onChange={(value) => {
+            setPluginLatest(undefined);
             setChannel(value.data);
             window.localStorage.setItem("decky-clash-upgrade-channel", value.data);
           }}
@@ -129,9 +132,23 @@ export const Upgrade: FC = () => {
         }}
         onLatestClick={() => {
           setCoreLatest(undefined);
-          backend.getLatestVersion(ResourceType.CORE).then(setCoreLatest);
+          backend.getLatestVersion(ResourceType.CORE, coreChannel).then(setCoreLatest);
         }}
-        onUpgradeClick={upgradeCore} />
+        onUpgradeClick={upgradeCore}>
+        <DropdownItem
+          label={t(L.UPGRADE_CHANNEL)}
+          rgOptions={[
+            { label: t(L.META_CHANNEL), data: "meta" },
+            { label: t(L.ALPHA_CHANNEL), data: "alpha" },
+          ]}
+          selectedOption={coreChannel}
+          onChange={(value) => {
+            setCoreLatest(undefined);
+            setCoreChannel(value.data);
+            window.localStorage.setItem("decky-clash-core-upgrade-channel", value.data);
+          }}
+        />
+      </UpgradeItem>
       <DialogControlsSection>
         <DialogControlsSectionHeader>
           {t(L.MISC)}

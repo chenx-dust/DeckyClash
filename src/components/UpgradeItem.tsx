@@ -82,7 +82,7 @@ export const UpgradeItem: FC<UpgradeItemProps> = (props) => {
         }}
       >
         {upgrading ? t(L.CANCEL)
-          : ((props.current !== props.latest && props.current?.startsWith("v") && props.latest?.startsWith("v")) ?
+          : ((props.current !== props.latest && props.latest) ?
             t(L.UPGRADE_TO) + ` ${props.latest}` :
             t(L.REINSTALL))}
       </ButtonItem>

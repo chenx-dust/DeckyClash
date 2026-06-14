@@ -93,6 +93,8 @@
     "UPGRADE_CHANNEL": "更新通道",
     "LATEST_CHANNEL": "最新版本",
     "NIGHTLY_CHANNEL": "每夜构建",
+    "META_CHANNEL": "Meta 分支",
+    "ALPHA_CHANNEL": "Alpha 分支",
     "GENERAL": "通用",
     "AUTO_CHECK_UPDATE": "自动检查更新",
     "AUTO_UPDATE_SUBSCRIPTION": "自动更新订阅",

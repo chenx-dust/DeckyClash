@@ -107,5 +107,7 @@
     "DIRECT": "Direct",
     "UPLOAD": "Upload",
     "DOWNLOAD": "Download",
-    "MEMORY": "Memory"
+    "MEMORY": "Memory",
+    "GITHUB_REPO": "GitHub Repository",
+    "LICENSE": "License"
 }

@@ -108,5 +108,7 @@
     "DIRECT": "直连",
     "UPLOAD": "上传",
     "DOWNLOAD": "下载",
-    "MEMORY": "内存"
+    "MEMORY": "内存",
+    "GITHUB_REPO": "GitHub 仓库",
+    "LICENSE": "许可证"
 }

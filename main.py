@@ -468,9 +468,15 @@ class Plugin:
         }
         for res in upgrade.RESOURCE_TYPE_ENUMS:
             current = await self.get_version(res.value)
-            latest = await self.get_latest_version(res.value)
-            if current != latest and current.startswith("v") and latest.startswith("v"):
-                logger.info(f"check_update: {res} {current} => {latest}")
+            channel = ""
+            if res == upgrade.ResourceType.PLUGIN and current.startswith("nightly-"):
+                channel = "nightly"
+            elif res == upgrade.ResourceType.CORE and current.startswith("alpha-"):
+                channel = "alpha"
+
+            latest = await self.get_latest_version(res.value, channel)
+            if current and latest and current != latest:
+                logger.info(f"check_update: {res} {channel or 'latest'} {current} => {latest}")
                 await decky.emit("upgrade_notice", f"{name_map[res]}: {current} => {latest}")
 
     def _get(self, key: str, allow_none: bool = False) -> Any:

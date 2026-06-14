@@ -7,7 +7,7 @@ import stat
 import tempfile
 import time
 import urllib.request
-from typing import Awaitable, Callable, Coroutine, Dict, Tuple
+from typing import Awaitable, Callable, Coroutine, Dict, Tuple, Any
 
 import core
 import dashboard

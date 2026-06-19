@@ -17,6 +17,7 @@ from decky import logger
 from external import ExternalServer
 import subscription
 import upgrade
+import webdav_backup
 from metadata import PACKAGE_NAME
 from settings import SettingsManager
 import utils
@@ -25,33 +26,13 @@ import utils
 class Plugin:
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def _main(self):
-        self.settings = SettingsManager(
-            name="config", settings_directory=decky.DECKY_PLUGIN_SETTINGS_DIR
-        )
+        self._load_settings()
         logger.info(f"starting {PACKAGE_NAME} ...")
         try:
             upgrade.initialize_plugin()
         except Exception as e:
             logger.error(f"initialize_plugin: failed with {e}")
             logger.debug(f"stack trace: {utils.get_traceback(e)}")
-
-        self._set_default("subscriptions", {})
-        self._set_default("secret", utils.rand_thing())
-        self._set_default("override_dns", True)
-        self._set_default("enhanced_mode", config.EnhancedMode.FakeIP.value)
-        self._set_default("controller_port", 9090)
-        self._set_default("external_port", 50581)
-        self._set_default("allow_remote_access", False)
-        self._set_default("autostart", False)
-        self._set_default("timeout", 15.0)
-        self._set_default("user_agent_override", "")
-        self._set_default("debounce_time", 10.0)
-        self._set_default("disable_verify", False)
-        self._set_default("external_run_bg", False)
-        self._set_default("auto_check_update", True)
-        self._set_default("auto_update_subscription", False)
-        self._set_default("skip_steam_download", False)
-        self._set_default("log_level", logging.getLevelName(logging.INFO))
 
         level = self._get("log_level")
         logger.setLevel(logging.getLevelNamesMapping()[level])
@@ -215,6 +196,74 @@ class Plugin:
             return
         self.settings.setSetting(key, value)
         logger.debug(f"set_config_value: {key} => {value}")
+
+    async def get_webdav_config(self) -> dict:
+        config = {
+            "url": self._get("webdav_url", True) or "",
+            "username": self._get("webdav_username", True) or "",
+            "password": self._get("webdav_password", True) or "",
+        }
+        logger.debug("get_webdav_config")
+        return config
+
+    async def set_webdav_config(self, url: str, username: str, password: str) -> Tuple[bool, str]:
+        try:
+            self.settings.setSetting("webdav_url", url.strip())
+            self.settings.setSetting("webdav_username", username.strip())
+            self.settings.setSetting("webdav_password", password)
+            logger.info("set_webdav_config: updated")
+            return True, ""
+        except Exception as e:
+            logger.error(f"set_webdav_config: failed with {e}")
+            logger.debug(f"stack trace: {utils.get_traceback(e)}")
+            return False, str(e)
+
+    async def backup_settings_to_webdav(self) -> Tuple[bool, str]:
+        try:
+            await webdav_backup.backup_settings(
+                decky.DECKY_PLUGIN_SETTINGS_DIR,
+                self._get("webdav_url"),
+                self._get("webdav_username", True) or "",
+                self._get("webdav_password", True) or "",
+                self._get("timeout"),
+            )
+            return True, ""
+        except Exception as e:
+            logger.error(f"backup_settings_to_webdav: failed with {e}")
+            logger.debug(f"stack trace: {utils.get_traceback(e)}")
+            return False, str(e)
+
+    async def test_webdav_config(self) -> Tuple[bool, str]:
+        try:
+            await webdav_backup.test_connection(
+                self._get("webdav_url"),
+                self._get("webdav_username", True) or "",
+                self._get("webdav_password", True) or "",
+                self._get("timeout"),
+            )
+            return True, ""
+        except Exception as e:
+            logger.error(f"test_webdav_config: failed with {e}")
+            logger.debug(f"stack trace: {utils.get_traceback(e)}")
+            return False, str(e)
+
+    async def restore_settings_from_webdav(self) -> Tuple[bool, str]:
+        try:
+            if self.core.is_running:
+                await self.core.stop()
+            await webdav_backup.restore_settings(
+                decky.DECKY_PLUGIN_SETTINGS_DIR,
+                self._get("webdav_url"),
+                self._get("webdav_username", True) or "",
+                self._get("webdav_password", True) or "",
+                self._get("timeout"),
+            )
+            self._load_settings()
+            return True, ""
+        except Exception as e:
+            logger.error(f"restore_settings_from_webdav: failed with {e}")
+            logger.debug(f"stack trace: {utils.get_traceback(e)}")
+            return False, str(e)
 
     async def upgrade(self, res: str, version: str) -> Tuple[bool, Optional[str]]:
         if res not in upgrade.RESOURCE_TYPE_VALUES:
@@ -488,6 +537,34 @@ class Plugin:
                 raise ValueError(f'Value of "{key}" is None')
             return value
 
+    def _load_settings(self) -> None:
+        self.settings = SettingsManager(
+            name="config", settings_directory=decky.DECKY_PLUGIN_SETTINGS_DIR
+        )
+        self._initialize_settings_defaults()
+
     def _set_default(self, key: str, value: Any) -> None:
         if self.settings.getSetting(key) is None:
             self.settings.setSetting(key, value)
+
+    def _initialize_settings_defaults(self) -> None:
+        self._set_default("subscriptions", {})
+        self._set_default("secret", utils.rand_thing())
+        self._set_default("override_dns", True)
+        self._set_default("enhanced_mode", config.EnhancedMode.FakeIP.value)
+        self._set_default("controller_port", 9090)
+        self._set_default("external_port", 50581)
+        self._set_default("allow_remote_access", False)
+        self._set_default("autostart", False)
+        self._set_default("timeout", 15.0)
+        self._set_default("user_agent_override", "")
+        self._set_default("debounce_time", 10.0)
+        self._set_default("disable_verify", False)
+        self._set_default("external_run_bg", False)
+        self._set_default("auto_check_update", True)
+        self._set_default("auto_update_subscription", False)
+        self._set_default("skip_steam_download", False)
+        self._set_default("log_level", logging.getLevelName(logging.INFO))
+        self._set_default("webdav_url", "")
+        self._set_default("webdav_username", "")
+        self._set_default("webdav_password", "")

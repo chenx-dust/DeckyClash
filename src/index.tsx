@@ -26,7 +26,7 @@ import { FC, useEffect, useLayoutEffect, useState } from "react";
 import { t } from 'i18next';
 import { QRCodeCanvas } from "qrcode.react";
 
-import { About, Import, Manage, Upgrade } from "./pages";
+import { About, Backup, Import, Manage, Upgrade } from "./pages";
 import { backend, Config, EnhancedMode, ResourceType } from "./backend";
 import {
   ClashMode,
@@ -648,6 +648,17 @@ const Content: FC<{}> = ({ }) => {
             layout="below"
             onClick={() => {
               Router.CloseSideMenus();
+              Router.Navigate("/decky-clash/backup");
+            }}
+          >
+            {t(L.BACKUP_SETTINGS)}
+          </ButtonItem>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ButtonItem
+            layout="below"
+            onClick={() => {
+              Router.CloseSideMenus();
               Router.Navigate("/decky-clash/about");
             }}
           >
@@ -679,6 +690,11 @@ const DeckyPluginRouter: FC = () => {
           title: t(L.UPGRADE),
           content: <Upgrade />,
           route: "/decky-clash/upgrade",
+        },
+        {
+          title: t(L.BACKUP),
+          content: <Backup />,
+          route: "/decky-clash/backup",
         },
         {
           title: t(L.ABOUT),

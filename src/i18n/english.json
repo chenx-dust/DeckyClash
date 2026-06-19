@@ -109,5 +109,21 @@
     "DOWNLOAD": "Download",
     "MEMORY": "Memory",
     "GITHUB_REPO": "GitHub Repository",
-    "LICENSE": "License"
+    "LICENSE": "License",
+    "BACKUP": "Backup",
+    "RESTORE": "Restore",
+    "BACKUP_SETTINGS": "Backup & Restore",
+    "RESTORE_SETTINGS": "Restore Settings",
+    "WEBDAV_CONFIG": "WebDAV",
+    "WEBDAV_URL": "WebDAV File URL",
+    "WEBDAV_USERNAME": "Username",
+    "WEBDAV_PASSWORD": "Password",
+    "TEST": "Test",
+    "WEBDAV_TEST_SUCCESS": "WebDAV Test Passed",
+    "WEBDAV_TEST_FAILURE": "WebDAV Test Failed",
+    "BACKUP_SUCCESS": "Backup Complete",
+    "BACKUP_FAILURE": "Backup Failed",
+    "RESTORE_SUCCESS": "Restore Complete",
+    "RESTORE_FAILURE": "Restore Failed",
+    "RESTORE_CONFIRM": "Restore will stop Mihomo, clear local settings, and replace them with the WebDAV backup."
 }

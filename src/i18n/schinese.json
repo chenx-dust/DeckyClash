@@ -110,5 +110,21 @@
     "DOWNLOAD": "下载",
     "MEMORY": "内存",
     "GITHUB_REPO": "GitHub 仓库",
-    "LICENSE": "许可证"
+    "LICENSE": "许可证",
+    "BACKUP": "备份",
+    "RESTORE": "恢复",
+    "BACKUP_SETTINGS": "备份与恢复",
+    "RESTORE_SETTINGS": "恢复设置",
+    "WEBDAV_CONFIG": "WebDAV",
+    "WEBDAV_URL": "WebDAV 文件 URL",
+    "WEBDAV_USERNAME": "用户名",
+    "WEBDAV_PASSWORD": "密码",
+    "TEST": "测试",
+    "WEBDAV_TEST_SUCCESS": "WebDAV 测试成功",
+    "WEBDAV_TEST_FAILURE": "WebDAV 测试失败",
+    "BACKUP_SUCCESS": "备份完成",
+    "BACKUP_FAILURE": "备份失败",
+    "RESTORE_SUCCESS": "恢复完成",
+    "RESTORE_FAILURE": "恢复失败",
+    "RESTORE_CONFIRM": "恢复会停止 Mihomo，清空本地设置，并使用 WebDAV 备份替换当前设置。"
 }

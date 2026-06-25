@@ -2,6 +2,7 @@ import asyncio
 import email
 import email.message
 import shutil
+import tempfile
 from typing import Dict, Optional, Tuple
 import os
 import urllib.request
@@ -185,14 +186,44 @@ def import_sub(file_name: str, data: bytes, now_subs: SubscriptionDict) -> Tuple
     return True, (filename, f"local://{filename}")
 
 async def update_sub(name: str, url: str, timeout: float, user_agent: Optional[str] = None) -> Optional[str]:
+    target_path = get_path(name)
+    temp_path: Optional[str] = None
     try:
+        with tempfile.NamedTemporaryFile(
+            "wb",
+            prefix=f".{utils.sanitize_filename(name)}.",
+            suffix=".tmp",
+            dir=SUBSCRIPTIONS_DIR,
+            delete=False,
+        ) as temp_file:
+            temp_path = temp_file.name
+
         ua = _user_agent(user_agent)
         req = urllib.request.Request(url, headers={'User-Agent': ua})
         logger.debug(f"update_sub: request headers: {req.header_items()}")
-        await utils.get_url_to_file(req, get_path(name), timeout)
+
+        await utils.get_url_to_file(req, temp_path, timeout)
+
+        valid = core.CoreController.check_config(temp_path)
+        if not valid:
+            logger.error(f"update_sub: invalid config for {name}")
+            raise ValueError("Invalid config")
+
+        if os.path.exists(target_path):
+            os.remove(target_path)
+        os.replace(temp_path, target_path)
+        temp_path = None
     except Exception as e:
         logger.error(f"update_sub: update {name} with error {e}")
         return str(e)
+    finally:
+        if temp_path is not None:
+            try:
+                os.remove(temp_path)
+            except FileNotFoundError:
+                pass
+            except Exception as e:
+                logger.error(f"update_sub: error removing temp file {temp_path}: {e}")
     return None
 
 def duplicate_sub(subs: SubscriptionDict, name: str) -> Optional[str]:

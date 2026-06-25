@@ -522,16 +522,7 @@ const Content: FC<{}> = ({ }) => {
         <PanelSectionRow>
           <ToggleField
             label={t(L.ALLOW_REMOTE_ACCESS)}
-            description=
-            {(allowRemoteAccess && clashState && qrPageUrl) ? (
-              <div style={{ overflowWrap: "anywhere" }}>
-                <QRCodeCanvas style={{
-                  display: "block",
-                  margin: "8px auto",
-                }} value={qrPageUrl} size={128} />
-                {qrPageUrl}
-              </div>
-            ) : t(L.ALLOW_REMOTE_ACCESS_DESC) }
+            description={t(L.ALLOW_REMOTE_ACCESS_DESC)}
             checked={allowRemoteAccess}
             onChange={(value: boolean) => {
               setAllowRemoteAccess(value);
@@ -541,6 +532,19 @@ const Content: FC<{}> = ({ }) => {
             }}
           />
         </PanelSectionRow>
+        {allowRemoteAccess && clashState && qrPageUrl && (
+          <PanelSectionRow>
+            <Field description={
+              <div style={{ overflowWrap: "anywhere" }}>
+                <QRCodeCanvas style={{
+                  display: "block",
+                  margin: "8px auto",
+                }} value={qrPageUrl} size={128} />
+                {qrPageUrl}
+              </div>
+            } focusable />
+          </PanelSectionRow>
+        )}
         <PanelSectionRow>
           <ToggleField
             label={t(L.OVERRIDE_DNS)}

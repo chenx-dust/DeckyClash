@@ -18,7 +18,8 @@ const translations = {
     'err-name': 'Error Name:',
     'ok': 'OK',
     'please-enter-link': 'Please enter subscription link',
-    'please-select-file': 'Please select a subscription file'
+    'please-select-file': 'Please select a subscription file',
+    'hwid-not-supported': 'HWID is not supported. Disable the HWID device limit to add this subscription.'
   },
   'zh-CN': {
     'import-tip': '导入 Clash / Mihomo订阅',
@@ -38,7 +39,8 @@ const translations = {
     'err-name': '错误名称：',
     'ok': '确定',
     'please-enter-link': '请输入订阅链接',
-    'please-select-file': '请选择订阅文件'
+    'please-select-file': '请选择订阅文件',
+    'hwid-not-supported': '不支持 HWID。请先关闭 HWID 设备限制，再添加此订阅。'
   },
   'ru': {
     'import-tip': 'Импорт подписки Clash / Mihomo',
@@ -58,7 +60,8 @@ const translations = {
     'err-name': 'Название ошибки:',
     'ok': 'OK',
     'please-enter-link': 'Введите ссылку на подписку',
-    'please-select-file': 'Выберите файл подписки'
+    'please-select-file': 'Выберите файл подписки',
+    'hwid-not-supported': 'HWID не поддерживается. Отключите ограничение устройств по HWID, чтобы добавить эту подписку.'
   }
 };
 
@@ -83,6 +86,10 @@ currentLanguage = localStorage.getItem('language') || detectLanguage();
 // Translation function
 function t(key) {
   return translations[currentLanguage][key] || key;
+}
+
+function localizeError(error) {
+  return error === 'HWID_NOT_SUPPORTED' ? t('hwid-not-supported') : error;
 }
 
 // HTML escape function
@@ -280,7 +287,7 @@ function onDownloadBtnClick(url) {
               <code>${escapeHtml(response.status)}</code>
               <br />
               <b>${t('err-msg')}</b>
-              <code>${escapeHtml(errorMsg)}</code>
+              <code>${escapeHtml(localizeError(errorMsg))}</code>
             </div>
           `
         );
@@ -334,7 +341,7 @@ function onUploadBtnClick(file) {
               <code>${escapeHtml(response.status)}</code>
               <br />
               <b>${t('err-msg')}</b>
-              <code>${escapeHtml(errorMsg)}</code>
+              <code>${escapeHtml(localizeError(errorMsg))}</code>
             </div>
           `
         );

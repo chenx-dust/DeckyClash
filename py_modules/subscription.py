@@ -7,6 +7,7 @@ from typing import Dict, Optional, Tuple
 import os
 import urllib.request
 import urllib.parse
+import urllib.error
 import http.client
 
 import core
@@ -19,6 +20,7 @@ SUBSCRIPTIONS_DIR = os.path.join(decky.DECKY_PLUGIN_SETTINGS_DIR, "subscriptions
 
 SubscriptionDict = Dict[str, str]
 Subscription = Tuple[str, str]
+HWID_NOT_SUPPORTED_ERROR = "HWID_NOT_SUPPORTED"
 
 def get_path(filename: str) -> str:
     return os.path.join(SUBSCRIPTIONS_DIR, filename + ".yaml")
@@ -31,6 +33,8 @@ def _user_agent(user_agent_override: Optional[str] = None) -> str:
             "clash-verge/2.5.0 mihomo.party/v1.9.5 FlClash/v0.8.93 " \
            f"{metadata.PACKAGE_NAME}/{decky.DECKY_PLUGIN_VERSION}"
 
+def _is_hwid_not_supported(error: urllib.error.HTTPError) -> bool:
+    return error.headers.get("x-hwid-not-supported", "").lower() == "true"
 def _deduplicate_name(now_subs: SubscriptionDict, filename: str) -> Optional[str]:
     def check_exist(name) -> bool:
         is_exist = False
@@ -77,6 +81,14 @@ def download_sub(
         logger.debug(f"download_sub: request headers: {req.header_items()}")
         resp: http.client.HTTPResponse = urllib.request.urlopen(
             req, timeout=timeout, context=utils.get_ssl_context())
+    except urllib.error.HTTPError as e:
+        if _is_hwid_not_supported(e):
+            logger.error("download_sub: subscription requires unsupported HWID")
+            e.close()
+            return False, HWID_NOT_SUPPORTED_ERROR
+        logger.error(f"download_sub: failed with {e}")
+        e.close()
+        return False, f"Exception: {e}"
     except Exception as e:
         logger.error(f"download_sub: failed with {e}")
         return False, f"Exception: {e}"
@@ -213,6 +225,14 @@ async def update_sub(name: str, url: str, timeout: float, user_agent: Optional[s
             os.remove(target_path)
         os.replace(temp_path, target_path)
         temp_path = None
+    except urllib.error.HTTPError as e:
+        if _is_hwid_not_supported(e):
+            logger.error(f"update_sub: {name} requires unsupported HWID")
+            e.close()
+            return HWID_NOT_SUPPORTED_ERROR
+        logger.error(f"update_sub: update {name} with error {e}")
+        e.close()
+        return str(e)
     except Exception as e:
         logger.error(f"update_sub: update {name} with error {e}")
         return str(e)

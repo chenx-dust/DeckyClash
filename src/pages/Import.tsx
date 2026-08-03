@@ -6,6 +6,7 @@ import { t } from 'i18next';
 
 import { backend } from "../backend";
 import { L } from "../i18n";
+import { localizeSubscriptionError } from "../subscriptionErrors";
 import { DialogBody, DialogControlsSection, DialogControlsSectionHeader, Field, ToggleField } from "@decky/ui";
 import { TIPS_TIMEOUT } from "../global";
 
@@ -110,7 +111,8 @@ export const Import: FC = () => {
             setDownloadTips(t(L.DOWNLOADING));
             const [success, error] = await backend.downloadSubscription(subUrl);
             if (!success) {
-              setDownloadTips(t(L.DOWNLOAD_FAILURE) + ": " + error);
+              const message = localizeSubscriptionError(error);
+              setDownloadTips(t(L.DOWNLOAD_FAILURE) + ": " + message);
             } else {
               setDownloadTips(t(L.DOWNLOAD_SUCCESS));
             }

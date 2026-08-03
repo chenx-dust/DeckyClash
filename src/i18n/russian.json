@@ -22,6 +22,7 @@
   "DOWNLOAD_DESC": "Поддержка подписок Clash / Mihomo с http(s)://... или file://... (локальный файл)",
   "DOWNLOAD_SUCCESS": "Загрузка завершена успешно",
   "DOWNLOAD_FAILURE": "Ошибка при загрузке",
+  "HWID_NOT_SUPPORTED": "HWID не поддерживается. Отключите ограничение устройств по HWID, чтобы добавить эту подписку.",
   "EXTERNAL_IMPORTER": "Внешний импортер",
   "ENABLE": "Включить",
   "RUN_IN_BACKGROUND": "Запустить в фоновом режиме",

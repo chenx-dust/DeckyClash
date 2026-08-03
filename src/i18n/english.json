@@ -22,6 +22,7 @@
     "DOWNLOAD_DESC": "Support Clash / Mihomo subscription with http(s)://... or file://... (local file)",
     "DOWNLOAD_SUCCESS": "Download Success",
     "DOWNLOAD_FAILURE": "Failed to Download",
+    "HWID_NOT_SUPPORTED": "HWID is not supported. Disable the HWID device limit to add this subscription.",
     "EXTERNAL_IMPORTER": "External Importer",
     "ENABLE": "Enable",
     "RUN_IN_BACKGROUND": "Run in Background",

@@ -78,6 +78,7 @@ The settings json file is located at `~/homebrew/settings/DeckyClash/config.json
   "autostart": true,                  // Autostart after loaded. Default: false
   "timeout": 15.0,                    // Resource query timeout (s). Default: 15.0
   "user_agent_override": "",          // Override User-Agent. Default: [none]
+  "subscription_hwid": "UUIDv4",     // Persistent UUID sent as X-Hwid for remote subscriptions. Default: [generated]
   "debounce_time": 10.0,              // Query debounce time (s). Default: 10.0
   "disable_verify": false,            // Disable verify SSL. Default: false
   "external_run_bg": false,           // Run external importer in background. Default: false

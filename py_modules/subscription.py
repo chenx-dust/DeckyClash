@@ -31,6 +31,15 @@ def _user_agent(user_agent_override: Optional[str] = None) -> str:
             "clash-verge/2.5.0 mihomo.party/v1.9.5 FlClash/v0.8.93 " \
            f"{metadata.PACKAGE_NAME}/{decky.DECKY_PLUGIN_VERSION}"
 
+def _request_headers(
+    user_agent_override: Optional[str] = None,
+    hwid: Optional[str] = None,
+) -> Dict[str, str]:
+    headers = {"User-Agent": _user_agent(user_agent_override)}
+    if hwid is not None and hwid.strip() != "":
+        headers["X-Hwid"] = hwid.strip()
+    return headers
+
 def _deduplicate_name(now_subs: SubscriptionDict, filename: str) -> Optional[str]:
     def check_exist(name) -> bool:
         is_exist = False
@@ -55,6 +64,7 @@ def download_sub(
     now_subs: SubscriptionDict,
     timeout: Optional[float] = None,
     user_agent: Optional[str] = None,
+    hwid: Optional[str] = None,
 ) -> Tuple[bool, Subscription | str]:
     """
     Download new subscription
@@ -63,6 +73,7 @@ def download_sub(
         now_subs: Currently subscriptions list
         timeout: Download timeout
         user_agent: Override subscription request User-Agent
+        hwid: Device UUID sent as X-Hwid
     Returns:
         tuple(bool, Subscription | str)
         bool: Whether download success
@@ -72,8 +83,7 @@ def download_sub(
     if not os.path.exists(SUBSCRIPTIONS_DIR):
         os.mkdir(SUBSCRIPTIONS_DIR)
     try:
-        ua = _user_agent(user_agent)
-        req = urllib.request.Request(url, headers={"User-Agent": ua})
+        req = urllib.request.Request(url, headers=_request_headers(user_agent, hwid))
         logger.debug(f"download_sub: request headers: {req.header_items()}")
         resp: http.client.HTTPResponse = urllib.request.urlopen(
             req, timeout=timeout, context=utils.get_ssl_context())
@@ -185,7 +195,13 @@ def import_sub(file_name: str, data: bytes, now_subs: SubscriptionDict) -> Tuple
 
     return True, (filename, f"local://{filename}")
 
-async def update_sub(name: str, url: str, timeout: float, user_agent: Optional[str] = None) -> Optional[str]:
+async def update_sub(
+    name: str,
+    url: str,
+    timeout: float,
+    user_agent: Optional[str] = None,
+    hwid: Optional[str] = None,
+) -> Optional[str]:
     target_path = get_path(name)
     temp_path: Optional[str] = None
     try:
@@ -198,8 +214,7 @@ async def update_sub(name: str, url: str, timeout: float, user_agent: Optional[s
         ) as temp_file:
             temp_path = temp_file.name
 
-        ua = _user_agent(user_agent)
-        req = urllib.request.Request(url, headers={'User-Agent': ua})
+        req = urllib.request.Request(url, headers=_request_headers(user_agent, hwid))
         logger.debug(f"update_sub: request headers: {req.header_items()}")
 
         await utils.get_url_to_file(req, temp_path, timeout)

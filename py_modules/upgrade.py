@@ -241,10 +241,11 @@ async def get_latest_version(res: ResourceType, timeout: float, debounce_time: f
     return await asyncio.to_thread(_get_latest_version_text, url, timeout, debounce_time)
 
 _GEO_FILES = {
-    "geoip.metadb": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb",
-    "asn.mmdb": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb",
-    "geoip.dat": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat",
-    "geosite.dat": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat",
+    "GeoIP.metadb": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb",
+    "ASN.mmdb": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb",
+    "GeoIP.dat": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat",
+    "GeoSite.dat": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat",
+    "BundleMRS.7z": "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/BundleMRS.7z",
 }
 
 async def download_geos():

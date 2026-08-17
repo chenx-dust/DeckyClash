@@ -38,10 +38,11 @@ Based on Decky Loader architecture, Decky Clash consists of the following compon
 │       │   ├── yacd
 │       │   ├── zashboard
 │       │   └── ...         # Other dashboards
-│       ├── asn.mmdb        # Geo files (also below)
-│       ├── geoip.dat
-│       ├── geoip.metadb
-│       └── geosite.dat
+│       ├── ASN.mmdb        # Geo files (also below)
+│       ├── BundleMRS.7z    # Bundled MRS rule sets
+│       ├── GeoIP.dat
+│       ├── GeoIP.metadb
+│       └── GeoSite.dat
 ├── settings
 │   └── DeckyClash
 │       ├── subscriptions   # Subscription files

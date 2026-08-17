@@ -26,7 +26,7 @@ import { FC, useEffect, useLayoutEffect, useState } from "react";
 import { t } from 'i18next';
 import { QRCodeCanvas } from "qrcode.react";
 
-import { About, Import, Manage } from "./pages";
+import { About, Backup, Import, Manage } from "./pages";
 import { backend, Config, EnhancedMode, ResourceType } from "./backend";
 import {
   ClashMode,
@@ -37,7 +37,7 @@ import {
   streamMemory,
   streamTraffic,
 } from "./backend/core";
-import { ActionButtonItem, IconButton, RowField } from "./components";
+import { ActionButtonItem, FullWidthFieldScope, IconButton, RowField } from "./components";
 import { localizationManager, L } from "./i18n";
 import { DeckyClashIcon, TIPS_TIMEOUT } from "./global";
 import { FaExternalLinkAlt, FaPencilAlt } from "react-icons/fa";
@@ -100,7 +100,7 @@ const Content: FC<{}> = ({ }) => {
   const [initialized, setInitialized] = useState(false);
   const [qrPageUrl, setQRPageUrl] = useState<string>();
   const [currentIP, setCurrentIP] = useState<string>(localIP);
-  const [clashMode, setClashMode] = useState<ClashMode | null>(null);
+  const [clashMode, setClashMode] = useState<ClashMode>("rule");
   const [traffic, setTraffic] = useState<Traffic | null>(null);
   const [memory, setMemory] = useState<Memory | null>(null);
 
@@ -180,10 +180,10 @@ const Content: FC<{}> = ({ }) => {
     try {
       const mode = await getClashMode(controllerPort, secret);
       console.log(mode);
-      setClashMode(mode);
+      setClashMode(mode || "rule");
     } catch (e) {
       console.error(e);
-      setClashMode(null);
+      setClashMode("rule");
     }
   };
 
@@ -195,7 +195,7 @@ const Content: FC<{}> = ({ }) => {
       scaled /= 1024;
       index++;
     }
-    return `${scaled.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+    return `${scaled.toFixed(index === 0 || scaled >= 100 ? 0 : 1)} ${units[index]}`;
   };
 
   const fetchAllConfig = async () => {
@@ -242,7 +242,7 @@ const Content: FC<{}> = ({ }) => {
     if (clashState)
       fetchClashMode();
     else
-      setClashMode(null);
+      setClashMode("rule");
   }, [clashState]);
 
   useEffect(() => {
@@ -351,7 +351,7 @@ const Content: FC<{}> = ({ }) => {
   }, [overrideDNS, enhancedMode, allowRemoteAccess])
 
   return (
-    <>
+    <FullWidthFieldScope>
       <PanelSection title={t(L.SERVICE)}>
         <PanelSectionRow>
           <ToggleField
@@ -448,20 +448,21 @@ const Content: FC<{}> = ({ }) => {
             </RowField>
           </PanelSectionRow>
           <PanelSectionRow>
-            <Field
-              label={t(L.TRAFFIC)}
-            >
+            <Field label={t(L.UPLOAD)}>
               <div style={{ textAlign: "right" }}>
-                {"↑ " + (traffic ? `${formatBytes(traffic.up)}/s (${formatBytes(traffic.upTotal)})` : t(L.LOADING))}
-                <br/>
-                {"↓ " + (traffic ? `${formatBytes(traffic.down)}/s (${formatBytes(traffic.downTotal)})` : t(L.LOADING))}
+                {traffic ? `${formatBytes(traffic.up)}/s (${formatBytes(traffic.upTotal)})` : t(L.LOADING)}
               </div>
             </Field>
           </PanelSectionRow>
           <PanelSectionRow>
-            <Field
-              label={t(L.MEMORY)}
-            >
+            <Field label={t(L.DOWNLOAD)}>
+              <div style={{ textAlign: "right" }}>
+                {traffic ? `${formatBytes(traffic.down)}/s (${formatBytes(traffic.downTotal)})` : t(L.LOADING)}
+              </div>
+            </Field>
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <Field label={t(L.MEMORY)}>
               {memory ?
                 `${formatBytes(memory.inuse)}${memory.oslimit ? ` / ${formatBytes(memory.oslimit)}` : ''}` :
                 t(L.LOADING)}
@@ -481,7 +482,7 @@ const Content: FC<{}> = ({ }) => {
                 setClashMode(value.data);
                 try {
                   await patchClashMode(controllerPort, secret, value.data);
-                  getClashMode(controllerPort, secret).then(setClashMode);
+                  getClashMode(controllerPort, secret).then((mode) => setClashMode(mode || "rule"));
                 } catch (e) {
                   setClashMode(previousMode);
                   toaster.toast({
@@ -511,16 +512,7 @@ const Content: FC<{}> = ({ }) => {
         <PanelSectionRow>
           <ToggleField
             label={t(L.ALLOW_REMOTE_ACCESS)}
-            description=
-            {(allowRemoteAccess && clashState && qrPageUrl) ? (
-              <div style={{ overflowWrap: "break-word" }}>
-                <QRCodeCanvas style={{
-                  display: "block",
-                  margin: "8px auto",
-                }} value={qrPageUrl} size={128} />
-                {qrPageUrl}
-              </div>
-            ) : t(L.ALLOW_REMOTE_ACCESS_DESC) }
+            description={t(L.ALLOW_REMOTE_ACCESS_DESC)}
             checked={allowRemoteAccess}
             onChange={(value: boolean) => {
               setAllowRemoteAccess(value);
@@ -530,6 +522,19 @@ const Content: FC<{}> = ({ }) => {
             }}
           />
         </PanelSectionRow>
+        {allowRemoteAccess && clashState && qrPageUrl && (
+          <PanelSectionRow>
+            <Field description={
+              <div style={{ overflowWrap: "anywhere" }}>
+                <QRCodeCanvas style={{
+                  display: "block",
+                  margin: "8px auto",
+                }} value={qrPageUrl} size={128} />
+                {qrPageUrl}
+              </div>
+            } focusable />
+          </PanelSectionRow>
+        )}
         <PanelSectionRow>
           <ToggleField
             label={t(L.OVERRIDE_DNS)}
@@ -604,20 +609,25 @@ const Content: FC<{}> = ({ }) => {
       </PanelSection>
       <PanelSection title={t(L.VERSION)}>
         <PanelSectionRow>
-          <Field
-            focusable
-            label={t(L.PLUGIN)}
-          >
+          <Field label={t(L.PLUGIN)}>
             {pluginVersion}
           </Field>
         </PanelSectionRow>
         <PanelSectionRow>
-          <Field
-            focusable
-            label="Mihomo"
-          >
+          <Field label="Mihomo">
             {coreVersion}
           </Field>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ButtonItem
+            layout="below"
+            onClick={() => {
+              Router.CloseSideMenus();
+              Router.Navigate("/decky-clash/backup");
+            }}
+          >
+            {t(L.BACKUP_SETTINGS)}
+          </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem
@@ -631,7 +641,7 @@ const Content: FC<{}> = ({ }) => {
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
-    </>
+    </FullWidthFieldScope>
   );
 };
 
@@ -650,6 +660,11 @@ const DeckyPluginRouter: FC = () => {
           title: t(L.IMPORT),
           content: <Import />,
           route: "/decky-clash/import",
+        },
+        {
+          title: t(L.BACKUP),
+          content: <Backup />,
+          route: "/decky-clash/backup",
         },
         {
           title: t(L.ABOUT),
@@ -689,7 +704,7 @@ export default definePlugin(() => {
     // The name shown in various decky menus
     name: "Decky Clash",
     // The element displayed at the top of your plugin's menu
-    titleView: <div className={staticClasses.Title}>Decky Clash</div>,
+    title: <div className={staticClasses.Title}>Decky Clash</div>,
     // The content of your plugin's menu
     content: <Content />,
     // The icon displayed in the plugin list

@@ -8,7 +8,7 @@ import decky
 from decky import logger
 import utils
 
-LAST_CORE_VERSION = "1.19.20"
+LAST_CORE_VERSION = "1.19.25"
 
 ExitCallback = Callable[[Optional[int]], Awaitable[None]]
 
@@ -138,7 +138,7 @@ class CoreController:
 
         logger.debug(f"get_version: output: {output}")
         for s in output.decode().split(" "):
-            if s.startswith("v"):
+            if s.startswith("v") or s.startswith("alpha-"):
                 global LAST_CORE_VERSION
                 LAST_CORE_VERSION = s.strip()
                 return LAST_CORE_VERSION

@@ -31,7 +31,11 @@
 
 ## License
 
-This project is licensed by **BSD 3-Clause License** .
+This project is licensed by **BSD 3-Clause License**. See more details in [LICENSE](./LICENSE).
+
+## Frequently Asked Questions
+
+See [FAQ.md](./docs/FAQ.md#frequently-asked-questions) for details.
 
 ## Development Guide
 

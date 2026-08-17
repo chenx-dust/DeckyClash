@@ -20,3 +20,9 @@ export interface Config {
   autostart: boolean,
   skip_steam_download: boolean,
 }
+
+export interface WebDAVConfig {
+  url: string,
+  username: string,
+  password: string,
+}

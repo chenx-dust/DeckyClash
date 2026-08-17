@@ -1,5 +1,5 @@
 import { callable } from "@decky/api";
-import { Config, ResourceType } from ".";
+import { Config, ResourceType, WebDAVConfig } from ".";
 
 export const getCoreStatus = callable<[], boolean>("get_core_status");
 export const setCoreStatus = callable<[boolean], [boolean, string]>("set_core_status");
@@ -9,12 +9,17 @@ export const killCore = callable<[], boolean>("kill_core");
 export const getConfig = callable<[], Config>("get_config");
 export const getConfigValue = callable<[string], any>("get_config_value");
 export const setConfigValue = callable<[string, any], []>("set_config_value");
+export const getWebDAVConfig = callable<[], WebDAVConfig>("get_webdav_config");
+export const setWebDAVConfig = callable<[string, string, string], [boolean, string]>("set_webdav_config");
+export const testWebDAVConfig = callable<[], [boolean, string]>("test_webdav_config");
+export const backupSettingsToWebDAV = callable<[], [boolean, string]>("backup_settings_to_webdav");
+export const restoreSettingsFromWebDAV = callable<[], [boolean, string]>("restore_settings_from_webdav");
 
 export const checkUpdate = callable<[], []>("check_update");
-export const upgrade = callable<[ResourceType, string | undefined], [boolean, string]>("upgrade");
+export const upgrade = callable<[ResourceType, string?], [boolean, string]>("upgrade");
 export const cancelUpgrade = callable<[ResourceType], []>("cancel_upgrade");
 export const getVersion = callable<[ResourceType], string>("get_version");
-export const getLatestVersion = callable<[ResourceType], string>("get_latest_version");
+export const getLatestVersion = callable<[ResourceType, string?], string>("get_latest_version");
 export const isUpgrading = callable<[ResourceType], boolean>("is_upgrading");
 
 export const installGeos = callable<[], [boolean, string]>("install_geos");

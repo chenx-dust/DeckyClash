@@ -27,20 +27,24 @@ export const About: FC = () => {
           <br />
           <b>{t(L.STORE_VERSION_TIPS)}</b>
         </DescriptionField>
-        <Field
-          label={t(L.INSTALLED_VERSION)} focusable >
+        <Field label={t(L.INSTALLED_VERSION)} focusable>
           {version}
         </Field>
+        <Field label={t(L.LICENSE)} focusable>
+          BSD 3-Clause
+        </Field>
         <Field
-          icon={<FiGithub style={{ display: "block" }} />}
-          label="chenx-dust/DeckyClash"
+          label={t(L.GITHUB_REPO)}
           onClick={() => {
             Navigation.NavigateToExternalWeb(
               "https://github.com/chenx-dust/DeckyClash"
             );
           }}
         >
-          GitHub Repo
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }} >
+            <FiGithub style={{ display: "block" }} />
+            chenx-dust/DeckyClash
+          </div>
         </Field>
 
       </DialogControlsSection>
@@ -53,22 +57,24 @@ export const About: FC = () => {
           <br />
           <i>Decky Clash is powered by Mihomo.</i>
         </DescriptionField>
-        <Field
-          label={t(L.INSTALLED_VERSION)}
-          focusable={true}
-        >
+        <Field label={t(L.INSTALLED_VERSION)} focusable>
           {coreVersion}
         </Field>
+        <Field label={t(L.LICENSE)} focusable>
+          GPL 3.0
+        </Field>
         <Field
-          icon={<FiGithub style={{ display: "block" }} />}
-          label="MetaCubeX/mihomo"
+          label={t(L.GITHUB_REPO)}
           onClick={() => {
             Navigation.NavigateToExternalWeb(
               "https://github.com/MetaCubeX/mihomo/tree/Meta"
             );
           }}
         >
-          GitHub Repo
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }} >
+            <FiGithub style={{ display: "block" }} />
+            MetaCubeX/mihomo
+          </div>
         </Field>
       </DialogControlsSection>
     </DialogBody>

@@ -23,7 +23,7 @@ jobs:
       - name: Download Decky CLI
         run: |
           mkdir /tmp/decky-cli
-          curl -L -o /tmp/decky-cli/decky "https://github.com/SteamDeckHomebrew/cli/releases/download/0.0.7/decky-linux-x86_64"
+          curl -L -o /tmp/decky-cli/decky "https://github.com/SteamDeckHomebrew/cli/releases/download/0.0.8/decky-linux-x86_64"
           chmod +x /tmp/decky-cli/decky
 
           echo "/tmp/decky-cli" >> $GITHUB_PATH

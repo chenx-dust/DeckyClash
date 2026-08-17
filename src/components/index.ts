@@ -1,5 +1,6 @@
 export * from "./ActionButtonItem";
 export * from "./DescriptionField";
+export * from "./FullWidthFieldScope";
 export * from "./RowField";
 export * from "./IconButton";
 export * from "./SubscriptionField";

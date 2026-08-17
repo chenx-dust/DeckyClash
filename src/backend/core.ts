@@ -28,6 +28,26 @@ const getHeaders = (secret: string): HeadersInit => {
   };
 };
 
+const STREAM_RECONNECT_INITIAL_DELAY_MS = 1000;
+const STREAM_RECONNECT_MAX_DELAY_MS = 10000;
+
+const waitForReconnect = async (signal: AbortSignal, delayMs: number): Promise<void> => {
+  if (signal.aborted)
+    return;
+
+  await new Promise<void>((resolve) => {
+    const onAbort = () => {
+      window.clearTimeout(timer);
+      resolve();
+    };
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, delayMs);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+};
+
 const normalizeClashMode = (mode: unknown): ClashMode | null => {
   if (typeof mode !== "string")
     return null;
@@ -96,7 +116,7 @@ const streamJsonLines = async (
   path: string,
   signal: AbortSignal,
   callback: (value: unknown) => void,
-): Promise<void> => {
+): Promise<boolean> => {
   const response = await fetch(getControllerUrl(controllerPort, path), {
     method: "GET",
     headers: getHeaders(secret),
@@ -110,6 +130,7 @@ const streamJsonLines = async (
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+  let receivedData = false;
 
   while (true) {
     const { value, done } = await reader.read();
@@ -126,6 +147,7 @@ const streamJsonLines = async (
         continue;
       console.trace(`controller from ${path} stream: ${trimmed}`);
       callback(JSON.parse(trimmed));
+      receivedData = true;
     }
   }
 
@@ -133,6 +155,35 @@ const streamJsonLines = async (
   if (trimmed) {
     console.trace(`controller from ${path} stream: ${trimmed}`);
     callback(JSON.parse(trimmed));
+    receivedData = true;
+  }
+
+  return receivedData;
+};
+
+const streamJsonLinesWithReconnect = async (
+  controllerPort: number,
+  secret: string,
+  path: string,
+  signal: AbortSignal,
+  callback: (value: unknown) => void,
+): Promise<void> => {
+  let reconnectDelayMs = STREAM_RECONNECT_INITIAL_DELAY_MS;
+
+  while (!signal.aborted) {
+    try {
+      const receivedData = await streamJsonLines(controllerPort, secret, path, signal, callback);
+      reconnectDelayMs = receivedData
+        ? STREAM_RECONNECT_INITIAL_DELAY_MS
+        : Math.min(reconnectDelayMs * 2, STREAM_RECONNECT_MAX_DELAY_MS);
+    } catch (e) {
+      if (signal.aborted)
+        break;
+      console.error(`controller ${path} stream disconnected`, e);
+      reconnectDelayMs = Math.min(reconnectDelayMs * 2, STREAM_RECONNECT_MAX_DELAY_MS);
+    }
+
+    await waitForReconnect(signal, reconnectDelayMs);
   }
 };
 
@@ -142,7 +193,7 @@ export const streamTraffic = async (
   signal: AbortSignal,
   callback: (traffic: Traffic) => void,
 ): Promise<void> => {
-  await streamJsonLines(controllerPort, secret, "/traffic", signal, (value) => {
+  await streamJsonLinesWithReconnect(controllerPort, secret, "/traffic", signal, (value) => {
     const traffic = normalizeTraffic(value);
     if (traffic)
       callback(traffic);
@@ -155,7 +206,7 @@ export const streamMemory = async (
   signal: AbortSignal,
   callback: (memory: Memory) => void,
 ): Promise<void> => {
-  await streamJsonLines(controllerPort, secret, "/memory", signal, (value) => {
+  await streamJsonLinesWithReconnect(controllerPort, secret, "/memory", signal, (value) => {
     const memory = normalizeMemory(value);
     if (memory)
       callback(memory);

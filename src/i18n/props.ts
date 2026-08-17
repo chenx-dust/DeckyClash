@@ -1,5 +1,6 @@
 import schinese from "./schinese.json";
 import english from "./english.json";
+import russian from "./russian.json";
 
 export interface LanguageProps {
   label: string;
@@ -24,6 +25,12 @@ export const langProps: { [key: string]: LanguageProps } = {
     strings: english,
     credit: [],
     locale: "en",
+  },
+  russian: {
+    label: "Русский",
+    strings: russian,
+    credit: [],
+    locale: "ru",
   },
 };
 

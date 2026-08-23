@@ -19,6 +19,7 @@ export const checkUpdate = callable<[], []>("check_update");
 export const upgrade = callable<[ResourceType, string?], [boolean, string]>("upgrade");
 export const cancelUpgrade = callable<[ResourceType], []>("cancel_upgrade");
 export const getVersion = callable<[ResourceType], string>("get_version");
+export const getArchitecture = callable<[], string>("get_architecture");
 export const getLatestVersion = callable<[ResourceType, string?], string>("get_latest_version");
 export const isUpgrading = callable<[ResourceType], boolean>("is_upgrading");
 

@@ -95,6 +95,7 @@
   "META_CHANNEL": "Ветка Meta",
   "ALPHA_CHANNEL": "Ветка Alpha",
   "GENERAL": "Общие",
+  "CURRENT_ARCHITECTURE": "Текущая архитектура",
   "AUTO_CHECK_UPDATE": "Автоматически проверять наличие обновлений",
   "AUTO_UPDATE_SUBSCRIPTION": "Автоматическое обновление подписок",
   "MISC": "Разное",

@@ -1,5 +1,5 @@
 import { FC, useLayoutEffect, useState } from "react";
-import { DialogBody, DialogControlsSection, DialogControlsSectionHeader, DropdownItem, Router, ToggleField } from "@decky/ui";
+import { DialogBody, DialogControlsSection, DialogControlsSectionHeader, DropdownItem, Field, Router, Spinner, ToggleField } from "@decky/ui";
 import { t } from 'i18next';
 import { L } from "../i18n";
 import { backend, ResourceType } from "../backend";
@@ -9,6 +9,7 @@ import { BsCheckCircleFill, BsExclamationCircleFill } from "react-icons/bs";
 import { ActionButtonItem } from "../components";
 
 export const Upgrade: FC = () => {
+  const [architecture, setArchitecture] = useState<string>();
   const [pluginCurrent, setPluginCurrent] = useState<string>();
   const [pluginLatest, setPluginLatest] = useState<string>();
   const [coreCurrent, setCoreCurrent] = useState<string>();
@@ -24,6 +25,7 @@ export const Upgrade: FC = () => {
   );
 
   useLayoutEffect(() => {
+    backend.getArchitecture().then(setArchitecture);
     backend.getConfigValue("auto_check_update").then((value) => {
       setAutoCheckUpdate(value);
       window.localStorage.setItem("decky-clash-auto-check-update", value.toString());
@@ -94,6 +96,9 @@ export const Upgrade: FC = () => {
             localStorage.setItem("decky-clash-auto-check-update", x.toString());
           }}
         />
+        <Field label={t(L.CURRENT_ARCHITECTURE)}>
+          {architecture ?? <Spinner style={{ margin: '0px 8px', width: '1.1em' }} />}
+        </Field>
       </DialogControlsSection>
       <UpgradeItem label={t(L.PLUGIN)} current={pluginCurrent} latest={pluginLatest}
         progressEvent="dl_plugin_progress"

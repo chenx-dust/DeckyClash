@@ -305,6 +305,9 @@ class Plugin:
         logger.debug(f"get_version: {res} {version}")
         return version
 
+    async def get_architecture(self) -> str:
+        return upgrade.get_mihomo_arch()
+
     async def get_latest_version(self, res: str, channel: str = "") -> str:
         if res not in upgrade.RESOURCE_TYPE_VALUES:
             logger.error(f"get_latest_version: invalid resource {res}")

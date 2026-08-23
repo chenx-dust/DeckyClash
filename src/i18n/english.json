@@ -95,6 +95,7 @@
     "META_CHANNEL": "Meta Branch",
     "ALPHA_CHANNEL": "Alpha Branch",
     "GENERAL": "General",
+    "CURRENT_ARCHITECTURE": "Current Architecture",
     "AUTO_CHECK_UPDATE": "Check Update Automatically",
     "AUTO_UPDATE_SUBSCRIPTION": "Update Subscriptions Automatically",
     "MISC": "Miscellaneous",

@@ -96,6 +96,7 @@
     "META_CHANNEL": "Meta 分支",
     "ALPHA_CHANNEL": "Alpha 分支",
     "GENERAL": "通用",
+    "CURRENT_ARCHITECTURE": "当前架构",
     "AUTO_CHECK_UPDATE": "自动检查更新",
     "AUTO_UPDATE_SUBSCRIPTION": "自动更新订阅",
     "MISC": "杂项",

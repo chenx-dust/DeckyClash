@@ -66,14 +66,27 @@ jobs:
           zip -r DeckyClash.zip DeckyClash
           cd ..
 
-      - name: Packing offine installer
+      - name: Pack offline installers
         run: |
-          OVERRIDE_PLUGIN_DIR="release/DeckyClash" OVERRIDE_DATA_DIR="release/DeckyClash/data" ./install.sh --yes --no-privilege --without-plugin --without-restart
-          cp install-offline.sh release/Installer-DeckyClash.sh
-          cd release
-          zip -r DeckyClash-full.zip DeckyClash
-          cat DeckyClash-full.zip >> Installer-DeckyClash.sh
-          cd ..
+          for ARCH in amd64 arm64; do
+            OFFLINE_DIR="release/offline-${ARCH}"
+            mkdir -p "${OFFLINE_DIR}"
+            cp -R release/DeckyClash "${OFFLINE_DIR}/DeckyClash"
+            OVERRIDE_MIHOMO_ARCH="${ARCH}" \
+              OVERRIDE_PLUGIN_DIR="${OFFLINE_DIR}/DeckyClash" \
+              OVERRIDE_DATA_DIR="${OFFLINE_DIR}/DeckyClash/data" \
+              ./install.sh --yes --no-privilege --without-plugin --without-restart
+            (
+              cd "${OFFLINE_DIR}"
+              zip -r "../DeckyClash-full-linux-${ARCH}.zip" DeckyClash
+            )
+            cp install-offline.sh "release/Installer-DeckyClash-linux-${ARCH}.sh"
+            cat "release/DeckyClash-full-linux-${ARCH}.zip" >> "release/Installer-DeckyClash-linux-${ARCH}.sh"
+          done
+
+          # Keep the historical filenames as amd64 aliases for existing links.
+          cp release/DeckyClash-full-linux-amd64.zip release/DeckyClash-full.zip
+          cp release/Installer-DeckyClash-linux-amd64.sh release/Installer-DeckyClash.sh
 
       - name: Publish artifacts
         uses: actions/upload-artifact@v4
@@ -82,7 +95,11 @@ jobs:
           path: |
             ./release/DeckyClash.zip
             ./release/DeckyClash-full.zip
+            ./release/DeckyClash-full-linux-amd64.zip
+            ./release/DeckyClash-full-linux-arm64.zip
             ./release/Installer-DeckyClash.sh
+            ./release/Installer-DeckyClash-linux-amd64.sh
+            ./release/Installer-DeckyClash-linux-arm64.sh
             ./release/version.txt
           if-no-files-found: error
 

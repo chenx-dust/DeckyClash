@@ -2,6 +2,7 @@ import asyncio
 from enum import Enum
 import gzip
 import os
+import platform
 import shutil
 import stat
 import tempfile
@@ -72,6 +73,14 @@ class ResourceType(Enum):
 
 RESOURCE_TYPE_ENUMS = [ResourceType.PLUGIN, ResourceType.CORE]
 RESOURCE_TYPE_VALUES = [e.value for e in RESOURCE_TYPE_ENUMS]
+
+def get_mihomo_arch() -> str:
+    machine = platform.machine().lower()
+    if machine in ("x86_64", "amd64"):
+        return "amd64"
+    if machine in ("aarch64", "arm64"):
+        return "arm64"
+    raise RuntimeError(f"Unsupported architecture for Mihomo: {machine}")
 
 async def upgrade_plugin(version: str) -> None:
     logger.info("upgrade_plugin: upgrading")
@@ -163,9 +172,9 @@ _URL_MAP: Dict[ResourceType, Callable[[str], str]] = {
         else f"https://github.com/{PACKAGE_REPO}/releases/download/{ver}/DeckyClash.zip"
     ),
     ResourceType.CORE: lambda ver: (
-        f"https://github.com/{CORE_REPO}/releases/download/Prerelease-Alpha/mihomo-linux-amd64-{ver}.gz"
+        f"https://github.com/{CORE_REPO}/releases/download/Prerelease-Alpha/mihomo-linux-{get_mihomo_arch()}-{ver}.gz"
         if ver.startswith("alpha-")
-        else f"https://github.com/{CORE_REPO}/releases/download/{ver}/mihomo-linux-amd64-{ver}.gz"
+        else f"https://github.com/{CORE_REPO}/releases/download/{ver}/mihomo-linux-{get_mihomo_arch()}-{ver}.gz"
     ),
 }
 

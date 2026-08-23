@@ -40,6 +40,7 @@ function usage() {
   echo '  OVERRIDE_BASE_DIR           Override default: "${HOME}/homebrew"'
   echo '  OVERRIDE_PLUGIN_DIR         Override default: "${BASE_DIR}/plugins/${PACKAGE}"'
   echo '  OVERRIDE_DATA_DIR           Override default: "${BASE_DIR}/data/${PACKAGE}"'
+  echo '  OVERRIDE_MIHOMO_ARCH        Override detected Mihomo architecture: amd64 or arm64'
   echo
   echo "Examples:"
   echo "  Basic install:   curl -L ${SCRIPT_URL} | bash"
@@ -77,6 +78,22 @@ function prompt_continue() {
     echo "Invalid response. Not continuing."
     false
   fi
+}
+
+function resolve_mihomo_arch() {
+  local machine="${OVERRIDE_MIHOMO_ARCH:-$(uname -m)}"
+  case "${machine}" in
+    x86_64|amd64)
+      echo "amd64"
+      ;;
+    aarch64|arm64)
+      echo "arm64"
+      ;;
+    *)
+      echo "Unsupported architecture for Mihomo: ${machine}" >&2
+      return 1
+      ;;
+  esac
 }
 
 function clean_all {
@@ -209,13 +226,14 @@ if prompt_continue $WITHOUT_BINARY; then
   $SUDO mkdir -p "${BIN_DIR}"
 	echo "Installing Mihomo ..."
 
+  MIHOMO_ARCH=$(resolve_mihomo_arch)
   RELEASE_VERSION=$(curl -fsSL "${GITHUB_BASE_URL}/MetaCubeX/mihomo/releases/latest/download/version.txt")
-	RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/mihomo/releases/download/${RELEASE_VERSION}/mihomo-linux-amd64-${RELEASE_VERSION}.gz"
+	RELEASE_URL="${GITHUB_BASE_URL}/MetaCubeX/mihomo/releases/download/${RELEASE_VERSION}/mihomo-linux-${MIHOMO_ARCH}-${RELEASE_VERSION}.gz"
   if [ -z "${RELEASE_URL}" ]; then
     echo "Failed to get latest release" >&2
     exit 1
   fi
-  echo "Version: ${RELEASE_VERSION}"
+  echo "Version: ${RELEASE_VERSION} (${MIHOMO_ARCH})"
 
   DL_DEST="${TEMP_DIR}/mihomo.gz"
   INSTALL_DEST="${BIN_DIR}/mihomo"

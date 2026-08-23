@@ -66,20 +66,20 @@ curl -L https://ba.sh/HMtV | bash -s -- -h
 > [!NOTE]
 > This offline installer includes all necessary third-party resources. However, it may not be up-to-date as the online installer.
 
-1. Go to [Latest Release](https://github.com/chenx-dust/DeckyClash/releases/latest) and download `Installer-DeckyClash.sh` .
+1. Go to [Latest Release](https://github.com/chenx-dust/DeckyClash/releases/latest) and download the installer matching the target architecture: `Installer-DeckyClash-linux-amd64.sh` or `Installer-DeckyClash-linux-arm64.sh`. The legacy `Installer-DeckyClash.sh` is the amd64 build.
 
 2. Use any method to send the installer to your target device, e.g. USB, SCP, etc.
 
 3. Grant executable permission to the installer.
 
    ```sh
-   chmod +x Installer-DeckyClash.sh
+   chmod +x Installer-DeckyClash-linux-arm64.sh
    ```
 
 4. Run the installer and follow the instructions.
 
    ```sh
-   ./Installer-DeckyClash.sh
+   ./Installer-DeckyClash-linux-arm64.sh
    ```
 
 ## Upgrade

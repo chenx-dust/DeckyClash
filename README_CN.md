@@ -76,20 +76,20 @@ curl -L https://ba.sh/HMtV | bash -s -- --help
 > [!NOTE]
 > 离线安装包包含所有第三方资源，但无法保证最新。更加适用于目标设备无法访问 Github 的情况。
 
-1. 访问 [Latest Release](https://github.com/chenx-dust/DeckyClash/releases/latest) 页面，下载 `Installer-DeckyClash.sh` 文件。
+1. 访问 [Latest Release](https://github.com/chenx-dust/DeckyClash/releases/latest) 页面，根据目标设备架构下载 `Installer-DeckyClash-linux-amd64.sh` 或 `Installer-DeckyClash-linux-arm64.sh`。旧文件名 `Installer-DeckyClash.sh` 对应 amd64 版本。
 
 2. 用任意方法将安装包发送至目标设备，如 USB 存储设备、SCP 等。
 
 3. 授予安装包执行权限：
 
    ```sh
-   chmod +x Installer-DeckyClash.sh
+   chmod +x Installer-DeckyClash-linux-arm64.sh
    ```
 
 4. 运行安装包，遵循指示进行安装
 
    ```sh
-   ./Installer-DeckyClash.sh
+   ./Installer-DeckyClash-linux-arm64.sh
    ```
 
 ## 更新

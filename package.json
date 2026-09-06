@@ -53,28 +53,28 @@
   "remote_binary": [
     {
       "name": "mihomo.gz",
-      "url": "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.25/mihomo-linux-amd64-v1.19.25.gz",
-      "sha256hash": "de371dac9f97acc0c1d020d1fbff9ab72ad713bbcb6dfb51bce038a5e6a5430f"
+      "url": "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.30/mihomo-linux-amd64-v1.19.30.gz",
+      "sha256hash": "cf06ce2c7d1421bdbda14ee4a5b6046672dc35ebf8eecd8e77504ec3c0ed9a84"
     },
     {
-      "name": "country.mmdb",
-      "url": "https://github.com/P3TERX/GeoLite.mmdb/raw/dbb7b73e9729bad5f3acfcee3a1fb1c868890aa3/GeoLite2-Country.mmdb",
-      "sha256hash": "730d2a55c257a2515fcb1f41a8116e2019cb6f8408e3e49cd5edc2878a5244f5"
+      "name": "GeoIP.dat",
+      "url": "https://raw.githubusercontent.com/chenx-dust/meta-rules-dat/7e92831e6092911281648128a4d091248cbb2ee9/geoip.dat",
+      "sha256hash": "4149e607530f91da697bad4696f8c59f0a475af38e69405e4124438c9886c721"
     },
     {
-      "name": "geoip.dat",
-      "url": "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/4391a2415e01b01d4ff0a4d49253bec1120927e3/geoip.dat",
-      "sha256hash": "e5fb5bde7ad1377500fc780b3e02c3203916ccfd82cba854c1a7a13d58c462d3"
+      "name": "GeoSite.dat",
+      "url": "https://raw.githubusercontent.com/chenx-dust/meta-rules-dat/7e92831e6092911281648128a4d091248cbb2ee9/geosite.dat",
+      "sha256hash": "8aabda7ef33a093dab6c914a2754586258278758db3a5daf65f7cf8ad1599b64"
     },
     {
-      "name": "geosite.dat",
-      "url": "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/4391a2415e01b01d4ff0a4d49253bec1120927e3/geosite.dat",
-      "sha256hash": "ae594e79c9fc9f9f80b0e00e3e1554057755c9747d6584e803ac8e4c8714d5b4"
+      "name": "ASN.mmdb",
+      "url": "https://raw.githubusercontent.com/chenx-dust/meta-rules-dat/7e92831e6092911281648128a4d091248cbb2ee9/GeoLite2-ASN.mmdb",
+      "sha256hash": "37279508b91bb26fe6043897490fe2ba02d95a7521a8263e70e566239355b479"
     },
     {
-      "name": "asn.mmdb",
-      "url": "https://github.com/P3TERX/GeoLite.mmdb/raw/dbb7b73e9729bad5f3acfcee3a1fb1c868890aa3/GeoLite2-ASN.mmdb",
-      "sha256hash": "adeff0c48ba4fb560b437f411467d7c3574bcd909abaac9cb44ac1c9d5d2e816"
+      "name": "BundleMRS.7z",
+      "url": "https://raw.githubusercontent.com/chenx-dust/meta-rules-dat/7e92831e6092911281648128a4d091248cbb2ee9/BundleMRS.7z",
+      "sha256hash": "dbd2502397bc08cc744e05015ef21391bf121648d9f0e0645d83666f1f0bedd2"
     },
     {
       "name": "yacd.zip",
@@ -83,13 +83,13 @@
     },
     {
       "name": "metacubexd.zip",
-      "url": "https://github.com/MetaCubeX/metacubexd/archive/b33486fb22a483688a80b6ab1dd5b568efb78cc5.zip",
-      "sha256hash": "057929c96ab2229ca92746523a77515904d998becf1947fcbe59f518d52294c1"
+      "url": "https://github.com/MetaCubeX/metacubexd/archive/3e668fe65b8100f8970553ac59d0a88c8de68e21.zip",
+      "sha256hash": "ff7b2ea02c9c3b748174683cf6a795fbc4c7481e964f91727c06325bd2ebe9f8"
     },
     {
       "name": "zashboard.zip",
-      "url": "https://github.com/Zephyruso/zashboard/releases/download/v3.5.1/dist-cdn-fonts.zip",
-      "sha256hash": "c8ad88eca17edf6d9298a928a2de16c49aed4fc152501b9636935859dfe90452"
+      "url": "https://github.com/Zephyruso/zashboard/releases/download/v3.25.0/dist-cdn-fonts.zip",
+      "sha256hash": "d00cedfc99eb67f9f89bc075e7f8191679439c40f1ed9455d7dd2eddf2713305"
     }
   ]
 }

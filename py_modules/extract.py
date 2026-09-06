@@ -69,9 +69,10 @@ async def extract_core() -> None:
         logger.info("extract_core: complete")
 
 GEO_FILES = [
-    "country.mmdb",
-    "geosite.dat",
-    "asn.mmdb",
+    "GeoIP.dat",
+    "GeoSite.dat",
+    "ASN.mmdb",
+    "BundleMRS.7z"
 ]
 
 async def extract_geos():

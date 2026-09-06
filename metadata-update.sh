@@ -53,14 +53,15 @@ function download_file() {
     local url="$1"
     local output="$2"
     echo "Downloading ..."
-    curl -sL -o "$output" "$url"
+    curl -fsSL -o "$output" "$url"
 }
 
 function check_sha256() { 
     local file="$1"
     local digest="$2"
     echo "Checking SHA256 of $file ..."
-    local file_digest=`sha256sum $file | cut -d ' ' -f 1`
+    local file_digest
+    file_digest=$(get_sha256 "$file") || return 1
     if [ "$digest" != "$file_digest" ]; then
         echo "SHA256 mismatch!"
         echo "Expected: $digest"
@@ -74,7 +75,7 @@ function check_sha256() {
 
 function get_sha256() {
     local file="$1"
-    sha256sum $file | cut -d ' ' -f 1
+    sha256sum "$file" | cut -d ' ' -f 1
 }
 
 function edit_json() {
@@ -92,6 +93,30 @@ function edit_json() {
             end
         ))' package.json > "${TEMP_DIR}/package.json"
     mv "${TEMP_DIR}/package.json" package.json
+}
+
+function update_geodata() {
+    local repo_name="$1"
+    local commit_id="$2"
+    local file_name="$3"
+    local dest_name="$4"
+    local url="https://raw.githubusercontent.com/${repo_name}/${commit_id}/${file_name}"
+    local digest
+    local checksum_entry
+
+    echo "Checking $repo_name $file_name ..."
+    echo "URL: ${url}"
+    download_file "${url}.sha256sum" "$TEMP_DIR/${dest_name}.sha256sum"
+    read -r digest checksum_entry < "$TEMP_DIR/${dest_name}.sha256sum"
+    if [[ ! "$digest" =~ ^[[:xdigit:]]{64}$ ]]; then
+        echo "Invalid SHA256 for $file_name" >&2
+        return 1
+    fi
+    digest=$(printf '%s' "$digest" | tr '[:upper:]' '[:lower:]')
+    download_file "$url" "$TEMP_DIR/$dest_name"
+    check_sha256 "$TEMP_DIR/$dest_name" "$digest"
+    edit_json "$dest_name" "$url" "$digest"
+    echo
 }
 
 TEMP_DIR=$(mktemp -d)
@@ -114,65 +139,18 @@ echo "SHA256: ${SHA256}"
 edit_json "$DEST_NAME" "$URL" "$SHA256"
 echo
 
-REPO_NAME="P3TERX/GeoLite.mmdb"
-FILE_NAME="GeoLite2-Country.mmdb"
-DEST_NAME="country.mmdb"
-echo "Checking $REPO_NAME $FILE_NAME ..."
-JSON=`get_commit_json "$REPO_NAME" download`
-COMMIT_ID=`extract_commit_id "$JSON"`
-echo "Latest commit: ${COMMIT_ID}"
-URL=`extract_commit_url "$JSON" "$FILE_NAME"`
-echo "URL: ${URL}"
-download_file "$URL" "$TEMP_DIR/$DEST_NAME"
-SHA256=`get_sha256 "$TEMP_DIR/$DEST_NAME"`
-echo "SHA256: ${SHA256}"
-edit_json "$DEST_NAME" "$URL" "$SHA256"
-echo
-
-REPO_NAME="Loyalsoldier/v2ray-rules-dat"
-FILE_NAME="geoip.dat"
-DEST_NAME="geoip.dat"
-echo "Checking $REPO_NAME $FILE_NAME ..."
+REPO_NAME="chenx-dust/meta-rules-dat"
 JSON=`get_commit_json "$REPO_NAME" release`
 COMMIT_ID=`extract_commit_id "$JSON"`
+if [[ ! "$COMMIT_ID" =~ ^[[:xdigit:]]{40}$ ]]; then
+    echo "Invalid commit ID for $REPO_NAME" >&2
+    exit 1
+fi
 echo "Latest commit: ${COMMIT_ID}"
-URL=`extract_commit_url "$JSON" "$FILE_NAME"`
-echo "URL: ${URL}"
-download_file "$URL" "$TEMP_DIR/$DEST_NAME"
-SHA256=`get_sha256 "$TEMP_DIR/$DEST_NAME"`
-echo "SHA256: ${SHA256}"
-edit_json "$DEST_NAME" "$URL" "$SHA256"
-echo
-
-REPO_NAME="Loyalsoldier/v2ray-rules-dat"
-FILE_NAME="geosite.dat"
-DEST_NAME="geosite.dat"
-echo "Checking $REPO_NAME $FILE_NAME ..."
-JSON=`get_commit_json "$REPO_NAME" release`
-COMMIT_ID=`extract_commit_id "$JSON"`
-echo "Latest commit: ${COMMIT_ID}"
-URL=`extract_commit_url "$JSON" "$FILE_NAME"`
-echo "URL: ${URL}"
-download_file "$URL" "$TEMP_DIR/$DEST_NAME"
-SHA256=`get_sha256 "$TEMP_DIR/$DEST_NAME"`
-echo "SHA256: ${SHA256}"
-edit_json "$DEST_NAME" "$URL" "$SHA256"
-echo
-
-REPO_NAME="P3TERX/GeoLite.mmdb"
-FILE_NAME="GeoLite2-ASN.mmdb"
-DEST_NAME="asn.mmdb"
-echo "Checking $REPO_NAME $FILE_NAME ..."
-JSON=`get_commit_json "$REPO_NAME" download`
-COMMIT_ID=`extract_commit_id "$JSON"`
-echo "Latest commit: ${COMMIT_ID}"
-URL=`extract_commit_url "$JSON" "$FILE_NAME"`
-echo "URL: ${URL}"
-download_file "$URL" "$TEMP_DIR/$DEST_NAME"
-SHA256=`get_sha256 "$TEMP_DIR/$DEST_NAME"`
-echo "SHA256: ${SHA256}"
-edit_json "$DEST_NAME" "$URL" "$SHA256"
-echo
+update_geodata "$REPO_NAME" "$COMMIT_ID" "geoip.dat" "GeoIP.dat"
+update_geodata "$REPO_NAME" "$COMMIT_ID" "geosite.dat" "GeoSite.dat"
+update_geodata "$REPO_NAME" "$COMMIT_ID" "GeoLite2-ASN.mmdb" "ASN.mmdb"
+update_geodata "$REPO_NAME" "$COMMIT_ID" "BundleMRS.7z" "BundleMRS.7z"
 
 REPO_NAME="haishanh/yacd"
 DEST_NAME="yacd.zip"

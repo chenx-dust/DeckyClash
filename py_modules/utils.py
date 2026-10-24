@@ -133,7 +133,9 @@ async def download_with_progress(url: str, name: str, progress_callback: Progres
         await progress_callback(0)
         async with aiohttp.ClientSession(
             connector=aiohttp.TCPConnector(ssl=get_ssl_context()),
-            timeout=aiohttp.ClientTimeout(0)) as session:
+            timeout=aiohttp.ClientTimeout(0),
+            # GitHub's release redirect carries a CSP header larger than the default 8190 bytes
+            max_field_size=65536) as session:
             async with session.get(url) as response:
                 total_size = int(response.headers.get("Content-Length", 0))
                 logger.debug(f"downloading: {total_size} bytes")

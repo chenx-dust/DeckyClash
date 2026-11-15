@@ -91,7 +91,7 @@ def get_ip() -> str:
     if2get = next(filter(lambda x: x.startswith('wlan'), ifaces), None)
     if if2get is None:
         if2get = next(filter(lambda x: x.startswith('eth'), ifaces), None)
-    if if2get is not None:
+    if if2get is None:
         if2get = next(filter(lambda x: x.startswith("enp"), ifaces), None)
     if if2get is not None:
         ip = get_ip_by_iface(if2get)

@@ -489,7 +489,7 @@ class Plugin:
         self.settings.setSetting("subscriptions", {k: subs[k] for k in names})
 
     async def get_ip(self) -> str:
-        return utils.get_ip()
+        return await asyncio.to_thread(utils.get_ip)
 
     async def install_geos(self) -> Tuple[bool, str]:
         try:

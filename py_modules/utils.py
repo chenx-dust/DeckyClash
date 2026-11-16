@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import ipaddress
 import json
 import os
 import random
@@ -16,9 +17,13 @@ import aiohttp
 
 from decky import logger
 
-_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 SIOCGIFADDR = 0x8915
-_sockfd = _sock.fileno()
+_TUN_BENCHMARK_NET = ipaddress.IPv4Network("198.18.0.0/15")
+_PREFERRED_IFACE_PREFIXES = ("wlan", "wlp", "eth", "enp", "eno", "ens")
+_VIRTUAL_IFACE_PREFIXES = (
+    "lo", "tun", "tap", "Meta", "mihomo", "clash", "utun",
+    "docker", "veth", "br-", "virbr", "wg", "tailscale", "zt",
+)
 
 
 def init_ssl_context(disable_verify: bool) -> None:
@@ -53,18 +58,36 @@ async def get_url_to_file(url: str | urllib.request.Request, dest: str, timeout:
 def rand_thing() -> str:
     return base64.urlsafe_b64encode(random.randbytes(8)).decode()[:-1]
 
+def _is_valid_ip(ip_str: Optional[str]) -> bool:
+    """Return True if ip_str is a valid non-loopback, non-virtual LAN IPv4 address."""
+    if not ip_str:
+        return False
+    try:
+        addr = ipaddress.IPv4Address(ip_str)
+    except ValueError:
+        return False
+    if addr.is_loopback or addr.is_link_local or addr.is_unspecified or addr.is_multicast:
+        return False
+    if addr in _TUN_BENCHMARK_NET:
+        return False
+    return True
+
 def probe_iface() -> List[str]:
-    with open("/proc/net/dev", "r") as f:
-        lines = f.readlines()[2:]
-    interfaces = [line.split(':')[0].strip() for line in lines]
-    return interfaces
+    try:
+        with open("/proc/net/dev", "r") as f:
+            lines = f.readlines()[2:]
+        return [line.split(':')[0].strip() for line in lines if ':' in line]
+    except Exception as e:
+        logger.debug(f'probe_iface: failed to probe interfaces: {e}')
+        return []
 
 def get_ip_by_iface(iface: str) -> Optional[str]:
-    ifreq = struct.pack('16sH14s', iface.encode(), socket.AF_INET, b'\x00'*14)
+    ifreq = struct.pack('16sH14s', iface.encode()[:15], socket.AF_INET, b'\x00'*14)
     try:
-        res = fcntl.ioctl(_sockfd, SIOCGIFADDR, ifreq)
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            res = fcntl.ioctl(s.fileno(), SIOCGIFADDR, ifreq)
     except Exception as e:
-        logger.error(f'get_ip_by_iface: failed to get IP address by {iface} with {e}')
+        logger.debug(f'get_ip_by_iface: failed to get IP address by {iface} with {e}')
         return None
     ip = struct.unpack('16sH2x4s8x', res)[2]
     return socket.inet_ntoa(ip)
@@ -73,7 +96,7 @@ def get_ip_by_hostname() -> Optional[List[str]]:
     try:
         return socket.gethostbyname_ex(socket.gethostname())[2]
     except Exception as e:
-        logger.error(f'get_ip_by_hostname: failed to get IP address: {e}')
+        logger.debug(f'get_ip_by_hostname: failed to get IP address: {e}')
         return None
 
 def get_ip_by_connect(dest: str = "8.8.8.8", port: int = 53) -> Optional[str]:
@@ -82,34 +105,36 @@ def get_ip_by_connect(dest: str = "8.8.8.8", port: int = 53) -> Optional[str]:
             s.connect((dest, port))
             return s.getsockname()[0]
     except Exception as e:
-        logger.error(f'get_ip_by_connect: failed to get IP address: {e}')
+        logger.debug(f'get_ip_by_connect: failed to get IP address: {e}')
         return None
 
 def get_ip() -> str:
-    ip = None
     ifaces = sorted(probe_iface())
-    if2get = next(filter(lambda x: x.startswith('wlan'), ifaces), None)
-    if if2get is None:
-        if2get = next(filter(lambda x: x.startswith('eth'), ifaces), None)
-    if if2get is not None:
-        if2get = next(filter(lambda x: x.startswith("enp"), ifaces), None)
-    if if2get is not None:
-        ip = get_ip_by_iface(if2get)
-    if ip is not None:
+
+    for prefix in _PREFERRED_IFACE_PREFIXES:
+        for iface in ifaces:
+            if iface.startswith(prefix):
+                ip = get_ip_by_iface(iface)
+                if ip is not None and _is_valid_ip(ip):
+                    return ip
+
+    for iface in ifaces:
+        if iface.startswith(_PREFERRED_IFACE_PREFIXES) or iface.startswith(_VIRTUAL_IFACE_PREFIXES):
+            continue
+        ip = get_ip_by_iface(iface)
+        if ip is not None and _is_valid_ip(ip):
+            return ip
+
+    ip = get_ip_by_connect()
+    if ip is not None and _is_valid_ip(ip):
         return ip
-    ip = get_ip_by_iface('eth0')
-    if ip is not None:
-        return ip
+
     ips = get_ip_by_hostname()
     if ips is not None:
-        for i in ips:
-            if not i.startswith('127.') and not i.startswith('172.') and not i.startswith('198.'):
-                ip = i
-    if ip is not None:
-        return ip
-    ip = get_ip_by_connect()
-    if ip is not None:
-        return ip
+        for candidate in ips:
+            if _is_valid_ip(candidate):
+                return candidate
+
     return '127.0.0.1'
 
 def sanitize_filename(name: str) -> str:

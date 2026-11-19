@@ -82,7 +82,7 @@ def download_sub(
         return False, f"Exception: {e}"
 
     logger.debug(f"download_sub: status code: {resp.status}")
-    if resp.status is int and resp.status != 200:
+    if isinstance(resp.status, int) and resp.status != 200:
         logger.error(f"body: {resp.read()}")
         return False, f"Invalid status code: {resp.status}"
 

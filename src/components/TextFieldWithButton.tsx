@@ -35,7 +35,6 @@ export const TextFieldWithButton: FC<TextFieldWithButtonProps> =
               <TextField
                 value={props.value}
                 disabled={props.disabled}
-                /* @ts-expect-error */
                 placeholder={props.placeholder}
                 mustBeURL={true}
                 onChange={props.onChange}

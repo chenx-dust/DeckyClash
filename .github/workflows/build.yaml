@@ -84,20 +84,14 @@ jobs:
             cat "release/DeckyClash-full-linux-${ARCH}.zip" >> "release/Installer-DeckyClash-linux-${ARCH}.sh"
           done
 
-          # Keep the historical filenames as amd64 aliases for existing links.
-          cp release/DeckyClash-full-linux-amd64.zip release/DeckyClash-full.zip
-          cp release/Installer-DeckyClash-linux-amd64.sh release/Installer-DeckyClash.sh
-
       - name: Publish artifacts
         uses: actions/upload-artifact@v4
         with:
           name: deckyclash-artifacts
           path: |
             ./release/DeckyClash.zip
-            ./release/DeckyClash-full.zip
             ./release/DeckyClash-full-linux-amd64.zip
             ./release/DeckyClash-full-linux-arm64.zip
-            ./release/Installer-DeckyClash.sh
             ./release/Installer-DeckyClash-linux-amd64.sh
             ./release/Installer-DeckyClash-linux-arm64.sh
             ./release/version.txt

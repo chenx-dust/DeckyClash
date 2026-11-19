@@ -15,6 +15,7 @@ import decky
 from decky import logger
 
 from external import ExternalServer
+import logs
 import subscription
 import upgrade
 import webdav_backup
@@ -34,9 +35,7 @@ class Plugin:
             logger.error(f"initialize_plugin: failed with {e}")
             logger.debug(f"stack trace: {utils.get_traceback(e)}")
 
-        level = self._get("log_level")
-        logger.setLevel(logging.getLevelNamesMapping()[level])
-        logger.info(f"log level set to {level}")
+        self._apply_log_level()
         logger.debug(f"os: {os.uname()}")
         logger.debug(f"environments: {os.environ}")
         logger.debug(f"settings: {self.settings.settings}")
@@ -89,6 +88,74 @@ class Plugin:
                 logger.error(f"external_upload_callback: runtime error {e}")
                 return web.json_response({"error": str(e)}, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
         self.external.register_callback("/upload_sub", _upload_callback)
+        async def _list_logs_callback(request: web.Request) -> web.Response:
+            import http
+            if request.method != "GET":
+                return web.json_response({"error": "method not allowed"}, status=http.HTTPStatus.METHOD_NOT_ALLOWED)
+            try:
+                log_files = await asyncio.to_thread(logs.list_logs)
+                return web.json_response(
+                    {"logs": log_files},
+                    status=http.HTTPStatus.OK,
+                    headers={"Cache-Control": "no-store"},
+                )
+            except Exception as e:
+                logger.error(f"external_list_logs_callback: error {e}")
+                logger.debug(f"stack trace: {utils.get_traceback(e)}")
+                return web.json_response({"error": str(e)}, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+        self.external.register_callback("/list_logs", _list_logs_callback)
+        async def _view_log_callback(request: web.Request) -> web.Response:
+            import http
+            if request.method != "GET":
+                return web.json_response({"error": "method not allowed"}, status=http.HTTPStatus.METHOD_NOT_ALLOWED)
+            try:
+                name = request.query.get("name")
+                if not name:
+                    raise ValueError("missing log name")
+                data = await asyncio.to_thread(logs.read_log_content, name)
+                return web.json_response(
+                    data,
+                    status=http.HTTPStatus.OK,
+                    headers={"Cache-Control": "no-store"},
+                )
+            except ValueError as e:
+                logger.error(f"external_view_log_callback: value error {e}")
+                return web.json_response({"error": str(e)}, status=http.HTTPStatus.BAD_REQUEST)
+            except FileNotFoundError as e:
+                logger.error(f"external_view_log_callback: not found {e}")
+                return web.json_response({"error": str(e)}, status=http.HTTPStatus.NOT_FOUND)
+            except Exception as e:
+                logger.error(f"external_view_log_callback: error {e}")
+                logger.debug(f"stack trace: {utils.get_traceback(e)}")
+                return web.json_response({"error": str(e)}, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+        self.external.register_callback("/view_log", _view_log_callback)
+        async def _download_log_callback(request: web.Request) -> web.StreamResponse:
+            import http
+            if request.method not in ("GET", "HEAD"):
+                return web.json_response({"error": "method not allowed"}, status=http.HTTPStatus.METHOD_NOT_ALLOWED)
+            try:
+                name = request.query.get("name")
+                if not name:
+                    raise ValueError("missing log name")
+                file_path = await asyncio.to_thread(logs.resolve_log_path, name)
+                return web.FileResponse(
+                    path=file_path,
+                    headers={
+                        "Content-Disposition": logs.build_content_disposition(file_path.name),
+                        "Cache-Control": "no-store",
+                    },
+                )
+            except ValueError as e:
+                logger.error(f"external_download_log_callback: value error {e}")
+                return web.json_response({"error": str(e)}, status=http.HTTPStatus.BAD_REQUEST)
+            except FileNotFoundError as e:
+                logger.error(f"external_download_log_callback: not found {e}")
+                return web.json_response({"error": str(e)}, status=http.HTTPStatus.NOT_FOUND)
+            except Exception as e:
+                logger.error(f"external_download_log_callback: error {e}")
+                logger.debug(f"stack trace: {utils.get_traceback(e)}")
+                return web.json_response({"error": str(e)}, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+        self.external.register_callback("/download_log", _download_log_callback)
         if self._get("external_run_bg"):
             await self.set_external_status(True)
 
@@ -259,6 +326,7 @@ class Plugin:
                 self._get("timeout"),
             )
             self._load_settings()
+            self._apply_log_level()
             return True, ""
         except Exception as e:
             logger.error(f"restore_settings_from_webdav: failed with {e}")
@@ -530,6 +598,63 @@ class Plugin:
             if current and latest and current != latest:
                 logger.info(f"check_update: {res} {channel or 'latest'} {current} => {latest}")
                 await decky.emit("upgrade_notice", f"{name_map[res]}: {current} => {latest}")
+
+    async def get_log_level(self) -> str:
+        return logs.normalize_log_level(self._get("log_level", True)) or logging.getLevelName(logging.INFO)
+
+    async def set_log_level(self, level: str) -> Tuple[bool, str]:
+        normalized = logs.normalize_log_level(level)
+        if normalized is None:
+            logger.error(f"set_log_level: invalid level {level}")
+            return False, f"Invalid log level: {level}"
+        self.settings.setSetting("log_level", normalized)
+        logger.setLevel(logging.getLevelNamesMapping()[normalized])
+        logger.info(f"log level set to {normalized}")
+        return True, ""
+
+    async def get_log_files(self) -> List[Dict[str, Any]]:
+        try:
+            return await asyncio.to_thread(
+                logs.list_logs,
+                decky.DECKY_PLUGIN_LOG_DIR,
+                getattr(decky, "DECKY_PLUGIN_LOG", None),
+            )
+        except Exception as e:
+            logger.error(f"get_log_files: failed with {e}")
+            return []
+
+    async def get_log_content(
+        self,
+        filename: str,
+        max_lines: int = logs.DEFAULT_MAX_LINES,
+    ) -> Tuple[bool, Optional[Dict[str, Any]], str]:
+        for target_logger in (logger, logging.getLogger()):
+            for handler in getattr(target_logger, "handlers", ()):
+                try:
+                    handler.flush()
+                except Exception:
+                    pass
+        try:
+            data = await asyncio.to_thread(
+                logs.read_log_content,
+                filename,
+                max_lines,
+                logs.DEFAULT_MAX_BYTES,
+                decky.DECKY_PLUGIN_LOG_DIR,
+            )
+            return True, data, ""
+        except Exception as e:
+            logger.error(f"get_log_content: failed with {e}")
+            return False, None, str(e)
+
+    def _apply_log_level(self) -> str:
+        raw_level = self._get("log_level", True)
+        level = logs.normalize_log_level(raw_level) or logging.getLevelName(logging.INFO)
+        if raw_level != level:
+            self.settings.setSetting("log_level", level)
+        logger.setLevel(logging.getLevelNamesMapping()[level])
+        logger.info(f"log level set to {level}")
+        return level
 
     def _get(self, key: str, allow_none: bool = False) -> Any:
         if allow_none:

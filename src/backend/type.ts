@@ -26,3 +26,21 @@ export interface WebDAVConfig {
   username: string,
   password: string,
 }
+
+export type LogLevel = "DEBUG" | "INFO" | "WARNING" | "ERROR" | "CRITICAL";
+
+export interface LogFileInfo {
+  name: string;
+  size: number;
+  mtime: number;
+  is_current: boolean;
+  is_core: boolean;
+}
+
+export interface LogContent {
+  name: string;
+  content: string;
+  line_count: number;
+  size: number;
+  truncated: boolean;
+}

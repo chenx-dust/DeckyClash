@@ -7,7 +7,7 @@ import decky
 
 EXTERNAL_DIR = os.path.join(decky.DECKY_PLUGIN_DIR, "external")
 
-HandlerCallback = Callable[[web.Request], Awaitable[web.Response]]
+HandlerCallback = Callable[[web.Request], Awaitable[web.StreamResponse]]
 
 class ExternalServer:
     def __init__(self):

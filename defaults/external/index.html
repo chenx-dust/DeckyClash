@@ -11,51 +11,133 @@
 </head>
 <body>
   <div id="root">
-    <h1>
-      Decky Clash
-    </h1>
-    <p id="import-tip" class="tip">
-      Clash / Mihomo Subscription Import
-    </p>
-    <div class="input-container">
-      <input 
-        id="input-url" 
-        type="text" 
-        placeholder="Subscription Link"
-      />
-      <button 
-        id="download-btn"
-      >
-        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M0.0228571 48L48 24L0.0228571 0L0 18.6667L34.2857 24L0 29.3333L0.0228571 48Z" fill="white" />
-        </svg>
-      </button>
+    <div id="import-panel" class="import-panel">
+      <h1>
+        Decky Clash
+      </h1>
+      <p id="import-tip" class="tip">
+        Clash / Mihomo Subscription Import
+      </p>
+      <div class="input-container">
+        <input 
+          id="input-url" 
+          type="text" 
+          placeholder="Subscription Link"
+        />
+        <button 
+          id="download-btn"
+        >
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0.0228571 48L48 24L0.0228571 0L0 18.6667L34.2857 24L0 29.3333L0.0228571 48Z" fill="white" />
+          </svg>
+        </button>
+      </div>
+      <div class="inline-row">
+        <span id="import-file-tip" class="inline-label tip">
+          Import File
+        </span>
+        <input
+          id="input-file"
+          type="file"
+          accept=".yaml,.yml"
+        />
+        <button
+          id="upload-btn"
+        >
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M24 4L10 18H18V34H30V18H38L24 4Z" fill="white" />
+            <path d="M8 38V44H40V38H8Z" fill="white" />
+          </svg>
+        </button>
+      </div>
+      <div class="inline-row footer-row">
+        <div class="inline-group">
+          <span id="sel-lang" class="inline-label">Language:</span>
+          <select id="language-select">
+            <option value="en">English</option>
+            <option value="zh-CN">中文（中国）</option>
+            <option value="ru">Русский</option>
+          </select>
+        </div>
+        <button id="open-logs-btn" type="button" class="secondary-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10 9 9 9 8 9" />
+          </svg>
+          <span id="open-logs-label">View Logs</span>
+        </button>
+      </div>
     </div>
-    <div class="inline-row">
-      <span id="import-file-tip" class="inline-label tip">
-        Import File
-      </span>
-      <input
-        id="input-file"
-        type="file"
-        accept=".yaml,.yml"
-      />
-      <button
-        id="upload-btn"
-      >
-        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M24 4L10 18H18V34H30V18H38L24 4Z" fill="white" />
-          <path d="M8 38V44H40V38H8Z" fill="white" />
-        </svg>
-      </button>
-    </div>
-    <div class="inline-row">
-      <span id="sel-lang" class="inline-label">Language:</span>
-      <select id="language-select">
-        <option value="en">English</option>
-        <option value="zh-CN">中文（中国）</option>
-        <option value="ru">Русский</option>
-      </select>
+
+    <div id="logs-panel" class="logs-panel hidden">
+      <div class="logs-header">
+        <div class="logs-header-left">
+          <button id="logs-back-btn" type="button" class="secondary-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span id="logs-back-label">Back</span>
+          </button>
+          <h2 id="logs-title" class="logs-title">Logs</h2>
+          <span id="logs-count" class="logs-count hidden"></span>
+        </div>
+        <div class="logs-header-right">
+          <button id="logs-refresh-btn" type="button" class="secondary-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
+            <span id="logs-refresh-label">Refresh</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="logs-workspace" class="logs-workspace">
+        <div class="logs-list-pane">
+          <div id="logs-list" class="logs-list"></div>
+        </div>
+        <div class="logs-viewer-pane">
+          <div class="logs-viewer-toolbar">
+            <div class="logs-viewer-heading">
+              <button id="logs-mobile-back-btn" type="button" class="secondary-btn mobile-only">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                  <line x1="19" y1="12" x2="5" y2="12" />
+                  <polyline points="12 19 5 12 12 5" />
+                </svg>
+                <span id="logs-mobile-back-label">Log List</span>
+              </button>
+              <div class="logs-viewer-info">
+                <div id="log-viewer-name" class="logs-viewer-name"></div>
+                <div id="log-viewer-meta" class="logs-viewer-meta"></div>
+              </div>
+            </div>
+            <div class="logs-viewer-actions">
+              <button id="log-wrap-btn" type="button" class="secondary-btn active">
+                <span id="log-wrap-label">Wrap</span>
+              </button>
+              <button id="log-bottom-btn" type="button" class="secondary-btn">
+                <span id="log-bottom-label">Bottom</span>
+              </button>
+              <a id="log-download-btn" class="primary-btn hidden" download>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span id="log-download-label">Download</span>
+              </a>
+            </div>
+          </div>
+          <div id="log-truncated-banner" class="logs-truncated-banner hidden"></div>
+          <div id="log-viewer-placeholder" class="logs-placeholder"></div>
+          <pre id="log-content" class="logs-content wrap hidden"></pre>
+        </div>
+      </div>
     </div>
   </div>
 

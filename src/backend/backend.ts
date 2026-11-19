@@ -1,5 +1,5 @@
 import { callable } from "@decky/api";
-import { Config, ResourceType, WebDAVConfig } from ".";
+import { Config, LogContent, LogFileInfo, LogLevel, ResourceType, WebDAVConfig } from ".";
 
 export const getCoreStatus = callable<[], boolean>("get_core_status");
 export const setCoreStatus = callable<[boolean], [boolean, string]>("set_core_status");
@@ -40,3 +40,8 @@ export const getDashboardList = callable<[], string[]>("get_dashboard_list");
 
 export const getIP = callable<[], string>("get_ip");
 export const setExternalStatus = callable<[boolean], []>("set_external_status");
+
+export const getLogLevel = callable<[], LogLevel>("get_log_level");
+export const setLogLevel = callable<[LogLevel], [boolean, string]>("set_log_level");
+export const getLogFiles = callable<[], LogFileInfo[]>("get_log_files");
+export const getLogContent = callable<[string, number?], [boolean, LogContent | null, string]>("get_log_content");

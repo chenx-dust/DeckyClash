@@ -133,6 +133,11 @@ function t(key) {
   return (translations[currentLanguage] && translations[currentLanguage][key]) || translations['en'][key] || key;
 }
 
+// Log level patterns
+const LOG_ERROR_RE = /\b(ERROR|CRITICAL|FATAL)\b|level=(error|fatal)/i;
+const LOG_WARN_RE = /\b(WARN|WARNING)\b|level=(warn|warning)/i;
+const LOG_DEBUG_RE = /\bDEBUG\b|level=debug/i;
+
 // Log viewer state
 const logState = {
   inLogsPanel: false,
@@ -143,6 +148,7 @@ const logState = {
   viewerLoading: false,
   viewerError: null,
   viewerData: null,
+  renderedViewerData: null,
   wrapLines: true,
   listRequestId: 0,
   viewRequestId: 0,
@@ -617,6 +623,60 @@ function renderLogList() {
   });
 }
 
+function getLogLineLevel(line) {
+  if (LOG_ERROR_RE.test(line)) {
+    return 'error';
+  }
+  if (LOG_WARN_RE.test(line)) {
+    return 'warn';
+  }
+  if (LOG_DEBUG_RE.test(line)) {
+    return 'debug';
+  }
+  return null;
+}
+
+function renderColoredLogContent(contentEl, text) {
+  const fragment = document.createDocumentFragment();
+  const lines = text.split('\n');
+
+  const appendRun = (level, chunk) => {
+    if (!chunk) {
+      return;
+    }
+    if (level === null) {
+      fragment.appendChild(document.createTextNode(chunk));
+      return;
+    }
+    const span = document.createElement('span');
+    span.className = `log-level-${level}`;
+    span.textContent = chunk;
+    fragment.appendChild(span);
+  };
+
+  let runLevel = null;
+  let runLines = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const level = getLogLineLevel(line);
+    if (i > 0 && level !== runLevel) {
+      appendRun(runLevel, `${runLines.join('\n')}\n`);
+      runLevel = level;
+      runLines = [line];
+    } else {
+      if (i === 0) {
+        runLevel = level;
+      }
+      runLines.push(line);
+    }
+  }
+
+  appendRun(runLevel, runLines.join('\n'));
+  contentEl.textContent = '';
+  contentEl.appendChild(fragment);
+}
+
 function renderLogViewer() {
   const workspace = document.getElementById('logs-workspace');
   const nameEl = document.getElementById('log-viewer-name');
@@ -648,6 +708,7 @@ function renderLogViewer() {
     metaEl.textContent = '';
     bannerEl.textContent = '';
     bannerEl.classList.add('hidden');
+    logState.renderedViewerData = null;
     contentEl.textContent = '';
     contentEl.classList.add('hidden');
     placeholderEl.className = 'logs-placeholder';
@@ -667,6 +728,7 @@ function renderLogViewer() {
     }
     bannerEl.textContent = '';
     bannerEl.classList.add('hidden');
+    logState.renderedViewerData = null;
     contentEl.textContent = '';
     contentEl.classList.add('hidden');
     placeholderEl.className = 'logs-placeholder';
@@ -680,6 +742,7 @@ function renderLogViewer() {
     metaEl.textContent = '';
     bannerEl.textContent = '';
     bannerEl.classList.add('hidden');
+    logState.renderedViewerData = null;
     contentEl.textContent = '';
     contentEl.classList.add('hidden');
     placeholderEl.className = 'logs-placeholder error';
@@ -703,6 +766,7 @@ function renderLogViewer() {
     }
 
     if (!data.content) {
+      logState.renderedViewerData = null;
       contentEl.textContent = '';
       contentEl.classList.add('hidden');
       placeholderEl.className = 'logs-placeholder';
@@ -711,7 +775,10 @@ function renderLogViewer() {
       bottomBtn.disabled = true;
     } else {
       placeholderEl.classList.add('hidden');
-      contentEl.textContent = data.content;
+      if (logState.renderedViewerData !== data) {
+        renderColoredLogContent(contentEl, data.content);
+        logState.renderedViewerData = data;
+      }
       contentEl.classList.remove('hidden');
       bottomBtn.disabled = false;
     }
